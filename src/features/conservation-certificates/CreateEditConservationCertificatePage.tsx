@@ -1,0 +1,225 @@
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { ConservationCertificate } from '../../types/index';
+import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
+import * as api from '../../lib/api/supabaseApi';
+import { useToast } from '../../components/common/Toast';
+import { validateDateRange, validateRequired, sanitizeInput } from '../../lib/utils/validation';
+import { Input } from '../../components/common/Input';
+import { Button } from '../../components/common/Button';
+import { FileUpload } from '../../components/common/FileUpload';
+import { SkeletonForm } from '../../components/common/SkeletonLoader';
+import { PdfPreview } from '../../components/common/PdfPreview';
+import PageLayout from '../../components/layout/PageLayout';
+
+const CreateEditConservationCertificatePage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const { showSuccess, showError } = useToast();
+
+  const emptyCertificate: Omit<ConservationCertificate, 'id' | 'companyId'> = {
+    presentationDate: '',
+    expirationDate: '',
+    intervener: '',
+    registrationNumber: '',
+    pdfFile: undefined,
+    pdfFileName: undefined
+  };
+
+  const [currentFormData, setCurrentFormData] = useState<Omit<ConservationCertificate, 'id' | 'companyId'>>(emptyCertificate);
+
+  useEffect(() => {
+    if (id) {
+      setIsLoadingData(true);
+      api.getCertificates().then(certs => {
+        const certToEdit = certs.find(c => c.id === id);
+        if (certToEdit) {
+          setCurrentFormData({ ...emptyCertificate, ...certToEdit });
+        } else {
+          showError("Certificado no encontrado.");
+          navigate(ROUTE_PATHS.CONSERVATION_CERTIFICATES);
+        }
+      }).catch(err => {
+        showError(err.message || "Error al cargar datos del certificado.");
+        navigate(ROUTE_PATHS.CONSERVATION_CERTIFICATES);
+      }).finally(() => setIsLoadingData(false));
+    } else {
+      setCurrentFormData(emptyCertificate);
+    }
+  }, [id, navigate, showError]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setCurrentFormData(prev => ({ ...prev, [name]: value }));
+
+    // Clear field error when user types
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleFileChange = (file: File | null) => {
+    setCurrentFormData(prev => ({ ...prev, pdfFile: file || undefined, pdfFileName: file?.name || prev.pdfFileName }));
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    // Validate required fields
+    const intervenerValidation = validateRequired(currentFormData.intervener, 'Personal Interviniente');
+    if (!intervenerValidation.valid) errors.intervener = intervenerValidation.error!;
+
+    const registrationValidation = validateRequired(currentFormData.registrationNumber, 'Matrícula');
+    if (!registrationValidation.valid) errors.registrationNumber = registrationValidation.error!;
+
+    const presentationValidation = validateRequired(currentFormData.presentationDate, 'Fecha de Presentación');
+    if (!presentationValidation.valid) errors.presentationDate = presentationValidation.error!;
+
+    const expirationValidation = validateRequired(currentFormData.expirationDate, 'Fecha de Vencimiento');
+    if (!expirationValidation.valid) errors.expirationDate = expirationValidation.error!;
+
+    // Validate date range
+    if (currentFormData.presentationDate && currentFormData.expirationDate) {
+      const dateRangeValidation = validateDateRange(
+        currentFormData.presentationDate,
+        currentFormData.expirationDate
+      );
+      if (!dateRangeValidation.valid) {
+        errors.expirationDate = dateRangeValidation.error!;
+      }
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      showError('Por favor corrija los errores en el formulario');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const dataToSubmit = {
+        ...currentFormData,
+        intervener: sanitizeInput(currentFormData.intervener),
+        registrationNumber: sanitizeInput(currentFormData.registrationNumber),
+      };
+
+      if (id) {
+        await api.updateCertificate({ ...dataToSubmit, id, companyId: MOCK_COMPANY_ID });
+        showSuccess('Certificado actualizado correctamente');
+      } else {
+        await api.createCertificate(dataToSubmit);
+        showSuccess('Certificado creado correctamente');
+      }
+
+      navigate(ROUTE_PATHS.CONSERVATION_CERTIFICATES);
+    } catch (err: any) {
+      showError(err.message || "Error al guardar certificado");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoadingData) {
+    return (
+      <PageLayout title="Cargando...">
+        <SkeletonForm />
+      </PageLayout>
+    );
+  }
+
+  const pageTitle = id ? "Editar Certificado de Conservación" : "Nuevo Certificado de Conservación";
+
+  const footerActions = (
+    <>
+      <Button
+        type="button"
+        variant="secondary"
+        onClick={() => navigate(ROUTE_PATHS.CONSERVATION_CERTIFICATES)}
+        disabled={isSubmitting}
+      >
+        Cancelar
+      </Button>
+      <Button
+        type="submit"
+        form="certificate-form"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? 'Guardando...' : (id ? "Actualizar" : "Guardar")}
+      </Button>
+    </>
+  );
+
+  return (
+    <PageLayout title={pageTitle} footer={footerActions}>
+      <form id="certificate-form" onSubmit={handleSubmit} className="space-y-6 bg-white rounded-lg border border-gray-200 p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="Fecha de Presentación"
+              id="presentationDate"
+              type="date"
+              name="presentationDate"
+              value={currentFormData.presentationDate}
+              onChange={handleChange}
+              error={fieldErrors.presentationDate}
+              required
+            />
+            <Input
+              label="Fecha de Vencimiento"
+              id="expirationDate"
+              type="date"
+              name="expirationDate"
+              value={currentFormData.expirationDate}
+              onChange={handleChange}
+              error={fieldErrors.expirationDate}
+              required
+              min={currentFormData.presentationDate || undefined}
+            />
+          </div>
+
+          <Input
+            label="Personal Interviniente"
+            id="intervener"
+            name="intervener"
+            value={currentFormData.intervener}
+            onChange={handleChange}
+            error={fieldErrors.intervener}
+            placeholder="Ej: Juan Pérez"
+            required
+          />
+
+          <Input
+            label="Matrícula / Número de Registro"
+            id="registrationNumber"
+            name="registrationNumber"
+            value={currentFormData.registrationNumber}
+            onChange={handleChange}
+            error={fieldErrors.registrationNumber}
+            placeholder="Ej: 12345"
+            required
+          />
+
+          <FileUpload
+            label="Subir PDF del Certificado"
+            accept=".pdf"
+            currentFileName={currentFormData.pdfFileName}
+            onFileSelect={handleFileChange}
+          />
+
+          <PdfPreview file={currentFormData.pdfFile} />
+        </form>
+    </PageLayout>
+  );
+};
+
+export default CreateEditConservationCertificatePage;
