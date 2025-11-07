@@ -145,8 +145,9 @@ const CreateCompanyPage: React.FC = () => {
       const newCompany = await api.createCompany(apiCompanyData);
       setCompany(newCompany);
       navigate(ROUTE_PATHS.SUBSCRIPTION);
-    } catch (err: any) { 
-      setError((err as Error).message || 'Error al crear la empresa.');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Error al crear la empresa.';
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -156,49 +157,49 @@ const CreateCompanyPage: React.FC = () => {
 
   return (
     <AuthLayout variant="wizard" wizardSteps={wizardSteps} currentStep={2}>
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto w-full">
         {showSuccessMessage && (
-          <div className="bg-green-50 border-l-4 border-green-500 text-green-900 p-4 rounded-md mb-6 flex items-start" role="alert">
-            <CheckCircleIcon className="w-5 h-5 mr-3 flex-shrink-0 mt-0.5 text-green-600" />
+          <div className="bg-green-50 border-l-4 border-green-500 text-green-900 p-3 rounded-md mb-4 flex items-start" role="alert">
+            <CheckCircleIcon className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5 text-green-600" />
             <div>
-              <p className="font-bold">¡Email Confirmado Exitosamente!</p>
-              <p className="text-sm">Ahora puede continuar configurando su empresa.</p>
+              <p className="font-bold text-sm">¡Email Confirmado Exitosamente!</p>
+              <p className="text-xs">Ahora puede continuar configurando su empresa.</p>
             </div>
           </div>
         )}
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Datos de la Empresa</h2>
-              <p className="text-gray-500 mt-1 text-sm">Complete esta información para configurar su cuenta. Podrá editarla más tarde.</p>
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="text-center">
+              <h2 className="text-lg font-bold text-gray-900">Datos de la Empresa</h2>
+              <p className="text-gray-500 mt-0.5 text-xs">Complete esta información para configurar su cuenta. Podrá editarla más tarde.</p>
             </div>
-            
-            <div className="space-y-4">
+
+            <div className="space-y-3">
               <Input label="Nombre de la institución" id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Ej: Consorcio Edificio Central" required error={formErrors.name} />
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid md:grid-cols-2 gap-3">
                   <Input label="CUIT" id="cuit" name="cuit" value={formData.cuit} onChange={handleChange} placeholder="Ej: 30-12345678-9" required error={formErrors.cuit} maxLength={13} />
                   <Input label="Código Postal" id="postalCode" name="postalCode" value={formData.postalCode} onChange={handleChange} placeholder="Ej: 1425" required error={formErrors.postalCode} maxLength={8} />
               </div>
               <Input label="Dirección" id="address" name="address" value={formData.address} onChange={handleChange} placeholder="Ej: Av. del Libertador 5252" required error={formErrors.address} />
-              <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid md:grid-cols-3 gap-3">
                   <Input label="Ciudad" id="city" name="city" value={formData.city} onChange={handleChange} placeholder="Ej: CABA" required error={formErrors.city} />
                   <Input label="Provincia" id="province" name="province" value={formData.province} onChange={handleChange} placeholder="Ej: Buenos Aires" required error={formErrors.province} />
                   <Input label="País" id="country" name="country" value={formData.country} onChange={handleChange} required error={formErrors.country} />
               </div>
             </div>
 
-            <div className="pt-6 border-t border-gray-200">
+            <div className="pt-3 border-t border-gray-200">
                 <ChipGroup
                     label="Servicios Requeridos"
                     options={serviceOptions.map(o => o.label)}
                     selectedOptions={selectedServices.map(v => serviceValueToLabelMap.get(v)!)}
                     onChange={handleServiceChange}
                 />
-                 <p className="text-sm text-gray-500 mt-2">Seleccione los servicios que aplican a su institución para habilitar los módulos correspondientes.</p>
+                 <p className="text-xs text-gray-500 mt-1">Seleccione los servicios que aplican a su institución para habilitar los módulos correspondientes.</p>
             </div>
-            
+
             {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-            
-            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between sm:items-center pt-4">
+
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between sm:items-center pt-2">
               <Button
                 type="button"
                 variant="ghost"

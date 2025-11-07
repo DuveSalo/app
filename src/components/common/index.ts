@@ -23,5 +23,10 @@ export { Tabs } from './Tabs';
 export { Textarea } from './Textarea';
 export { ToastProvider, useToast } from './Toast';
 
+// Audit components
+export { AuditLogItem } from './AuditLogItem';
+export { AuditLogList } from './AuditLogList';
+export { AuditFilters } from './AuditFilters';
+
 // Icons
 export * from './Icons';

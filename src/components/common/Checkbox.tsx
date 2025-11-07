@@ -21,4 +21,4 @@ export const Checkbox: React.FC<CheckboxProps> = ({ label, id, ...props }) => {
   );
 };
 
-export default Checkbox;
+

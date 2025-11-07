@@ -106,8 +106,9 @@ const SubscriptionPage: React.FC = () => {
         setIsLoading(true);
         try {
             await completeSubscription(selectedPlanId, paymentForm);
-        } catch (err: any) {
-            setError((err as Error).message || 'Error al procesar la suscripción.');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Error al procesar la suscripción.';
+            setError(message);
         } finally {
             setIsLoading(false);
         }

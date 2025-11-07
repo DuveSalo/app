@@ -23,14 +23,14 @@ const DecorativePanel: React.FC = () => (
 
 const WizardStepper: React.FC<{ steps: string[], currentStep: number }> = ({ steps, currentStep }) => {
   return (
-    <div className="w-full max-w-2xl mx-auto mb-12">
+    <div className="w-full max-w-2xl mx-auto mb-6">
       <div className="relative flex items-center justify-between">
         <div className="absolute top-1/2 left-0 w-full h-0.5 bg-gray-200 -z-0" />
         {steps.map((label, index) => {
           const stepNumber = index + 1;
           const isCompleted = stepNumber < currentStep;
           const isActive = stepNumber === currentStep;
-          
+
           let stepClasses = 'bg-gray-200 text-gray-500 border-2 border-gray-200';
           if (isActive) {
             stepClasses = 'bg-primary text-white border-2 border-primary';
@@ -40,10 +40,10 @@ const WizardStepper: React.FC<{ steps: string[], currentStep: number }> = ({ ste
 
           return (
             <div key={label} className="flex flex-col items-center z-10 bg-gray-50 px-2">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300 ${stepClasses}`}>
-                {isCompleted ? <CheckIcon className="w-6 h-6" /> : stepNumber}
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${stepClasses}`}>
+                {isCompleted ? <CheckIcon className="w-5 h-5" /> : stepNumber}
               </div>
-              <span className={`mt-2 text-xs font-semibold text-center ${isActive ? 'text-primary' : 'text-gray-500'}`}>{label}</span>
+              <span className={`mt-1 text-xs font-semibold text-center ${isActive ? 'text-primary' : 'text-gray-500'}`}>{label}</span>
             </div>
           );
         })}
@@ -86,13 +86,13 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, variant, title, subti
     
     // --- Wizard Layout Variant (for Onboarding) ---
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-            <Link to="/" className="mb-6 flex items-center gap-2 text-gray-800">
-                <AppLogoIcon className="w-8 h-8 text-primary" />
-                <span className="text-2xl font-bold">SafetyGuard Pro</span>
+        <div className="min-h-screen bg-gray-50 flex flex-col items-center py-6 px-4 sm:px-6 lg:px-8">
+            <Link to="/" className="mb-4 flex items-center gap-2 text-gray-800">
+                <AppLogoIcon className="w-7 h-7 text-primary" />
+                <span className="text-xl font-bold">SafetyGuard Pro</span>
             </Link>
             <WizardStepper steps={wizardSteps} currentStep={currentStep} />
-            <main className="w-full">
+            <main className="w-full flex-1 flex items-start justify-center overflow-y-auto">
                 {children}
             </main>
         </div>

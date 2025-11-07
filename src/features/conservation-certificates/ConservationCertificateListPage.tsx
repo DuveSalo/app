@@ -5,6 +5,7 @@ import { ConservationCertificate } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
 import * as api from '../../lib/api/supabaseApi';
 import { useToast } from '../../components/common/Toast';
+import { useAuth } from '../auth/AuthContext';
 import { Button } from '../../components/common/Button';
 import { SkeletonTable } from '../../components/common/SkeletonLoader';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
@@ -13,6 +14,8 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { EditIcon, TrashIcon, PlusIcon, DocumentTextIcon } from '../../components/common/Icons';
 import PageLayout from '../../components/layout/PageLayout';
+import { calculateExpirationStatus } from '../../lib/utils/dateUtils';
+import { ExpirationStatus } from '../../types/expirable';
 
 const ConservationCertificateListPage: React.FC = () => {
   const [certificates, setCertificates] = useState<ConservationCertificate[]>([]);
@@ -24,32 +27,27 @@ const ConservationCertificateListPage: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState('');
   const navigate = useNavigate();
   const { showSuccess, showError } = useToast();
+  const { currentCompany } = useAuth();
 
   const loadCertificates = useCallback(async () => {
+    if (!currentCompany) return;
     setIsLoading(true);
     try {
-      const data = await api.getCertificates();
+      const data = await api.getCertificates(currentCompany.id);
       setCertificates(data);
     } catch (err: any) {
       showError(err.message || "Error al cargar certificados");
     } finally {
       setIsLoading(false);
     }
-  }, [showError]);
+  }, [currentCompany, showError]);
 
   useEffect(() => {
     loadCertificates();
   }, [loadCertificates]);
 
-  const getStatus = (expirationDate: string): 'valid' | 'expiring' | 'expired' => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const expiry = new Date(expirationDate);
-    const diffTime = expiry.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    if (diffDays < 1) return 'expired';
-    if (diffDays <= 30) return 'expiring';
-    return 'valid';
+  const getStatus = (expirationDate: string): ExpirationStatus => {
+    return calculateExpirationStatus(expirationDate);
   };
 
   const handleDeleteClick = (id: string) => {

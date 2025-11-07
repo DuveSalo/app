@@ -97,4 +97,4 @@ export const SkeletonForm: React.FC = () => {
   );
 };
 
-export default Skeleton;
+

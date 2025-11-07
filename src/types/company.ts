@@ -19,6 +19,15 @@ export interface PaymentMethod {
   isPrimary: boolean;
 }
 
+export interface PaymentDetails {
+  cardNumber: string;
+  cardType: 'visa' | 'mastercard';
+  expiryMonth: string;
+  expiryYear: string;
+  cvv: string;
+  cardholderName: string;
+}
+
 export interface Employee {
   id: string;
   name: string;

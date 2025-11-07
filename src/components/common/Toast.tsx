@@ -1,8 +1,39 @@
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { cva } from 'cva';
+import { clsx } from 'clsx';
 import { CheckCircle, X, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
+
+const toastItemVariants = cva('p-4 rounded-r-lg shadow-lg flex items-start gap-3 animate-slide-in-right min-w-[320px]', {
+  variants: {
+    type: {
+      success: 'bg-green-50 border-l-4 border-green-500 text-green-800',
+      error: 'bg-red-50 border-l-4 border-red-500 text-red-800',
+      info: 'bg-blue-50 border-l-4 border-blue-500 text-blue-800',
+      warning: 'bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800',
+    },
+  },
+});
+
+const iconVariants = cva('w-5 h-5 flex-shrink-0 mt-0.5', {
+  variants: {
+    type: {
+      success: 'text-green-500',
+      error: 'text-red-500',
+      info: 'text-blue-500',
+      warning: 'text-yellow-500',
+    },
+  },
+});
+
+const icons = {
+  success: CheckCircle,
+  error: AlertCircle,
+  info: Info,
+  warning: AlertTriangle,
+};
 
 interface Toast {
   id: string;
@@ -35,16 +66,19 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setToasts(prev => prev.filter(toast => toast.id !== id));
   }, []);
 
-  const showToast = useCallback((message: string, type: ToastType = 'info') => {
-    const id = Math.random().toString(36).substr(2, 9);
-    const newToast: Toast = { id, message, type };
+  const showToast = useCallback(
+    (message: string, type: ToastType = 'info') => {
+      const id = Math.random().toString(36).substr(2, 9);
+      const newToast: Toast = { id, message, type };
 
-    setToasts(prev => [...prev, newToast]);
+      setToasts(prev => [...prev, newToast]);
 
-    setTimeout(() => {
-      removeToast(id);
-    }, 5000);
-  }, [removeToast]);
+      setTimeout(() => {
+        removeToast(id);
+      }, 5000);
+    },
+    [removeToast]
+  );
 
   const showSuccess = useCallback((message: string) => showToast(message, 'success'), [showToast]);
   const showError = useCallback((message: string) => showToast(message, 'error'), [showToast]);
@@ -64,49 +98,15 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 };
 
 const ToastItem: React.FC<{ toast: Toast; onClose: () => void }> = ({ toast, onClose }) => {
-  const config = {
-    success: {
-      icon: CheckCircle,
-      bgColor: 'bg-green-50',
-      borderColor: 'border-green-500',
-      textColor: 'text-green-800',
-      iconColor: 'text-green-500'
-    },
-    error: {
-      icon: AlertCircle,
-      bgColor: 'bg-red-50',
-      borderColor: 'border-red-500',
-      textColor: 'text-red-800',
-      iconColor: 'text-red-500'
-    },
-    info: {
-      icon: Info,
-      bgColor: 'bg-blue-50',
-      borderColor: 'border-blue-500',
-      textColor: 'text-blue-800',
-      iconColor: 'text-blue-500'
-    },
-    warning: {
-      icon: AlertTriangle,
-      bgColor: 'bg-yellow-50',
-      borderColor: 'border-yellow-500',
-      textColor: 'text-yellow-800',
-      iconColor: 'text-yellow-500'
-    }
-  };
-
-  const { icon: Icon, bgColor, borderColor, textColor, iconColor } = config[toast.type];
+  const Icon = icons[toast.type];
 
   return (
-    <div
-      className={`${bgColor} border-l-4 ${borderColor} p-4 rounded-r-lg shadow-lg flex items-start gap-3 animate-slide-in-right min-w-[320px]`}
-      role="alert"
-    >
-      <Icon className={`w-5 h-5 ${iconColor} flex-shrink-0 mt-0.5`} />
-      <p className={`${textColor} text-sm font-medium flex-1`}>{toast.message}</p>
+    <div className={clsx(toastItemVariants({ type: toast.type }))} role="alert">
+      <Icon className={clsx(iconVariants({ type: toast.type }))} />
+      <p className="text-sm font-medium flex-1">{toast.message}</p>
       <button
         onClick={onClose}
-        className={`${textColor} hover:opacity-70 transition-opacity flex-shrink-0`}
+        className="hover:opacity-70 transition-opacity flex-shrink-0"
         aria-label="Cerrar notificación"
       >
         <X className="w-4 h-4" />
@@ -115,4 +115,4 @@ const ToastItem: React.FC<{ toast: Toast; onClose: () => void }> = ({ toast, onC
   );
 };
 
-export default ToastProvider;
+

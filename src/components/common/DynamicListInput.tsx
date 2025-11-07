@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Plus, Minus } from 'lucide-react';
-import { Input } from './Input';
+import { Plus, Trash2 } from 'lucide-react';
 import { Button } from './Button';
 
 interface DynamicListInputProps {
@@ -39,30 +38,33 @@ export const DynamicListInput: React.FC<DynamicListInputProps> = ({
 
   return (
     <div className="w-full">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-sm font-medium text-gray-700 mb-3">
         {label}
       </label>
-      <div className="space-y-2">
+      <div className="space-y-3">
         {items.map((item, index) => (
-          <div key={index} className="flex items-center space-x-2">
-            <Input
-              label=""
-              value={item}
-              onChange={(e) => updateItem(index, e.target.value)}
-              placeholder={`${placeholder} ${index + 1}`}
-              className="flex-1"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => removeItem(index)}
-              disabled={items.length <= minItems}
-              className="p-2 text-red-500 hover:bg-red-100 disabled:text-gray-400 disabled:bg-transparent"
-              aria-label={`Remove item ${index + 1}`}
-            >
-              <Minus className="w-4 h-4" />
-            </Button>
+          <div key={index} className="relative bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 p-3">
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-semibold">
+                {index + 1}
+              </div>
+              <textarea
+                value={item}
+                onChange={(e) => updateItem(index, e.target.value)}
+                placeholder={`${placeholder} ${index + 1}`}
+                rows={1}
+                className="flex-1 resize-none border-0 focus:ring-0 focus:outline-none text-sm text-gray-900 placeholder-gray-400 p-0"
+              />
+              <button
+                type="button"
+                onClick={() => removeItem(index)}
+                disabled={items.length <= minItems}
+                className="flex-shrink-0 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-gray-400 disabled:hover:bg-transparent"
+                aria-label={`Eliminar ${label.toLowerCase()} ${index + 1}`}
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         ))}
         <Button
@@ -70,7 +72,7 @@ export const DynamicListInput: React.FC<DynamicListInputProps> = ({
           variant="outline"
           size="sm"
           onClick={addItem}
-          className="flex items-center space-x-1 text-blue-600 hover:text-blue-700"
+          className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
         >
           <Plus className="w-4 h-4" />
           <span>{addButtonLabel || `Agregar ${label.toLowerCase()}`}</span>
@@ -81,4 +83,4 @@ export const DynamicListInput: React.FC<DynamicListInputProps> = ({
 };
 
 
-export default DynamicListInput;
+

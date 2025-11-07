@@ -37,6 +37,8 @@ interface CompanyFormData {
 
 export const SettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('company');
+  const [isEditingCompany, setIsEditingCompany] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [showEmployeeModal, setShowEmployeeModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [showBillingModal, setShowBillingModal] = useState(false);
@@ -133,6 +135,7 @@ export const SettingsPage: React.FC = () => {
 
       await api.updateCompany({ ...currentCompany, ...companyForm, services });
       await refreshCompany();
+      setIsEditingCompany(false);
       alert('Información de empresa actualizada');
     } catch (err) {
       setError((err as Error).message || 'Error al actualizar la empresa');
@@ -186,6 +189,7 @@ export const SettingsPage: React.FC = () => {
     setIsLoading(true);
     try {
       await updateUserDetails({ name: profileForm.name });
+      setIsEditingProfile(false);
       alert('Perfil actualizado.');
     } catch (err) {
       setError((err as Error).message || 'Error al actualizar el perfil.');
@@ -251,21 +255,68 @@ export const SettingsPage: React.FC = () => {
     { id: 'profile', label: 'Mi Perfil' }
   ];
 
+  const handleCancelCompanyEdit = () => {
+    if (currentCompany) {
+      setCompanyForm({
+        name: currentCompany.name,
+        cuit: currentCompany.cuit,
+        address: currentCompany.address,
+        services: currentCompany.services ? (Object.keys(currentCompany.services) as QRDocumentType[]).filter(key => currentCompany.services?.[key]) : [],
+        postalCode: currentCompany.postalCode,
+        city: currentCompany.city,
+        province: currentCompany.province,
+        country: currentCompany.country,
+      });
+      setCompanyFormErrors({ name: '', cuit: '', address: '', postalCode: '', city: '', province: '', country: '' });
+    }
+    setIsEditingCompany(false);
+    setError('');
+  };
+
+  const handleCancelProfileEdit = () => {
+    if (currentUser) {
+      setProfileForm({ name: currentUser.name, email: currentUser.email });
+    }
+    setIsEditingProfile(false);
+    setError('');
+  };
+
   const footerContent = useMemo(() => {
     switch (activeTab) {
         case 'company':
-            return <Button type="submit" form="company-form" loading={isLoading} disabled={!isCompanyFormValid()}>Guardar cambios</Button>;
+            return isEditingCompany ? (
+                <div className="w-full flex justify-end space-x-3">
+                    <Button type="button" variant="outline" onClick={handleCancelCompanyEdit}>Cancelar</Button>
+                    <Button type="submit" form="company-form" loading={isLoading} disabled={!isCompanyFormValid()}>Guardar cambios</Button>
+                </div>
+            ) : (
+                <Button type="button" onClick={() => setIsEditingCompany(true)}>
+                    <EditIcon className="w-4 h-4 mr-2" />
+                    Editar información
+                </Button>
+            );
         case 'profile':
-            return (
+            return isEditingProfile ? (
                 <div className="w-full flex justify-between">
                     <Button type="button" variant="danger" onClick={logout}>Cerrar sesión</Button>
-                    <Button type="submit" form="profile-form" loading={isLoading}>Guardar cambios</Button>
+                    <div className="flex space-x-3">
+                        <Button type="button" variant="outline" onClick={handleCancelProfileEdit}>Cancelar</Button>
+                        <Button type="submit" form="profile-form" loading={isLoading}>Guardar cambios</Button>
+                    </div>
+                </div>
+            ) : (
+                <div className="w-full flex justify-between">
+                    <Button type="button" variant="danger" onClick={logout}>Cerrar sesión</Button>
+                    <Button type="button" onClick={() => setIsEditingProfile(true)}>
+                        <EditIcon className="w-4 h-4 mr-2" />
+                        Editar perfil
+                    </Button>
                 </div>
             );
         default:
             return null;
     }
-  }, [activeTab, isLoading, companyFormErrors]);
+  }, [activeTab, isLoading, companyFormErrors, isEditingCompany, isEditingProfile]);
 
   if (!currentCompany || !currentUser) {
     return <div className="flex justify-center items-center h-full"><LoadingSpinner /></div>;
@@ -288,34 +339,86 @@ export const SettingsPage: React.FC = () => {
             
             <div className="flex-grow pt-6 min-h-0">
                 {activeTab === 'company' && (
-                    <form id="company-form" onSubmit={handleCompanySubmit} className="space-y-6">
-                        <h2 className="text-lg font-medium text-gray-900">Información de la empresa</h2>
-                        <div className="space-y-4">
-                             <Input id="companyName" label="Nombre de la empresa" name="name" value={companyForm.name || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.name} />
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <Input id="companyCuit" label="CUIT" name="cuit" value={companyForm.cuit || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.cuit} maxLength={13} />
-                                <Input id="companyPostalCode" label="Código Postal" name="postalCode" value={companyForm.postalCode || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.postalCode} />
+                    isEditingCompany ? (
+                        <form id="company-form" onSubmit={handleCompanySubmit} className="space-y-6">
+                            <h2 className="text-lg font-medium text-gray-900">Información de la empresa</h2>
+                            <div className="space-y-4">
+                                 <Input id="companyName" label="Nombre de la empresa" name="name" value={companyForm.name || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.name} />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <Input id="companyCuit" label="CUIT" name="cuit" value={companyForm.cuit || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.cuit} maxLength={13} />
+                                    <Input id="companyPostalCode" label="Código Postal" name="postalCode" value={companyForm.postalCode || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.postalCode} />
+                                </div>
+                                <Input id="companyAddress" label="Dirección" name="address" value={companyForm.address || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.address} />
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <Input id="companyCity" label="Ciudad" name="city" value={companyForm.city || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.city} />
+                                    <Input id="companyProvince" label="Provincia" name="province" value={companyForm.province || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.province} />
+                                    <Input id="companyCountry" label="País" name="country" value={companyForm.country || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.country} />
+                                </div>
                             </div>
-                            <Input id="companyAddress" label="Dirección" name="address" value={companyForm.address || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.address} />
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <Input id="companyCity" label="Ciudad" name="city" value={companyForm.city || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.city} />
-                                <Input id="companyProvince" label="Provincia" name="province" value={companyForm.province || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.province} />
-                                <Input id="companyCountry" label="País" name="country" value={companyForm.country || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.country} />
+                            <div>
+                                <ChipGroup
+                                    label="Servicios Requeridos"
+                                    options={serviceOptions.map(o => o.label)}
+                                    selectedOptions={(companyForm.services || []).map(v => serviceValueToLabelMap.get(v)!)}
+                                    onChange={(selectedLabels) => {
+                                        const newValues = selectedLabels.map(label => serviceLabelToValueMap.get(label)!);
+                                        setCompanyForm(prev => ({ ...prev, services: newValues }));
+                                    }}
+                                />
                             </div>
+                            {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
+                        </form>
+                    ) : (
+                        <div className="space-y-6">
+                            <h2 className="text-lg font-medium text-gray-900">Información de la empresa</h2>
+                            <Card>
+                                <div className="space-y-4">
+                                    <div>
+                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Nombre de la empresa</p>
+                                        <p className="text-base text-gray-900">{currentCompany.name}</p>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-100 pt-4">
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">CUIT</p>
+                                            <p className="text-base text-gray-900">{currentCompany.cuit}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Código Postal</p>
+                                            <p className="text-base text-gray-900">{currentCompany.postalCode}</p>
+                                        </div>
+                                    </div>
+                                    <div className="border-t border-gray-100 pt-4">
+                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Dirección</p>
+                                        <p className="text-base text-gray-900">{currentCompany.address}</p>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-gray-100 pt-4">
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Ciudad</p>
+                                            <p className="text-base text-gray-900">{currentCompany.city}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Provincia</p>
+                                            <p className="text-base text-gray-900">{currentCompany.province}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">País</p>
+                                            <p className="text-base text-gray-900">{currentCompany.country}</p>
+                                        </div>
+                                    </div>
+                                    <div className="border-t border-gray-100 pt-4">
+                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Servicios Contratados</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {currentCompany.services && Object.entries(currentCompany.services).filter(([_, enabled]) => enabled).map(([service]) => (
+                                                <span key={service} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                                    {serviceValueToLabelMap.get(service as QRDocumentType)}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </Card>
                         </div>
-                        <div>
-                            <ChipGroup
-                                label="Servicios Requeridos"
-                                options={serviceOptions.map(o => o.label)}
-                                selectedOptions={(companyForm.services || []).map(v => serviceValueToLabelMap.get(v)!)}
-                                onChange={(selectedLabels) => {
-                                    const newValues = selectedLabels.map(label => serviceLabelToValueMap.get(label)!);
-                                    setCompanyForm(prev => ({ ...prev, services: newValues }));
-                                }}
-                            />
-                        </div>
-                        {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
-                    </form>
+                    )
                 )}
                 
                 {activeTab === 'employees' && (
@@ -383,22 +486,50 @@ export const SettingsPage: React.FC = () => {
                 )}
 
                 {activeTab === 'profile' && (
-                    <form id="profile-form" onSubmit={handleProfileSubmit} className="space-y-6">
-                        <div>
-                            <h2 className="text-lg font-medium text-gray-900">Mi Perfil</h2>
-                            <Input id="profileName" label="Nombre completo" value={profileForm.name} onChange={(e) => setProfileForm(prev => ({ ...prev, name: e.target.value }))} required className="mt-4" />
-                            <Input id="profileEmail" label="Email" value={profileForm.email} disabled className="mt-4"/>
-                        </div>
+                    isEditingProfile ? (
+                        <form id="profile-form" onSubmit={handleProfileSubmit} className="space-y-6">
+                            <div>
+                                <h2 className="text-lg font-medium text-gray-900">Mi Perfil</h2>
+                                <Input id="profileName" label="Nombre completo" value={profileForm.name} onChange={(e) => setProfileForm(prev => ({ ...prev, name: e.target.value }))} required className="mt-4" />
+                                <Input id="profileEmail" label="Email" value={profileForm.email} disabled className="mt-4"/>
+                            </div>
 
-                        <div className="border-t pt-6">
-                            <h3 className="text-base font-medium text-gray-900">Seguridad de la Cuenta</h3>
-                            <p className="text-sm text-gray-500 mt-1">Para cambiar su contraseña, le enviaremos un enlace seguro a su correo electrónico.</p>
-                            <Button type="button" variant="outline" onClick={handlePasswordReset} loading={isPasswordResetLoading} className="mt-4">
-                                Enviar enlace para restablecer contraseña
-                            </Button>
+                            <div className="border-t pt-6">
+                                <h3 className="text-base font-medium text-gray-900">Seguridad de la Cuenta</h3>
+                                <p className="text-sm text-gray-500 mt-1">Para cambiar su contraseña, le enviaremos un enlace seguro a su correo electrónico.</p>
+                                <Button type="button" variant="outline" onClick={handlePasswordReset} loading={isPasswordResetLoading} className="mt-4">
+                                    Enviar enlace para restablecer contraseña
+                                </Button>
+                            </div>
+                            {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
+                        </form>
+                    ) : (
+                        <div className="space-y-6">
+                            <h2 className="text-lg font-medium text-gray-900">Mi Perfil</h2>
+                            <Card>
+                                <div className="space-y-3">
+                                    <div>
+                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Nombre completo</p>
+                                        <p className="text-base text-gray-900">{currentUser.name}</p>
+                                    </div>
+                                    <div className="border-t border-gray-100 pt-3">
+                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Email</p>
+                                        <p className="text-base text-gray-900">{currentUser.email}</p>
+                                    </div>
+                                </div>
+                            </Card>
+
+                            <Card>
+                                <div className="space-y-3">
+                                    <h3 className="text-base font-medium text-gray-900">Seguridad de la Cuenta</h3>
+                                    <p className="text-sm text-gray-600">Para cambiar su contraseña, le enviaremos un enlace seguro a su correo electrónico.</p>
+                                    <Button type="button" variant="outline" onClick={handlePasswordReset} loading={isPasswordResetLoading} className="mt-2">
+                                        Enviar enlace para restablecer contraseña
+                                    </Button>
+                                </div>
+                            </Card>
                         </div>
-                        {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
-                    </form>
+                    )
                 )}
             </div>
         </div>

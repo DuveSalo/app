@@ -1,61 +1,138 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SelfProtectionSystem } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
 import * as api from '../../lib/api/supabaseApi';
+import { useToast } from '../../components/common/Toast';
+import { useAuth } from '../auth/AuthContext';
 import { Button } from '../../components/common/Button';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { SkeletonTable } from '../../components/common/SkeletonLoader';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { FilterSort } from '../../components/common/FilterSort';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { EditIcon, TrashIcon, PlusIcon, ShieldCheckIcon } from '../../components/common/Icons';
 import PageLayout from '../../components/layout/PageLayout';
+import { calculateExpirationStatus } from '../../lib/utils/dateUtils';
+import { ExpirationStatus } from '../../types/expirable';
 
 const SelfProtectionSystemListPage: React.FC = () => {
   const [systems, setSystems] = useState<SelfProtectionSystem[]>([]);
-  const [isLoading, setIsLoading] = useState(true); 
-  const [error, setError] = useState(''); 
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('expirationDate-asc');
+  const [filterStatus, setFilterStatus] = useState('');
   const navigate = useNavigate();
+  const { showSuccess, showError } = useToast();
+  const { currentCompany } = useAuth();
 
   const loadSystems = useCallback(async () => {
+    if (!currentCompany) return;
     setIsLoading(true);
-    setError('');
     try {
-      const data = await api.getSelfProtectionSystems();
+      const data = await api.getSelfProtectionSystems(currentCompany.id);
       setSystems(data);
     } catch (err: any) {
-      setError((err as Error).message || "Error al cargar sistemas de autoprotección");
+      showError(err.message || "Error al cargar sistemas de autoprotección");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentCompany, showError]);
 
   useEffect(() => {
     loadSystems();
   }, [loadSystems]);
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm("¿Está seguro de que desea eliminar este sistema?")) {
-      setError('');
-      try {
-        await api.deleteSelfProtectionSystem(id);
-        setSystems(prev => prev.filter(sys => sys.id !== id));
-      } catch (err: any) {
-        setError((err as Error).message || "Error al eliminar el sistema");
-      }
+  const getStatus = (expirationDate: string): ExpirationStatus => {
+    return calculateExpirationStatus(expirationDate);
+  };
+
+  const handleDeleteClick = (id: string) => {
+    setDeleteId(id);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteId) return;
+
+    setIsDeleting(true);
+
+    // Optimistic update
+    const previousSystems = [...systems];
+    setSystems(prev => prev.filter(sys => sys.id !== deleteId));
+
+    try {
+      await api.deleteSelfProtectionSystem(deleteId);
+      showSuccess('Sistema eliminado correctamente');
+    } catch (err: any) {
+      // Revert optimistic update
+      setSystems(previousSystems);
+      showError(err.message || "Error al eliminar el sistema");
+    } finally {
+      setIsDeleting(false);
+      setDeleteId(null);
     }
   };
-  
-  const getStatus = (expirationDate: string): 'valid' | 'expiring' | 'expired' => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const expiry = new Date(expirationDate);
-    const diffTime = expiry.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    if (diffDays < 1) return 'expired';
-    if (diffDays <= 30) return 'expiring';
-    return 'valid';
-  };
+
+  // Filter and sort
+  const filteredAndSortedSystems = useMemo(() => {
+    let result = [...systems];
+
+    // Filter by search
+    if (searchQuery) {
+      result = result.filter(sys =>
+        sys.intervener.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sys.registrationNumber.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Filter by status
+    if (filterStatus) {
+      result = result.filter(sys => getStatus(sys.expirationDate) === filterStatus);
+    }
+
+    // Sort
+    const [sortField, sortOrder] = sortBy.split('-');
+    result.sort((a, b) => {
+      let aValue: any, bValue: any;
+
+      if (sortField === 'intervener') {
+        aValue = a.intervener;
+        bValue = b.intervener;
+      } else if (sortField === 'probatoryDispositionDate') {
+        aValue = a.probatoryDispositionDate ? new Date(a.probatoryDispositionDate).getTime() : 0;
+        bValue = b.probatoryDispositionDate ? new Date(b.probatoryDispositionDate).getTime() : 0;
+      } else if (sortField === 'expirationDate') {
+        aValue = new Date(a.expirationDate).getTime();
+        bValue = new Date(b.expirationDate).getTime();
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    return result;
+  }, [systems, searchQuery, sortBy, filterStatus]);
+
+  const sortOptions = [
+    { value: 'expirationDate-asc', label: 'Vencimiento: Más próximo' },
+    { value: 'expirationDate-desc', label: 'Vencimiento: Más lejano' },
+    { value: 'probatoryDispositionDate-desc', label: 'Disp. Aprobatoria: Más reciente' },
+    { value: 'probatoryDispositionDate-asc', label: 'Disp. Aprobatoria: Más antigua' },
+    { value: 'intervener-asc', label: 'Interviniente: A-Z' },
+    { value: 'intervener-desc', label: 'Interviniente: Z-A' },
+  ];
+
+  const filterOptions = [
+    { value: 'valid', label: 'Vigente' },
+    { value: 'expiring', label: 'Próximo a vencer' },
+    { value: 'expired', label: 'Vencido' },
+  ];
 
   const headerActions = (
     <Button onClick={() => navigate(ROUTE_PATHS.NEW_SELF_PROTECTION_SYSTEM)}>
@@ -66,54 +143,109 @@ const SelfProtectionSystemListPage: React.FC = () => {
 
   return (
     <PageLayout title={MODULE_TITLES.SELF_PROTECTION_SYSTEMS} headerActions={headerActions}>
-      {error && <p className="text-red-500 text-center py-2">{error}</p>}
       {isLoading ? (
-        <div className="flex items-center justify-center h-full">
-            <LoadingSpinner size="lg" />
-        </div>
+        <SkeletonTable rows={5} />
       ) : systems.length === 0 ? (
-        <div className="text-center py-16 flex flex-col items-center justify-center h-full">
-          <ShieldCheckIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900">No hay sistemas registrados</h3>
-          <p className="text-gray-500 mb-4">Comience registrando su primer sistema de autoprotección.</p>
-          <Button 
+        <div className="text-center py-16 flex flex-col items-center justify-center h-full bg-white rounded-lg border border-gray-200">
+          <ShieldCheckIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No hay sistemas registrados</h3>
+          <p className="text-gray-500 mb-6 max-w-md">
+            Comience registrando su primer sistema de autoprotección para mantener el control de vencimientos.
+          </p>
+          <Button
             onClick={() => navigate(ROUTE_PATHS.NEW_SELF_PROTECTION_SYSTEM)}
+            size="lg"
           >
-            <PlusIcon className="w-4 h-4 mr-2" />
+            <PlusIcon className="w-5 h-5 mr-2" />
             Crear primer sistema
           </Button>
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Interviniente</TableHead>
-              <TableHead>Disp. Aprobatoria</TableHead>
-              <TableHead>Vencimiento</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {systems.map(sys => (
-              <TableRow key={sys.id} className="hover:bg-gray-50">
-                <TableCell className="font-medium">{sys.intervener}</TableCell>
-                <TableCell>{sys.probatoryDispositionDate ? new Date(sys.probatoryDispositionDate).toLocaleDateString() : 'N/A'}</TableCell>
-                <TableCell>{new Date(sys.expirationDate).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <StatusBadge status={getStatus(sys.expirationDate)} />
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-1">
-                    <Button variant="ghost" size="sm" onClick={() => navigate(ROUTE_PATHS.EDIT_SELF_PROTECTION_SYSTEM.replace(':id', sys.id))}><EditIcon/></Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(sys.id)} className="text-red-600 hover:bg-red-100"><TrashIcon/></Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <>
+          <FilterSort
+            searchValue={searchQuery}
+            onSearchChange={setSearchQuery}
+            sortValue={sortBy}
+            onSortChange={setSortBy}
+            sortOptions={sortOptions}
+            filterValue={filterStatus}
+            onFilterChange={setFilterStatus}
+            filterOptions={filterOptions}
+            searchPlaceholder="Buscar por interviniente o N° de matrícula..."
+          />
+
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Interviniente</TableHead>
+                  <TableHead>N° Matrícula</TableHead>
+                  <TableHead>Disp. Aprobatoria</TableHead>
+                  <TableHead>Vencimiento</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAndSortedSystems.map((sys, index) => (
+                  <TableRow
+                    key={sys.id}
+                    className="hover:bg-gray-50 transition-colors animate-fade-in"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <TableCell className="font-medium">{sys.intervener}</TableCell>
+                    <TableCell>{sys.registrationNumber}</TableCell>
+                    <TableCell>{sys.probatoryDispositionDate ? new Date(sys.probatoryDispositionDate + 'T00:00:00').toLocaleDateString('es-AR') : 'N/A'}</TableCell>
+                    <TableCell>{new Date(sys.expirationDate + 'T00:00:00').toLocaleDateString('es-AR')}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={getStatus(sys.expirationDate)} />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(ROUTE_PATHS.EDIT_SELF_PROTECTION_SYSTEM.replace(':id', sys.id))}
+                          title="Editar"
+                        >
+                          <EditIcon className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteClick(sys.id)}
+                          className="text-red-600 hover:bg-red-50"
+                          title="Eliminar"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {filteredAndSortedSystems.length === 0 && systems.length > 0 && (
+            <div className="text-center py-8 bg-white rounded-lg border border-gray-200">
+              <p className="text-gray-500">No se encontraron sistemas con los filtros aplicados.</p>
+            </div>
+          )}
+        </>
       )}
+
+      <ConfirmDialog
+        isOpen={deleteId !== null}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDeleteConfirm}
+        title="¿Eliminar sistema?"
+        message="Esta acción no se puede deshacer. El sistema de autoprotección será eliminado permanentemente."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </PageLayout>
   );
 };

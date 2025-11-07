@@ -41,14 +41,14 @@ const ModuleLink: React.FC<{ item: NavItem; isCollapsed: boolean }> = ({ item, i
     const location = useLocation();
     const isActive = location.pathname.startsWith(item.path);
      return (
-        <Link 
+        <Link
             to={item.path}
             title={item.label}
-            className={`flex items-center gap-3 rounded-md text-sm truncate transition-colors ${
+            className={`flex items-center gap-3 rounded-md text-sm truncate transition-colors duration-200 ${
                 isCollapsed ? 'p-2 justify-center' : 'px-3 py-1.5'
             } ${
-            isActive 
-                ? 'text-gray-900 font-medium' 
+            isActive
+                ? 'bg-blue-50 text-blue-700 font-medium'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
             }`}
         >
@@ -134,8 +134,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                             <Cog6ToothIcon className={`w-5 h-5 text-gray-400 group-hover:text-gray-600 ${isCollapsed ? 'hidden' : ''}`}/>
                         </div>
                         {isUserMenuOpen && (
-                             <div 
-                                className="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-20"
+                             <div
+                                className={`absolute bottom-full mb-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-20 ${
+                                    isCollapsed ? 'left-0' : 'right-0'
+                                }`}
                             >
                                 <Link
                                     to={ROUTE_PATHS.SETTINGS}

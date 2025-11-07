@@ -1,11 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ConservationCertificate } from '../../types/index';
 import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
 import * as api from '../../lib/api/supabaseApi';
 import { useToast } from '../../components/common/Toast';
 import { validateDateRange, validateRequired, sanitizeInput } from '../../lib/utils/validation';
+import { useEntityForm } from '../../lib/hooks/useEntityForm';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { FileUpload } from '../../components/common/FileUpload';
@@ -17,8 +18,6 @@ const CreateEditConservationCertificatePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoadingData, setIsLoadingData] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const { showSuccess, showError } = useToast();
 
   const emptyCertificate: Omit<ConservationCertificate, 'id' | 'companyId'> = {
@@ -30,40 +29,28 @@ const CreateEditConservationCertificatePage: React.FC = () => {
     pdfFileName: undefined
   };
 
-  const [currentFormData, setCurrentFormData] = useState<Omit<ConservationCertificate, 'id' | 'companyId'>>(emptyCertificate);
-
-  useEffect(() => {
-    if (id) {
-      setIsLoadingData(true);
-      api.getCertificates().then(certs => {
-        const certToEdit = certs.find(c => c.id === id);
-        if (certToEdit) {
-          setCurrentFormData({ ...emptyCertificate, ...certToEdit });
-        } else {
-          showError("Certificado no encontrado.");
-          navigate(ROUTE_PATHS.CONSERVATION_CERTIFICATES);
-        }
-      }).catch(err => {
-        showError(err.message || "Error al cargar datos del certificado.");
-        navigate(ROUTE_PATHS.CONSERVATION_CERTIFICATES);
-      }).finally(() => setIsLoadingData(false));
-    } else {
-      setCurrentFormData(emptyCertificate);
-    }
-  }, [id, navigate, showError]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setCurrentFormData(prev => ({ ...prev, [name]: value }));
-
-    // Clear field error when user types
-    if (fieldErrors[name]) {
-      setFieldErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
+  // Usar el hook personalizado para manejar el formulario
+  const {
+    data: currentFormData,
+    setData: setCurrentFormData,
+    isLoading: isLoadingData,
+    fieldErrors,
+    setFieldErrors,
+    handleChange,
+    handleFieldChange,
+    isEditMode
+  } = useEntityForm<Omit<ConservationCertificate, 'id' | 'companyId'>>({
+    id,
+    emptyData: emptyCertificate,
+    fetchFn: api.getCertificateById,
+    onError: showError,
+    onNavigate: navigate,
+    errorNavigationPath: ROUTE_PATHS.CONSERVATION_CERTIFICATES,
+  });
 
   const handleFileChange = (file: File | null) => {
-    setCurrentFormData(prev => ({ ...prev, pdfFile: file || undefined, pdfFileName: file?.name || prev.pdfFileName }));
+    handleFieldChange('pdfFile', file || undefined);
+    handleFieldChange('pdfFileName', file?.name || currentFormData.pdfFileName);
   };
 
   const validateForm = (): boolean => {

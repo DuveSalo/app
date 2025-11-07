@@ -1,4 +1,19 @@
+
 import React from 'react';
+import { cva } from 'cva';
+import { clsx } from 'clsx';
+
+const tabVariants = cva(
+  'whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm focus:outline-none transition-colors duration-200 disabled:text-gray-400 disabled:hover:border-transparent disabled:cursor-not-allowed',
+  {
+    variants: {
+      active: {
+        true: 'border-blue-500 text-blue-600',
+        false: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+      },
+    },
+  }
+);
 
 interface Tab {
   label: string;
@@ -23,12 +38,7 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabClick }) => {
               type="button"
               disabled={tab.disabled}
               onClick={() => onTabClick(index)}
-              className={`${
-                index === activeTab
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm focus:outline-none transition-colors duration-200
-              disabled:text-gray-400 disabled:hover:border-transparent disabled:cursor-not-allowed`}
+              className={clsx(tabVariants({ active: index === activeTab }))}
               aria-current={index === activeTab ? 'page' : undefined}
             >
               {tab.label}
@@ -53,4 +63,5 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabClick }) => {
   );
 };
 
-export default Tabs;
+
+

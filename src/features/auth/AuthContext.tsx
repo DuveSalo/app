@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Company } from '../../types/index';
+import { User, Company, PaymentDetails } from '../../types/index';
 import * as api from '../../lib/api/supabaseApi';
 import { ROUTE_PATHS } from '../../constants/index';
 
@@ -15,7 +15,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   setCompany: (company: Company) => void;
   refreshCompany: () => Promise<void>;
-  completeSubscription: (plan: string, paymentDetails: any) => Promise<void>;
+  completeSubscription: (plan: string, paymentDetails: PaymentDetails) => Promise<void>;
   changePlan: (newPlanId: string) => Promise<void>;
   cancelSubscription: () => Promise<void>;
   updateUserDetails: (details: Partial<User>) => Promise<void>;
@@ -93,11 +93,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setCurrentCompany(null);
       // Redirect to create company page (they don't have a company yet)
       navigate(ROUTE_PATHS.CREATE_COMPANY);
-    } catch (error: any) {
+    } catch (error: unknown) {
         setCurrentUser(null);
         setCurrentCompany(null);
         // Check if the error is due to email confirmation requirement
-        if (error.message === 'EMAIL_CONFIRMATION_REQUIRED') {
+        const errorMessage = error instanceof Error ? error.message : '';
+        if (errorMessage.includes('EMAIL_CONFIRMATION_REQUIRED')) {
           // Re-throw with a clear message about email confirmation
           throw new Error('CONFIRMATION_NEEDED');
         }

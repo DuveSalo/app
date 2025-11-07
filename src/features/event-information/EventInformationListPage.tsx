@@ -72,35 +72,41 @@ const EventInformationListPage: React.FC = () => {
           </Button>
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Descripción</TableHead>
-              <TableHead>Fecha</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {events.map(event => (
-              <TableRow key={event.id} className="hover:bg-gray-50">
-                <TableCell className="font-medium max-w-md truncate">{event.description}</TableCell>
-                <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
-                <TableCell>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      Registrado
-                    </span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-1">
-                    <Button variant="ghost" size="sm" onClick={() => navigate(ROUTE_PATHS.EDIT_EVENT_INFORMATION.replace(':id', event.id))}><EditIcon/></Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(event.id)} className="text-red-600 hover:bg-red-100"><TrashIcon/></Button>
-                  </div>
-                </TableCell>
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Descripción</TableHead>
+                <TableHead className="text-center">Fecha</TableHead>
+                <TableHead className="text-center">Estado</TableHead>
+                <TableHead className="text-center">Acciones</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {events.map(event => (
+                <TableRow key={event.id} className="hover:bg-gray-50">
+                  <TableCell className="font-medium">{event.description}</TableCell>
+                  <TableCell className="text-center">{new Date(event.date).toLocaleDateString('es-AR')}</TableCell>
+                  <TableCell className="text-center">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        Registrado
+                      </span>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex space-x-1 justify-center">
+                      <Button variant="ghost" size="sm" onClick={() => navigate(ROUTE_PATHS.EDIT_EVENT_INFORMATION.replace(':id', event.id))} title="Editar">
+                        <EditIcon className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(event.id)} className="text-red-600 hover:bg-red-50" title="Eliminar">
+                        <TrashIcon className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </PageLayout>
   );

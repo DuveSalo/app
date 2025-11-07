@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QRDocument, QRDocumentType } from '../../types/index';
 import * as api from '../../lib/api/supabaseApi';
+import { useAuth } from '../auth/AuthContext';
 import { Button } from '../../components/common/Button';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
@@ -21,19 +22,21 @@ const QRModuleListPage: React.FC<QRModulePageProps> = ({ qrType, title, uploadPa
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { currentCompany } = useAuth();
 
   const loadDocuments = useCallback(async () => {
+    if (!currentCompany) return;
     setIsLoading(true);
     setError('');
     try {
-      const data = await api.getQRDocuments(qrType);
+      const data = await api.getQRDocuments(qrType, currentCompany.id);
       setDocuments(data);
     } catch (err: any) {
       setError((err as Error).message || `Error al cargar documentos QR de ${title}`);
     } finally {
       setIsLoading(false);
     }
-  }, [qrType, title]);
+  }, [qrType, title, currentCompany]);
 
   useEffect(() => {
     loadDocuments();

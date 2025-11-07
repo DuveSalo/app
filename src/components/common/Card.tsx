@@ -1,35 +1,43 @@
 
-import React, { ReactNode } from 'react';
+import React from 'react';
+import { cva, type VariantProps } from 'cva';
+import { clsx } from 'clsx';
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
-  className?: string;
-  padding?: 'sm' | 'md' | 'lg' | 'none';
-}
+const cardVariants = cva('bg-white rounded-lg shadow-sm border border-gray-200 transition-shadow duration-200', {
+  variants: {
+    padding: {
+      sm: 'p-4',
+      md: 'p-6',
+      lg: 'p-8',
+      none: 'p-0',
+    },
+    clickable: {
+      true: 'cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200',
+    },
+  },
+  defaultVariants: {
+    padding: 'md',
+  },
+});
 
-export const Card: React.FC<CardProps> = ({ 
-  children, 
-  className = '', 
-  padding = 'md',
-  ...props 
+export interface CardProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof cardVariants> {}
+
+export const Card: React.FC<CardProps> = ({
+  children,
+  className,
+  padding,
+  ...props
 }) => {
-  const paddingStyles = {
-    sm: 'p-4',
-    md: 'p-6',
-    lg: 'p-8',
-    none: 'p-0',
-  };
-
-  const hasClick = props.onClick !== undefined;
+  const isClickable = !!props.onClick;
 
   return (
     <div
-      className={`bg-white rounded-lg shadow-sm border border-gray-200 ${paddingStyles[padding]} ${hasClick ? 'cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-200' : 'transition-shadow duration-200'} ${className}`}
+      className={clsx(cardVariants({ padding, clickable: isClickable, className }))}
       {...props}
     >
       {children}
     </div>
   );
 };
-
-export default Card;

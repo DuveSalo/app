@@ -1,6 +1,20 @@
 
 import React from 'react';
+import { cva } from 'cva';
+import { clsx } from 'clsx';
 import { Check } from 'lucide-react';
+
+const chipVariants = cva(
+  'flex items-center justify-center px-4 py-2 text-sm font-medium border rounded-md transition-all duration-200',
+  {
+    variants: {
+      isSelected: {
+        true: 'bg-blue-100 border-blue-500 text-blue-700',
+        false: 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50',
+      },
+    },
+  }
+);
 
 const Chip: React.FC<{
   label: string;
@@ -10,14 +24,7 @@ const Chip: React.FC<{
   <button
     type="button"
     onClick={onSelect}
-    className={`
-        flex items-center justify-center px-4 py-2 text-sm font-medium border rounded-md transition-all duration-200
-        ${
-            isSelected
-            ? 'bg-blue-100 border-blue-500 text-blue-700'
-            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-        }
-    `}
+    className={clsx(chipVariants({ isSelected }))}
   >
     {isSelected && <Check className="w-4 h-4 mr-2" />}
     {label}
@@ -66,4 +73,4 @@ export const ChipGroup: React.FC<ChipGroupProps> = ({
   );
 };
 
-export default ChipGroup;
+

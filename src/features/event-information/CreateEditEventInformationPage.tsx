@@ -54,9 +54,8 @@ const CreateEditEventInformationPage: React.FC = () => {
     if (id) {
       setIsLoadingData(true);
       setPageError('');
-      api.getEvents().then(events => {
-        const eventToEdit = events.find(e => e.id === id);
-        if (eventToEdit) {
+      api.getEventById(id)
+        .then(eventToEdit => {
           setCurrentFormData({
             date: eventToEdit.date,
             time: eventToEdit.time,
@@ -65,19 +64,17 @@ const CreateEditEventInformationPage: React.FC = () => {
             testimonials: eventToEdit.testimonials || [],
             observations: eventToEdit.observations || [],
             finalChecks: {
-              ...(createInitialFormState().finalChecks), 
+              ...(createInitialFormState().finalChecks),
               ...(eventToEdit.finalChecks || {}),
             },
           });
-        } else {
-          setPageError("Evento no encontrado.");
+        })
+        .catch((error: unknown) => {
+          const message = error instanceof Error ? error.message : "Error al cargar datos del evento.";
+          setPageError(message);
           setCurrentFormData(createInitialFormState());
-        }
-      }).catch(err => {
-        setPageError((err as Error).message || "Error al cargar datos del evento.");
-        setCurrentFormData(createInitialFormState());
-      })
-      .finally(() => setIsLoadingData(false));
+        })
+        .finally(() => setIsLoadingData(false));
     } else {
       setCurrentFormData(createInitialFormState());
     }

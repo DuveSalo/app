@@ -80,4 +80,4 @@ export const FilterSort: React.FC<FilterSortProps> = ({
   );
 };
 
-export default FilterSort;
+

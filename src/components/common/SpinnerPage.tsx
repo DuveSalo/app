@@ -8,4 +8,4 @@ const SpinnerPage: React.FC = () => (
   </div>
 );
 
-export default SpinnerPage;
+

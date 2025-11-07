@@ -56,19 +56,19 @@ const CreateEditSelfProtectionSystemPage: React.FC = () => {
     if (id) {
       setIsLoadingData(true);
       setPageError('');
-      api.getSelfProtectionSystems().then(systems => { 
-        const systemToEdit = systems.find(s => s.id === id);
-        if (systemToEdit) {
+      api.getSelfProtectionSystemById(id)
+        .then(systemToEdit => {
           setCurrentFormData({
             ...initialSystemData,
             ...systemToEdit,
             drills: systemToEdit.drills.length >= 4 ? systemToEdit.drills.slice(0,4) : Array(4).fill(null).map((_, i) => systemToEdit.drills[i] || ({ date: '', pdfFile: undefined, pdfFileName: undefined }))
           });
-        } else {
-          setPageError("Sistema de autoprotección no encontrado.");
-        }
-      }).catch(err => setPageError((err as Error).message || "Error al cargar datos del sistema."))
-      .finally(() => setIsLoadingData(false));
+        })
+        .catch((error: unknown) => {
+          const message = error instanceof Error ? error.message : "Error al cargar datos del sistema.";
+          setPageError(message);
+        })
+        .finally(() => setIsLoadingData(false));
     } else {
       setCurrentFormData(initialSystemData);
     }

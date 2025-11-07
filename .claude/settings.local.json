@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(npx supabase:*)",
+      "Bash(cat:*)",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__execute_sql",
+      "Bash(node -e:*)",
+      "mcp__supabase__get_edge_function",
+      "Bash(supabase projects:*)",
+      "mcp__supabase__deploy_edge_function",
+      "mcp__supabase__get_logs",
+      "Bash(curl:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(rm:*)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
+}

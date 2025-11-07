@@ -82,7 +82,7 @@ export const sanitizeInput = (input: string): string => {
 export const sanitizeHtml = (html: string): string => {
   const tempDiv = document.createElement('div');
   tempDiv.textContent = html;
-  return tempDiv.innerHTML;
+  return tempDiv.textContent || '';
 };
 
 // Email validation
@@ -91,17 +91,6 @@ export const validateEmail = (email: string): { valid: boolean; error?: string }
 
   if (!email || !emailRegex.test(email)) {
     return { valid: false, error: 'Email inválido' };
-  }
-
-  return { valid: true };
-};
-
-// CUIT validation (Argentina)
-export const validateCUIT = (cuit: string): { valid: boolean; error?: string } => {
-  const cleanCuit = cuit.replace(/[-_]/g, '');
-
-  if (!/^\d{11}$/.test(cleanCuit)) {
-    return { valid: false, error: 'El CUIT debe tener 11 dígitos' };
   }
 
   return { valid: true };
@@ -125,4 +114,55 @@ export const validateRequired = (value: any, fieldName: string = 'Campo'): { val
   }
 
   return { valid: true };
+};
+
+// Expiration-specific validations
+import { calculateDaysUntilExpiration } from './dateUtils';
+import { EXPIRATION_CONFIG } from '../constants';
+
+/**
+ * Valida que una fecha de vencimiento sea posterior a una fecha de presentación
+ */
+export const validateExpirationDateRange = (
+  presentationDate: string,
+  expirationDate: string
+): { valid: boolean; error?: string } => {
+  const presentation = new Date(presentationDate);
+  const expiration = new Date(expirationDate);
+
+  if (isNaN(presentation.getTime()) || isNaN(expiration.getTime())) {
+    return { valid: false, error: 'Fechas inválidas' };
+  }
+
+  if (expiration <= presentation) {
+    return { valid: false, error: 'La fecha de vencimiento debe ser posterior a la de presentación' };
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (expiration < today) {
+    return { valid: false, error: 'La fecha de vencimiento no puede estar en el pasado' };
+  }
+
+  return { valid: true };
+};
+
+/**
+ * Valida que un servicio esté dentro de la ventana de notificación
+ */
+export const validateServiceWithinNotificationWindow = (
+  expirationDate: string,
+  windowDays: number = EXPIRATION_CONFIG.NOTIFICATION_WINDOW_DAYS
+): boolean => {
+  const daysUntil = calculateDaysUntilExpiration(expirationDate);
+  return daysUntil > 0 && daysUntil <= windowDays;
+};
+
+/**
+ * Valida que una fecha sea válida y parseable
+ */
+export const isValidDate = (dateString: string): boolean => {
+  const date = new Date(dateString);
+  return !isNaN(date.getTime());
 };

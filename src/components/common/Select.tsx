@@ -23,4 +23,4 @@ export const Select: React.FC<SelectProps> = ({ label, id, error, options, ...pr
   </div>
 );
 
-export default Select;
+

@@ -36,4 +36,4 @@ export const PdfPreview: React.FC<{ file: File | string | null | undefined }> = 
   );
 };
 
-export default PdfPreview;
+

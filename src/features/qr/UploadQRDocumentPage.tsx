@@ -128,7 +128,7 @@ const UploadQRDocumentPage: React.FC<UploadQRDocumentPageProps> = ({ qrType, tit
 
   return (
     <PageLayout title={pageTitle} footer={footerActions}>
-      <form id="upload-form" onSubmit={handleSubmit} className="w-full max-w-3xl mx-auto space-y-6">
+      <form id="upload-form" onSubmit={handleSubmit} className="w-full max-w-xl mx-auto space-y-6">
         <FileUpload
           label="Seleccionar Documento (Imagen o PDF)"
           accept=".pdf,.png,.jpg,.jpeg"
