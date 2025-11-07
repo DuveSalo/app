@@ -22,7 +22,8 @@
       "Bash(do sed -i \"s/from ''cva''/from ''class-variance-authority''/g\" \"$file\")",
       "Bash(done)",
       "Bash(npm run build:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npx tsc:*)"
     ]
   },
   "enabledMcpjsonServers": [

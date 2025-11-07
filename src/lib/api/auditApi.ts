@@ -13,15 +13,15 @@ import { Tables } from '../supabase/database.types';
 const mapAuditLogFromDb = (data: Tables<'audit_logs'>): AuditLog => {
   return {
     id: data.id,
-    userId: data.user_id,
+    userId: data.user_id || '',
     companyId: data.company_id,
-    action: data.action,
-    tableName: data.table_name,
-    recordId: data.record_id,
-    oldData: data.old_data,
-    newData: data.new_data,
-    ipAddress: data.ip_address,
-    userAgent: data.user_agent,
+    action: data.action as AuditLog['action'],
+    tableName: data.entity_type,
+    recordId: data.entity_id || '',
+    oldData: data.old_values,
+    newData: data.new_values,
+    ipAddress: data.ip_address || '',
+    userAgent: data.user_agent || '',
     createdAt: data.created_at,
   };
 };
@@ -44,7 +44,7 @@ export const getAuditLogs = async (
       .range(offset, offset + limit - 1);
 
     if (filters?.tableName) {
-      query = query.eq('table_name', filters.tableName);
+      query = query.eq('entity_type', filters.tableName);
     }
     if (filters?.action) {
       query = query.eq('action', filters.action);
@@ -53,7 +53,7 @@ export const getAuditLogs = async (
       query = query.eq('user_id', filters.userId);
     }
     if (filters?.recordId) {
-      query = query.eq('record_id', filters.recordId);
+      query = query.eq('entity_id', filters.recordId);
     }
     if (filters?.dateFrom) {
       query = query.gte('created_at', filters.dateFrom);
@@ -84,8 +84,8 @@ export const getRecordHistory = async (
     const { data, error } = await supabase
       .from('audit_logs')
       .select('*')
-      .eq('record_id', recordId)
-      .eq('table_name', tableName)
+      .eq('entity_id', recordId)
+      .eq('entity_type', tableName)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -160,5 +160,67 @@ export const getRecentAuditLogs = async (
     console.error('Error fetching recent audit logs:', error);
     throw error;
   }
+};
+
+/**
+ * Helper functions for audit log display
+ */
+
+export const calculateChanges = (oldData: any, newData: any): Array<{ field: string; oldValue: any; newValue: any }> => {
+  if (!newData) return [];
+  if (!oldData) {
+    // INSERT - all fields are new
+    return Object.keys(newData).map(field => ({
+      field,
+      oldValue: null,
+      newValue: newData[field]
+    }));
+  }
+
+  // UPDATE - find changed fields
+  const changes: Array<{ field: string; oldValue: any; newValue: any }> = [];
+  Object.keys(newData).forEach(field => {
+    if (JSON.stringify(oldData[field]) !== JSON.stringify(newData[field])) {
+      changes.push({
+        field,
+        oldValue: oldData[field],
+        newValue: newData[field]
+      });
+    }
+  });
+  return changes;
+};
+
+export const formatAuditValue = (value: any): string => {
+  if (value === null || value === undefined) return '-';
+  if (typeof value === 'boolean') return value ? 'Sí' : 'No';
+  if (typeof value === 'object') return JSON.stringify(value);
+  if (typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}/)) {
+    // Format date
+    return new Date(value).toLocaleDateString('es-AR');
+  }
+  return String(value);
+};
+
+export const getFieldLabel = (field: string): string => {
+  const labels: Record<string, string> = {
+    name: 'Nombre',
+    email: 'Email',
+    address: 'Dirección',
+    phone: 'Teléfono',
+    presentation_date: 'Fecha de Presentación',
+    expiration_date: 'Fecha de Vencimiento',
+    intervener: 'Interviniente',
+    registration_number: 'Número de Matrícula',
+    next_inspection: 'Próxima Inspección',
+    status: 'Estado',
+    location: 'Ubicación',
+    description: 'Descripción',
+    module_type: 'Tipo de Módulo',
+    date: 'Fecha',
+    participants: 'Participantes',
+    // Add more field labels as needed
+  };
+  return labels[field] || field;
 };
 

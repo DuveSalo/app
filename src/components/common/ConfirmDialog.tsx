@@ -5,27 +5,20 @@ import { clsx } from 'clsx';
 import { AlertTriangle } from 'lucide-react';
 import { Button, ButtonProps } from './Button';
 
-const dialogVariants = cva('', {
-  variants: {
-    variant: {
-      danger: {
-        icon: 'bg-red-100 text-red-600',
-        button: 'danger' as ButtonProps['variant'],
-      },
-      warning: {
-        icon: 'bg-yellow-100 text-yellow-600',
-        button: 'secondary' as ButtonProps['variant'],
-      },
-      info: {
-        icon: 'bg-blue-100 text-blue-600',
-        button: 'primary' as ButtonProps['variant'],
-      },
-    },
+const variantStyles = {
+  danger: {
+    icon: 'bg-red-100 text-red-600',
+    button: 'danger' as ButtonProps['variant'],
   },
-  defaultVariants: {
-    variant: 'danger',
+  warning: {
+    icon: 'bg-yellow-100 text-yellow-600',
+    button: 'secondary' as ButtonProps['variant'],
   },
-});
+  info: {
+    icon: 'bg-blue-100 text-blue-600',
+    button: 'primary' as ButtonProps['variant'],
+  },
+};
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -52,7 +45,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  const styles = dialogVariants({ variant });
+  const styles = variantStyles[variant];
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto animate-fade-in">
