@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { cva, type VariantProps } from 'cva';
+import { cva, type VariantProps } from 'class-variance-authority';
 import { clsx } from 'clsx';
 import { Loader2 } from 'lucide-react';
 

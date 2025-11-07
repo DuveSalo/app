@@ -15,7 +15,14 @@
       "Bash(git checkout:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm install:*)",
+      "Bash(for file in Card.tsx ChipGroup.tsx ConfirmDialog.tsx Input.tsx LoadingSpinner.tsx Modal.tsx StatusBadge.tsx Tabs.tsx Textarea.tsx Toast.tsx)",
+      "Bash(do sed -i \"s/from ''cva''/from ''class-variance-authority''/g\" \"$file\")",
+      "Bash(done)",
+      "Bash(npm run build:*)",
+      "Bash(find:*)"
     ]
   },
   "enabledMcpjsonServers": [

@@ -6,8 +6,8 @@ export interface UseEntityFormOptions<T> {
   id?: string;
   emptyData: T;
   fetchFn: (id: string) => Promise<T>;
-  validate: (values: T) => Partial<Record<keyof T, string>>;
-  onSubmit: (values: T) => void;
+  validate?: (values: T) => Partial<Record<keyof T, string>>;
+  onSubmit?: (values: T) => void;
   onError?: (message: string) => void;
   onNavigate?: (path: string) => void;
   errorNavigationPath?: string;
@@ -25,16 +25,16 @@ export const useEntityForm = <T extends Record<string, any>>({
 }: UseEntityFormOptions<T>) => {
   const isEditMode = useMemo(() => !!id, [id]);
 
-  const { 
-    values: data, 
-    setValues: setData, 
-    errors: fieldErrors, 
-    setErrors: setFieldErrors, 
+  const {
+    values: data,
+    setValues: setData,
+    errors: fieldErrors,
+    setErrors: setFieldErrors,
     ...form
   } = useForm({
     initialValues: emptyData,
-    validate,
-    onSubmit,
+    validate: validate || (() => ({})),
+    onSubmit: onSubmit || (() => {}),
   });
 
   useEffect(() => {

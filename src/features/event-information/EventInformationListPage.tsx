@@ -5,7 +5,7 @@ import { EventInformation } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
 import * as api from '../../lib/api/supabaseApi';
 import { Button } from '../../components/common/Button';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
 import { EditIcon, TrashIcon, PlusIcon, ExclamationTriangleIcon } from '../../components/common/Icons';
 import PageLayout from '../../components/layout/PageLayout';

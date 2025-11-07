@@ -7,7 +7,7 @@ import { Button } from '../../components/common/Button';
 import { FileUpload } from '../../components/common/FileUpload';
 import { Card } from '../../components/common/Card';
 import { Input } from '../../components/common/Input';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { GoogleGenAI } from "@google/genai";
 import PageLayout from '../../components/layout/PageLayout';
 

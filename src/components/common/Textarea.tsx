@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { cva } from 'cva';
+import { cva } from 'class-variance-authority';
 import { clsx } from 'clsx';
 
 const textareaVariants = cva(

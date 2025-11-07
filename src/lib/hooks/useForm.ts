@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, type ChangeEvent, type FocusEvent, type FormEvent } from 'react';
 
 interface UseFormOptions<T> {
   initialValues: T;
@@ -13,7 +13,7 @@ export const useForm = <T extends Record<string, any>>({ initialValues, validate
   const [touched, setTouched] = useState<Partial<Record<keyof T, boolean>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = useCallback((event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = event.target;
     
     if (type === 'checkbox') {
@@ -24,14 +24,14 @@ export const useForm = <T extends Record<string, any>>({ initialValues, validate
     }
   }, []);
 
-  const handleBlur = useCallback((event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleBlur = useCallback((event: FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name } = event.target;
     setTouched(prev => ({ ...prev, [name]: true }));
     const validationErrors = validate(values);
     setErrors(prev => ({ ...prev, [name]: validationErrors[name] }));
   }, [values, validate]);
 
-  const handleSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = useCallback(async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
     setTouched(Object.keys(initialValues).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
@@ -59,9 +59,13 @@ export const useForm = <T extends Record<string, any>>({ initialValues, validate
 
   return {
     values,
+    setValues,
     errors,
+    setErrors,
     touched,
+    setTouched,
     isSubmitting,
+    setIsSubmitting,
     handleChange,
     handleBlur,
     handleSubmit,

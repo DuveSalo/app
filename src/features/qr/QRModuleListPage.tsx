@@ -5,7 +5,7 @@ import { QRDocument, QRDocumentType } from '../../types/index';
 import * as api from '../../lib/api/supabaseApi';
 import { useAuth } from '../auth/AuthContext';
 import { Button } from '../../components/common/Button';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { TrashIcon, PlusIcon, QrCodeIcon } from '../../components/common/Icons';

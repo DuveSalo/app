@@ -4,7 +4,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
 import { ROUTE_PATHS } from '../constants/index';
-import SpinnerPage from '../components/common/SpinnerPage';
+import { SpinnerPage } from '../components/common/SpinnerPage';
 
 const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const { currentUser, currentCompany, isLoading } = useAuth();

@@ -10,7 +10,7 @@ import { Button } from '../../components/common/Button';
 import { Textarea } from '../../components/common/Textarea';
 import { Checkbox } from '../../components/common/Checkbox';
 import { DynamicListInput } from '../../components/common/DynamicListInput';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import PageLayout from '../../components/layout/PageLayout';
 
 interface EventFormDataType {

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { cva } from 'cva';
+import { cva } from 'class-variance-authority';
 import { clsx } from 'clsx';
 
 const badgeVariants = cva('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', {

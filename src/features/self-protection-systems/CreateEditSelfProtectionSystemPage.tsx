@@ -7,7 +7,7 @@ import * as api from '../../lib/api/supabaseApi';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { FileUpload } from '../../components/common/FileUpload';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { PdfPreview } from '../../components/common/PdfPreview';
 import PageLayout from '../../components/layout/PageLayout';
 import { Tabs } from '../../components/common/Tabs';

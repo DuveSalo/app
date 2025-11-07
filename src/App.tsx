@@ -7,7 +7,7 @@ import { ErrorBoundary } from './components/common/ErrorBoundary';
 import ProtectedRoute from './routes/ProtectedRoute';
 import { ROUTE_PATHS, MODULE_TITLES } from './constants/index';
 import { QRDocumentType } from './types/index';
-import SpinnerPage from './components/common/SpinnerPage';
+import { SpinnerPage } from './components/common/SpinnerPage';
 
 // Layouts
 import MainLayout from './components/layout/MainLayout';

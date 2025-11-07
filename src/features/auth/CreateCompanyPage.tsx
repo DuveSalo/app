@@ -6,7 +6,7 @@ import * as api from '../../lib/api/supabaseApi';
 import { Company, QRDocumentType } from '../../types/index';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
-import ChipGroup from '../../components/common/ChipGroup';
+import { ChipGroup } from '../../components/common/ChipGroup';
 import AuthLayout from '../../components/layout/AuthLayout';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
 import { CheckCircleIcon } from '../../components/common/Icons';
