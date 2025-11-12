@@ -16,15 +16,19 @@ export const ROUTE_PATHS = {
 
   QR_ELEVATORS: "/qr-elevators",
   UPLOAD_QR_ELEVATORS: "/qr-elevators/upload",
+  EDIT_QR_ELEVATORS: "/qr-elevators/:id/edit",
 
   QR_WATER_HEATERS: "/qr-water-heaters",
   UPLOAD_QR_WATER_HEATERS: "/qr-water-heaters/upload",
+  EDIT_QR_WATER_HEATERS: "/qr-water-heaters/:id/edit",
 
   QR_FIRE_SAFETY: "/qr-fire-safety",
   UPLOAD_QR_FIRE_SAFETY: "/qr-fire-safety/upload",
+  EDIT_QR_FIRE_SAFETY: "/qr-fire-safety/:id/edit",
 
   QR_DETECTION: "/qr-detection",
   UPLOAD_QR_DETECTION: "/qr-detection/upload",
+  EDIT_QR_DETECTION: "/qr-detection/:id/edit",
 
   EVENT_INFORMATION: "/event-information",
   NEW_EVENT_INFORMATION: "/event-information/new",
@@ -38,4 +42,5 @@ export const ROUTE_PATHS = {
   SANITIZATION: "/sanitization",
   ELECTRICAL_INSTALLATIONS: "/electrical-installations",
   UPLOAD_ELECTRICAL_INSTALLATIONS: "/electrical-installations/upload",
+  EDIT_ELECTRICAL_INSTALLATIONS: "/electrical-installations/:id/edit",
 } as const;

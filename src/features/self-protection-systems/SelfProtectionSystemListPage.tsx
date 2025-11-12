@@ -12,7 +12,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { FilterSort } from '../../components/common/FilterSort';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { EditIcon, TrashIcon, PlusIcon, ShieldCheckIcon } from '../../components/common/Icons';
+import { EditIcon, TrashIcon, PlusIcon, ShieldCheckIcon, EyeIcon, ChevronDownIcon } from '../../components/common/Icons';
 import PageLayout from '../../components/layout/PageLayout';
 import { calculateExpirationStatus } from '../../lib/utils/dateUtils';
 import { ExpirationStatus } from '../../types/expirable';
@@ -25,6 +25,7 @@ const SelfProtectionSystemListPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('expirationDate-asc');
   const [filterStatus, setFilterStatus] = useState('');
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
   const { showSuccess, showError } = useToast();
   const { currentCompany } = useAuth();
@@ -48,6 +49,18 @@ const SelfProtectionSystemListPage: React.FC = () => {
 
   const getStatus = (expirationDate: string): ExpirationStatus => {
     return calculateExpirationStatus(expirationDate);
+  };
+
+  const toggleRow = (id: string) => {
+    setExpandedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
   };
 
   const handleDeleteClick = (id: string) => {
@@ -178,6 +191,7 @@ const SelfProtectionSystemListPage: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12"></TableHead>
                   <TableHead>Interviniente</TableHead>
                   <TableHead>N° Matrícula</TableHead>
                   <TableHead>Disp. Aprobatoria</TableHead>
@@ -187,42 +201,139 @@ const SelfProtectionSystemListPage: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAndSortedSystems.map((sys, index) => (
-                  <TableRow
-                    key={sys.id}
-                    className="hover:bg-gray-50 transition-colors animate-fade-in"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <TableCell className="font-medium">{sys.intervener}</TableCell>
-                    <TableCell>{sys.registrationNumber}</TableCell>
-                    <TableCell>{sys.probatoryDispositionDate ? new Date(sys.probatoryDispositionDate + 'T00:00:00').toLocaleDateString('es-AR') : 'N/A'}</TableCell>
-                    <TableCell>{new Date(sys.expirationDate + 'T00:00:00').toLocaleDateString('es-AR')}</TableCell>
-                    <TableCell>
-                      <StatusBadge status={getStatus(sys.expirationDate)} />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigate(ROUTE_PATHS.EDIT_SELF_PROTECTION_SYSTEM.replace(':id', sys.id))}
-                          title="Editar"
-                        >
-                          <EditIcon className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteClick(sys.id)}
-                          className="text-red-600 hover:bg-red-50"
-                          title="Eliminar"
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filteredAndSortedSystems.map((sys, index) => {
+                  const isExpanded = expandedRows.has(sys.id);
+                  return (
+                    <React.Fragment key={sys.id}>
+                      <TableRow
+                        className="hover:bg-gray-50 transition-colors animate-fade-in"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <TableCell>
+                          <button
+                            type="button"
+                            onClick={() => toggleRow(sys.id)}
+                            className="p-1 hover:bg-gray-200 rounded transition-colors"
+                            title={isExpanded ? "Contraer" : "Expandir"}
+                          >
+                            <ChevronDownIcon className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                          </button>
+                        </TableCell>
+                        <TableCell className="font-medium">{sys.intervener}</TableCell>
+                        <TableCell>{sys.registrationNumber}</TableCell>
+                        <TableCell>{sys.probatoryDispositionDate ? new Date(sys.probatoryDispositionDate + 'T00:00:00').toLocaleDateString('es-AR') : 'N/A'}</TableCell>
+                        <TableCell>{new Date(sys.expirationDate + 'T00:00:00').toLocaleDateString('es-AR')}</TableCell>
+                        <TableCell>
+                          <StatusBadge status={getStatus(sys.expirationDate)} />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(ROUTE_PATHS.EDIT_SELF_PROTECTION_SYSTEM.replace(':id', sys.id))}
+                              title="Editar"
+                            >
+                              <EditIcon className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteClick(sys.id)}
+                              className="text-red-600 hover:bg-red-50"
+                              title="Eliminar"
+                            >
+                              <TrashIcon className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      {isExpanded && (
+                        <TableRow className="bg-gray-50">
+                          <TableCell colSpan={7} className="p-0">
+                            <div className="p-6 space-y-4">
+                              {/* Disposición Aprobatoria */}
+                              {sys.probatoryDispositionDate && (
+                                <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                                  <div className="flex-1">
+                                    <span className="font-medium text-gray-700">Disposición Aprobatoria:</span>
+                                    <span className="ml-2 text-gray-600">{new Date(sys.probatoryDispositionDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
+                                  </div>
+                                  {sys.probatoryDispositionPdfUrl && (
+                                    <button
+                                      type="button"
+                                      className="inline-flex items-center justify-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 rounded transition-colors"
+                                      onClick={() => window.open(sys.probatoryDispositionPdfUrl, '_blank')}
+                                      title="Ver PDF"
+                                    >
+                                      <EyeIcon className="w-4 h-4 mr-1" />
+                                      Ver PDF
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Extensión */}
+                              <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                                <div className="flex-1">
+                                  <span className="font-medium text-gray-700">Extensión:</span>
+                                  <span className="ml-2 text-gray-600">{new Date(sys.extensionDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
+                                </div>
+                                {sys.extensionPdfUrl && (
+                                  <button
+                                    type="button"
+                                    className="inline-flex items-center justify-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 rounded transition-colors"
+                                    onClick={() => window.open(sys.extensionPdfUrl, '_blank')}
+                                    title="Ver PDF"
+                                  >
+                                    <EyeIcon className="w-4 h-4 mr-1" />
+                                    Ver PDF
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* Vencimiento */}
+                              <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                                <div className="flex-1">
+                                  <span className="font-medium text-gray-700">Vencimiento:</span>
+                                  <span className="ml-2 text-gray-600">{new Date(sys.expirationDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
+                                </div>
+                              </div>
+
+                              {/* Simulacros */}
+                              {sys.drills && sys.drills.length > 0 && (
+                                <div className="pt-2">
+                                  <h4 className="font-medium text-gray-700 mb-3">Simulacros:</h4>
+                                  <div className="space-y-2">
+                                    {sys.drills.map((drill, idx) => (
+                                      <div key={idx} className="flex items-center justify-between py-2 pl-4 border-l-2 border-gray-300">
+                                        <div className="flex-1">
+                                          <span className="text-gray-600">Simulacro {idx + 1}:</span>
+                                          <span className="ml-2 text-gray-600">{new Date(drill.date + 'T00:00:00').toLocaleDateString('es-AR')}</span>
+                                        </div>
+                                        {drill.pdfUrl && (
+                                          <button
+                                            type="button"
+                                            className="inline-flex items-center justify-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 rounded transition-colors"
+                                            onClick={() => window.open(drill.pdfUrl, '_blank')}
+                                            title="Ver PDF"
+                                          >
+                                            <EyeIcon className="w-4 h-4 mr-1" />
+                                            Ver PDF
+                                          </button>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

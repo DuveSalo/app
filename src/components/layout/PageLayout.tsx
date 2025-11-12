@@ -11,8 +11,8 @@ interface PageLayoutProps {
 
 export const PageLayout: React.FC<PageLayoutProps> = ({ title, headerActions, children, footer }) => {
   return (
-    // Use a fixed proportion of the viewport height, making the content area feel like a distinct panel.
-    <div className="h-[90vh] flex flex-col">
+    // Use full available height from parent container
+    <div className="h-full flex flex-col">
       <Card className="flex flex-col flex-grow w-full" padding="none">
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 flex-shrink-0">

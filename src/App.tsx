@@ -23,6 +23,7 @@ import SelfProtectionSystemListPage from './features/self-protection-systems/Sel
 import CreateEditSelfProtectionSystemPage from './features/self-protection-systems/CreateEditSelfProtectionSystemPage';
 import QRModuleListPage from './features/qr/QRModuleListPage';
 import UploadQRDocumentPage from './features/qr/UploadQRDocumentPage';
+import EditQRDocumentPage from './features/qr/EditQRDocumentPage';
 import EventInformationListPage from './features/event-information/EventInformationListPage';
 import CreateEditEventInformationPage from './features/event-information/CreateEditEventInformationPage';
 import SettingsPage from './features/settings/SettingsPage';
@@ -62,20 +63,25 @@ const App: React.FC = () => {
                   <Route path={ROUTE_PATHS.NEW_SELF_PROTECTION_SYSTEM.substring(1)} element={<CreateEditSelfProtectionSystemPage />} />
                   <Route path={ROUTE_PATHS.EDIT_SELF_PROTECTION_SYSTEM.substring(1)} element={<CreateEditSelfProtectionSystemPage />} />
                   
-                  <Route path={ROUTE_PATHS.QR_ELEVATORS.substring(1)} element={<QRModuleListPage qrType={QRDocumentType.Elevators} title={MODULE_TITLES.QR_ELEVATORS} uploadPath={ROUTE_PATHS.UPLOAD_QR_ELEVATORS}/>} />
+                  <Route path={ROUTE_PATHS.QR_ELEVATORS.substring(1)} element={<QRModuleListPage qrType={QRDocumentType.Elevators} title={MODULE_TITLES.QR_ELEVATORS} uploadPath={ROUTE_PATHS.UPLOAD_QR_ELEVATORS} editPath={ROUTE_PATHS.EDIT_QR_ELEVATORS}/>} />
                   <Route path={ROUTE_PATHS.UPLOAD_QR_ELEVATORS.substring(1)} element={<UploadQRDocumentPage qrType={QRDocumentType.Elevators} title={MODULE_TITLES.QR_ELEVATORS} listPath={ROUTE_PATHS.QR_ELEVATORS} />} />
-                  
-                  <Route path={ROUTE_PATHS.QR_WATER_HEATERS.substring(1)} element={<QRModuleListPage qrType={QRDocumentType.WaterHeaters} title={MODULE_TITLES.QR_WATER_HEATERS} uploadPath={ROUTE_PATHS.UPLOAD_QR_WATER_HEATERS} />} />
+                  <Route path={ROUTE_PATHS.EDIT_QR_ELEVATORS.substring(1)} element={<EditQRDocumentPage qrType={QRDocumentType.Elevators} title={MODULE_TITLES.QR_ELEVATORS} listPath={ROUTE_PATHS.QR_ELEVATORS} />} />
+
+                  <Route path={ROUTE_PATHS.QR_WATER_HEATERS.substring(1)} element={<QRModuleListPage qrType={QRDocumentType.WaterHeaters} title={MODULE_TITLES.QR_WATER_HEATERS} uploadPath={ROUTE_PATHS.UPLOAD_QR_WATER_HEATERS} editPath={ROUTE_PATHS.EDIT_QR_WATER_HEATERS} />} />
                   <Route path={ROUTE_PATHS.UPLOAD_QR_WATER_HEATERS.substring(1)} element={<UploadQRDocumentPage qrType={QRDocumentType.WaterHeaters} title={MODULE_TITLES.QR_WATER_HEATERS} listPath={ROUTE_PATHS.QR_WATER_HEATERS} />} />
+                  <Route path={ROUTE_PATHS.EDIT_QR_WATER_HEATERS.substring(1)} element={<EditQRDocumentPage qrType={QRDocumentType.WaterHeaters} title={MODULE_TITLES.QR_WATER_HEATERS} listPath={ROUTE_PATHS.QR_WATER_HEATERS} />} />
 
-                  <Route path={ROUTE_PATHS.QR_FIRE_SAFETY.substring(1)} element={<QRModuleListPage qrType={QRDocumentType.FireSafetySystem} title={MODULE_TITLES.QR_FIRE_SAFETY} uploadPath={ROUTE_PATHS.UPLOAD_QR_FIRE_SAFETY} />} />
+                  <Route path={ROUTE_PATHS.QR_FIRE_SAFETY.substring(1)} element={<QRModuleListPage qrType={QRDocumentType.FireSafetySystem} title={MODULE_TITLES.QR_FIRE_SAFETY} uploadPath={ROUTE_PATHS.UPLOAD_QR_FIRE_SAFETY} editPath={ROUTE_PATHS.EDIT_QR_FIRE_SAFETY} />} />
                   <Route path={ROUTE_PATHS.UPLOAD_QR_FIRE_SAFETY.substring(1)} element={<UploadQRDocumentPage qrType={QRDocumentType.FireSafetySystem} title={MODULE_TITLES.QR_FIRE_SAFETY} listPath={ROUTE_PATHS.QR_FIRE_SAFETY} />} />
+                  <Route path={ROUTE_PATHS.EDIT_QR_FIRE_SAFETY.substring(1)} element={<EditQRDocumentPage qrType={QRDocumentType.FireSafetySystem} title={MODULE_TITLES.QR_FIRE_SAFETY} listPath={ROUTE_PATHS.QR_FIRE_SAFETY} />} />
 
-                  <Route path={ROUTE_PATHS.QR_DETECTION.substring(1)} element={<QRModuleListPage qrType={QRDocumentType.DetectionSystem} title={MODULE_TITLES.QR_DETECTION} uploadPath={ROUTE_PATHS.UPLOAD_QR_DETECTION} />} />
+                  <Route path={ROUTE_PATHS.QR_DETECTION.substring(1)} element={<QRModuleListPage qrType={QRDocumentType.DetectionSystem} title={MODULE_TITLES.QR_DETECTION} uploadPath={ROUTE_PATHS.UPLOAD_QR_DETECTION} editPath={ROUTE_PATHS.EDIT_QR_DETECTION} />} />
                   <Route path={ROUTE_PATHS.UPLOAD_QR_DETECTION.substring(1)} element={<UploadQRDocumentPage qrType={QRDocumentType.DetectionSystem} title={MODULE_TITLES.QR_DETECTION} listPath={ROUTE_PATHS.QR_DETECTION} />} />
-                  
-                  <Route path={ROUTE_PATHS.ELECTRICAL_INSTALLATIONS.substring(1)} element={<QRModuleListPage qrType={QRDocumentType.ElectricalInstallations} title={MODULE_TITLES.ELECTRICAL_INSTALLATIONS} uploadPath={ROUTE_PATHS.UPLOAD_ELECTRICAL_INSTALLATIONS}/>} />
+                  <Route path={ROUTE_PATHS.EDIT_QR_DETECTION.substring(1)} element={<EditQRDocumentPage qrType={QRDocumentType.DetectionSystem} title={MODULE_TITLES.QR_DETECTION} listPath={ROUTE_PATHS.QR_DETECTION} />} />
+
+                  <Route path={ROUTE_PATHS.ELECTRICAL_INSTALLATIONS.substring(1)} element={<QRModuleListPage qrType={QRDocumentType.ElectricalInstallations} title={MODULE_TITLES.ELECTRICAL_INSTALLATIONS} uploadPath={ROUTE_PATHS.UPLOAD_ELECTRICAL_INSTALLATIONS} editPath={ROUTE_PATHS.EDIT_ELECTRICAL_INSTALLATIONS}/>} />
                   <Route path={ROUTE_PATHS.UPLOAD_ELECTRICAL_INSTALLATIONS.substring(1)} element={<UploadQRDocumentPage qrType={QRDocumentType.ElectricalInstallations} title={MODULE_TITLES.ELECTRICAL_INSTALLATIONS} listPath={ROUTE_PATHS.ELECTRICAL_INSTALLATIONS} />} />
+                  <Route path={ROUTE_PATHS.EDIT_ELECTRICAL_INSTALLATIONS.substring(1)} element={<EditQRDocumentPage qrType={QRDocumentType.ElectricalInstallations} title={MODULE_TITLES.ELECTRICAL_INSTALLATIONS} listPath={ROUTE_PATHS.ELECTRICAL_INSTALLATIONS} />} />
 
                   <Route path={ROUTE_PATHS.EVENT_INFORMATION.substring(1)} element={<EventInformationListPage />} />
                   <Route path={ROUTE_PATHS.NEW_EVENT_INFORMATION.substring(1)} element={<CreateEditEventInformationPage />} />

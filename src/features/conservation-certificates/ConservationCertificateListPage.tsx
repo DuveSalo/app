@@ -12,7 +12,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { FilterSort } from '../../components/common/FilterSort';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { EditIcon, TrashIcon, PlusIcon, DocumentTextIcon } from '../../components/common/Icons';
+import { EditIcon, TrashIcon, PlusIcon, DocumentTextIcon, EyeIcon } from '../../components/common/Icons';
 import PageLayout from '../../components/layout/PageLayout';
 import { calculateExpirationStatus } from '../../lib/utils/dateUtils';
 import { ExpirationStatus } from '../../types/expirable';
@@ -178,13 +178,13 @@ const ConservationCertificateListPage: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Interviniente</TableHead>
-                  <TableHead>N° Registro</TableHead>
-                  <TableHead>Presentación</TableHead>
-                  <TableHead>Vencimiento</TableHead>
-                  <TableHead>Archivo</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Acciones</TableHead>
+                  <TableHead className="w-[25%]">Interviniente</TableHead>
+                  <TableHead className="w-[12%]">N° Registro</TableHead>
+                  <TableHead className="w-[12%]">Presentación</TableHead>
+                  <TableHead className="w-[12%]">Vencimiento</TableHead>
+                  <TableHead className="w-[20%]">Archivo</TableHead>
+                  <TableHead className="w-[10%]">Estado</TableHead>
+                  <TableHead className="w-[9%]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -194,11 +194,11 @@ const ConservationCertificateListPage: React.FC = () => {
                     className="hover:bg-gray-50 transition-colors animate-fade-in"
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
-                    <TableCell className="font-medium">{cert.intervener}</TableCell>
-                    <TableCell>{cert.registrationNumber}</TableCell>
-                    <TableCell>{new Date(cert.presentationDate).toLocaleDateString('es-AR')}</TableCell>
-                    <TableCell>{new Date(cert.expirationDate).toLocaleDateString('es-AR')}</TableCell>
-                    <TableCell className="truncate max-w-xs text-sm text-gray-600">
+                    <TableCell className="font-medium max-w-0 truncate">{cert.intervener}</TableCell>
+                    <TableCell className="text-xs">{cert.registrationNumber}</TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">{new Date(cert.presentationDate).toLocaleDateString('es-AR')}</TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">{new Date(cert.expirationDate).toLocaleDateString('es-AR')}</TableCell>
+                    <TableCell className="max-w-0 truncate text-xs text-gray-600" title={cert.pdfFileName || 'N/A'}>
                       {cert.pdfFileName || 'N/A'}
                     </TableCell>
                     <TableCell>
@@ -206,6 +206,20 @@ const ConservationCertificateListPage: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-1">
+                        <button
+                          type="button"
+                          className="inline-flex items-center justify-center p-2 text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                          onClick={() => {
+                            if (cert.pdfFile && typeof cert.pdfFile === 'string') {
+                              window.open(cert.pdfFile, '_blank');
+                            } else {
+                              alert('No hay PDF disponible para este certificado. Suba un PDF editando el registro.');
+                            }
+                          }}
+                          title="Ver PDF"
+                        >
+                          <EyeIcon className="w-4 h-4" />
+                        </button>
                         <Button
                           variant="ghost"
                           size="sm"

@@ -50,7 +50,39 @@ export const createCertificate = async (certData: Omit<ConservationCertificate, 
 
   const company = await getCompanyByUserId(currentUser.id);
 
-  // TODO: Handle file upload to Supabase Storage
+  let pdfFileUrl: string | null = null;
+  let pdfFilePath: string | null = null;
+
+  // Upload file to Supabase Storage if provided
+  if (certData.pdfFile && certData.pdfFile instanceof File) {
+    // Sanitize filename - remove special characters and spaces
+    const originalName = certData.pdfFileName || certData.pdfFile.name;
+    const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const fileName = `${company.id}/${Date.now()}_${sanitizedName}`;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('certificates')
+      .upload(fileName, certData.pdfFile, {
+        contentType: certData.pdfFile.type || 'application/pdf',
+        upsert: false
+      });
+
+    if (uploadError) {
+      handleSupabaseError(uploadError, 'Error al subir el archivo PDF');
+    }
+
+    if (uploadData) {
+      pdfFilePath = uploadData.path;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('certificates')
+        .getPublicUrl(uploadData.path);
+
+      pdfFileUrl = urlData.publicUrl;
+    }
+  }
+
   const { data, error } = await supabase
     .from('conservation_certificates')
     .insert({
@@ -59,8 +91,8 @@ export const createCertificate = async (certData: Omit<ConservationCertificate, 
       expiration_date: certData.expirationDate,
       intervener: certData.intervener,
       registration_number: certData.registrationNumber,
-      pdf_file_url: null, // Will be updated after file upload
-      pdf_file_path: null,
+      pdf_file_url: pdfFileUrl,
+      pdf_file_path: pdfFilePath,
       pdf_file_name: certData.pdfFileName || null,
     })
     .select()
@@ -74,15 +106,61 @@ export const createCertificate = async (certData: Omit<ConservationCertificate, 
 };
 
 export const updateCertificate = async (certData: ConservationCertificate): Promise<ConservationCertificate> => {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) throw new AuthError("Usuario no autenticado");
+
+  const company = await getCompanyByUserId(currentUser.id);
+
+  let pdfFileUrl: string | null = null;
+  let pdfFilePath: string | null = null;
+
+  // Upload new file to Supabase Storage if provided
+  if (certData.pdfFile && certData.pdfFile instanceof File) {
+    // Sanitize filename - remove special characters and spaces
+    const originalName = certData.pdfFileName || certData.pdfFile.name;
+    const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const fileName = `${company.id}/${Date.now()}_${sanitizedName}`;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('certificates')
+      .upload(fileName, certData.pdfFile, {
+        contentType: certData.pdfFile.type || 'application/pdf',
+        upsert: false
+      });
+
+    if (uploadError) {
+      handleSupabaseError(uploadError, 'Error al subir el archivo PDF');
+    }
+
+    if (uploadData) {
+      pdfFilePath = uploadData.path;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('certificates')
+        .getPublicUrl(uploadData.path);
+
+      pdfFileUrl = urlData.publicUrl;
+    }
+  }
+
+  const updateData: any = {
+    presentation_date: certData.presentationDate,
+    expiration_date: certData.expirationDate,
+    intervener: certData.intervener,
+    registration_number: certData.registrationNumber,
+    pdf_file_name: certData.pdfFileName || null,
+  };
+
+  // Only update PDF fields if a new file was uploaded
+  if (pdfFileUrl) {
+    updateData.pdf_file_url = pdfFileUrl;
+    updateData.pdf_file_path = pdfFilePath;
+  }
+
   const { data, error } = await supabase
     .from('conservation_certificates')
-    .update({
-      presentation_date: certData.presentationDate,
-      expiration_date: certData.expirationDate,
-      intervener: certData.intervener,
-      registration_number: certData.registrationNumber,
-      pdf_file_name: certData.pdfFileName || null,
-    })
+    .update(updateData)
     .eq('id', certData.id)
     .select()
     .single();

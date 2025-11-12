@@ -11,7 +11,7 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { PdfPreview } from '../../components/common/PdfPreview';
 import PageLayout from '../../components/layout/PageLayout';
 import { Tabs } from '../../components/common/Tabs';
-import { TrashIcon } from '../../components/common/Icons';
+import { TrashIcon, EyeIcon } from '../../components/common/Icons';
 
 const CreateEditSelfProtectionSystemPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -142,99 +142,32 @@ const CreateEditSelfProtectionSystemPage: React.FC = () => {
       setFormError("Por favor, complete todos los campos requeridos en todas las secciones para guardar.");
       return;
     }
-    setIsSubmitting(true); 
+    setIsSubmitting(true);
     setFormError('');
     try {
-      if (id) { 
+      if (id) {
         await api.updateSelfProtectionSystem({ ...currentFormData, id, companyId: MOCK_COMPANY_ID });
-      } else { 
+      } else {
         await api.createSelfProtectionSystem(currentFormData);
       }
       navigate(ROUTE_PATHS.SELF_PROTECTION_SYSTEMS);
     } catch (err: any) {
       setFormError((err as Error).message || "Error al guardar el sistema");
     } finally {
-      setIsSubmitting(false); 
+      setIsSubmitting(false);
     }
   };
-  
-  const formTabs = [
-    {
-        label: 'Principal',
-        disabled: false,
-        content: (
-            <div className="space-y-4">
-                <Input id="probatoryDispositionDate" label="Fecha Disposición Aprobatoria" type="date" name="probatoryDispositionDate" value={currentFormData.probatoryDispositionDate || ''} onChange={handleChange} required/>
-                <FileUpload label="PDF Disposición Aprobatoria" accept=".pdf" currentFileName={currentFormData.probatoryDispositionPdfName} onFileSelect={(file) => handleFileChange('probatoryDispositionPdf', file)} />
-                <PdfPreview file={currentFormData.probatoryDispositionPdf} />
 
-                <Input id="extensionDate" label="Fecha Extensión" type="date" name="extensionDate" value={currentFormData.extensionDate || ''} onChange={handleChange} disabled />
-                <FileUpload label="PDF Extensión" accept=".pdf" currentFileName={currentFormData.extensionPdfName} onFileSelect={(file) => handleFileChange('extensionPdf', file)} />
-                <PdfPreview file={currentFormData.extensionPdf} />
-                
-                <Input id="expirationDate" label="Fecha Vencimiento" type="date" name="expirationDate" value={currentFormData.expirationDate} onChange={handleChange} required disabled/>
-            </div>
-        )
-    },
-    {
-        label: 'Simulacros',
-        disabled: maxAllowedStep < 1,
-        content: (
-            <div className="space-y-4">
-                <p className="text-sm text-gray-600">Registre la información de los 4 simulacros requeridos. Se requiere la fecha de los 4 simulacros para continuar.</p>
-                {currentFormData.drills.map((drill, index) => (
-                  <div key={index} className="p-4 border border-gray-200 rounded-lg bg-gray-50/70">
-                    <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-medium text-gray-800">Simulacro {index + 1}</h4>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleClearDrill(index)}
-                            className="text-gray-500 hover:text-red-600 hover:bg-red-50 px-2 py-1"
-                            aria-label={`Limpiar Simulacro ${index + 1}`}
-                        >
-                            <TrashIcon className="w-4 h-4 mr-1.5" />
-                            Limpiar
-                        </Button>
-                    </div>
-                    <div className="space-y-3">
-                      <Input label="Fecha" id={`drillDate-${index}`} type="date" value={drill.date} onChange={(e) => handleDrillChange(index, 'date', e.target.value)} required/>
-                      <FileUpload label="PDF del Simulacro" accept=".pdf" currentFileName={drill.pdfFileName} onFileSelect={(file) => handleDrillChange(index, 'pdfFile', file)} />
-                      <PdfPreview file={drill.pdfFile} />
-                    </div>
-                  </div>
-                ))}
-            </div>
-        )
-    },
-    {
-        label: 'Profesional',
-        disabled: maxAllowedStep < 2,
-        content: (
-            <div className="space-y-4">
-                <Input id="intervener" label="Personal Interviniente" name="intervener" value={currentFormData.intervener} onChange={handleChange} required />
-                <Input id="registrationNumber" label="Matrícula" name="registrationNumber" value={currentFormData.registrationNumber} onChange={handleChange} required />
-            </div>
-        )
-    }
-  ];
-
-  if (isLoadingData) return <div className="flex-grow flex justify-center items-center h-full"><LoadingSpinner size="lg" /></div>;
-  if (pageError) return <div className="flex-grow flex justify-center items-center h-full"><p className="text-red-500 text-center py-10">{pageError}</p></div>;
-
-  const pageTitle = id ? "Editar Sistema de Autoprotección" : "Nuevo Sistema de Autoprotección";
-  
   const handleNext = () => {
-      if (activeTab < formTabs.length - 1) {
-          setActiveTab(activeTab + 1);
-      }
+    if (activeTab < formTabs.length - 1) {
+      setActiveTab(activeTab + 1);
+    }
   };
 
   const handleBack = () => {
-      if (activeTab > 0) {
-          setActiveTab(activeTab - 1);
-      }
+    if (activeTab > 0) {
+      setActiveTab(activeTab - 1);
+    }
   };
 
   const footerActions = useMemo(() => {
@@ -265,8 +198,138 @@ const CreateEditSelfProtectionSystemPage: React.FC = () => {
       default:
         return null;
     }
-  }, [activeTab, isSubmitting, isPrincipalComplete, isSimulacrosComplete, isFormComplete, id, navigate]);
+  }, [activeTab, isSubmitting, isPrincipalComplete, isSimulacrosComplete, isFormComplete, id, navigate, handleNext, handleBack]);
 
+  // Early returns for loading and error states
+  if (isLoadingData) return <div className="flex-grow flex justify-center items-center h-full"><LoadingSpinner size="lg" /></div>;
+  if (pageError) return <div className="flex-grow flex justify-center items-center h-full"><p className="text-red-500 text-center py-10">{pageError}</p></div>;
+
+  const pageTitle = id ? "Editar Sistema de Autoprotección" : "Nuevo Sistema de Autoprotección";
+
+  const formTabs = [
+    {
+        label: 'Principal',
+        disabled: false,
+        content: (
+            <div className="space-y-4">
+                <Input id="probatoryDispositionDate" label="Fecha Disposición Aprobatoria" type="date" name="probatoryDispositionDate" value={currentFormData.probatoryDispositionDate || ''} onChange={handleChange} required/>
+
+                {id && currentFormData.probatoryDispositionPdfUrl && !currentFormData.probatoryDispositionPdf && (
+                  <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-700">PDF actual:</p>
+                        <p className="text-sm text-gray-600">{currentFormData.probatoryDispositionPdfName || 'Disposición Aprobatoria'}</p>
+                      </div>
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 rounded transition-colors"
+                        onClick={() => window.open(currentFormData.probatoryDispositionPdfUrl, '_blank')}
+                        title="Ver PDF actual"
+                      >
+                        <EyeIcon className="w-4 h-4 mr-1" />
+                        Ver PDF
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <FileUpload label={id ? "Reemplazar PDF Disposición Aprobatoria (opcional)" : "PDF Disposición Aprobatoria"} accept=".pdf" currentFileName={currentFormData.probatoryDispositionPdfName} onFileSelect={(file) => handleFileChange('probatoryDispositionPdf', file)} />
+                <PdfPreview file={currentFormData.probatoryDispositionPdf} />
+
+                <Input id="extensionDate" label="Fecha Extensión" type="date" name="extensionDate" value={currentFormData.extensionDate || ''} onChange={handleChange} disabled />
+
+                {id && currentFormData.extensionPdfUrl && !currentFormData.extensionPdf && (
+                  <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-700">PDF actual:</p>
+                        <p className="text-sm text-gray-600">{currentFormData.extensionPdfName || 'Extensión'}</p>
+                      </div>
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 rounded transition-colors"
+                        onClick={() => window.open(currentFormData.extensionPdfUrl, '_blank')}
+                        title="Ver PDF actual"
+                      >
+                        <EyeIcon className="w-4 h-4 mr-1" />
+                        Ver PDF
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <FileUpload label={id ? "Reemplazar PDF Extensión (opcional)" : "PDF Extensión"} accept=".pdf" currentFileName={currentFormData.extensionPdfName} onFileSelect={(file) => handleFileChange('extensionPdf', file)} />
+                <PdfPreview file={currentFormData.extensionPdf} />
+
+                <Input id="expirationDate" label="Fecha Vencimiento" type="date" name="expirationDate" value={currentFormData.expirationDate} onChange={handleChange} required disabled/>
+            </div>
+        )
+    },
+    {
+        label: 'Simulacros',
+        disabled: maxAllowedStep < 1,
+        content: (
+            <div className="space-y-4">
+                <p className="text-sm text-gray-600">Registre la información de los 4 simulacros requeridos. Se requiere la fecha de los 4 simulacros para continuar.</p>
+                {currentFormData.drills.map((drill, index) => (
+                  <div key={index} className="p-4 border border-gray-200 rounded-lg bg-gray-50/70">
+                    <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-medium text-gray-800">Simulacro {index + 1}</h4>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleClearDrill(index)}
+                            className="text-gray-500 hover:text-red-600 hover:bg-red-50 px-2 py-1"
+                            aria-label={`Limpiar Simulacro ${index + 1}`}
+                        >
+                            <TrashIcon className="w-4 h-4 mr-1.5" />
+                            Limpiar
+                        </Button>
+                    </div>
+                    <div className="space-y-3">
+                      <Input label="Fecha" id={`drillDate-${index}`} type="date" value={drill.date} onChange={(e) => handleDrillChange(index, 'date', e.target.value)} required/>
+
+                      {id && drill.pdfUrl && !drill.pdfFile && (
+                        <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-gray-700">PDF actual:</p>
+                              <p className="text-sm text-gray-600">{drill.pdfFileName || `Simulacro ${index + 1}`}</p>
+                            </div>
+                            <button
+                              type="button"
+                              className="inline-flex items-center justify-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 rounded transition-colors"
+                              onClick={() => window.open(drill.pdfUrl, '_blank')}
+                              title="Ver PDF actual"
+                            >
+                              <EyeIcon className="w-4 h-4 mr-1" />
+                              Ver PDF
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      <FileUpload label={id ? "Reemplazar PDF del Simulacro (opcional)" : "PDF del Simulacro"} accept=".pdf" currentFileName={drill.pdfFileName} onFileSelect={(file) => handleDrillChange(index, 'pdfFile', file)} />
+                      <PdfPreview file={drill.pdfFile} />
+                    </div>
+                  </div>
+                ))}
+            </div>
+        )
+    },
+    {
+        label: 'Profesional',
+        disabled: maxAllowedStep < 2,
+        content: (
+            <div className="space-y-4">
+                <Input id="intervener" label="Personal Interviniente" name="intervener" value={currentFormData.intervener} onChange={handleChange} required />
+                <Input id="registrationNumber" label="Matrícula" name="registrationNumber" value={currentFormData.registrationNumber} onChange={handleChange} required />
+            </div>
+        )
+    }
+  ];
 
   return (
     <PageLayout title={pageTitle} footer={footerActions}>

@@ -72,11 +72,13 @@ export const mapSystemFromDb = (data: Tables<'self_protection_systems'>): SelfPr
     probatoryDispositionDate: data.probatory_disposition_date || undefined,
     probatoryDispositionPdf: undefined, // Files are not stored in DB, only names/URLs
     probatoryDispositionPdfName: data.probatory_disposition_pdf_name || undefined,
+    probatoryDispositionPdfUrl: data.probatory_disposition_pdf_url || undefined,
     extensionDate: data.extension_date,
     extensionPdf: undefined,
     extensionPdfName: data.extension_pdf_name || undefined,
+    extensionPdfUrl: data.extension_pdf_url || undefined,
     expirationDate: data.expiration_date,
-    drills: data.drills || [],
+    drills: (data.drills || []) as any,
     intervener: data.intervener,
     registrationNumber: data.registration_number,
   };
@@ -94,8 +96,10 @@ export const mapQRDocumentFromDb = (data: Tables<'qr_documents'>): QRDocument =>
     floor: data.floor || undefined,
     unit: data.unit || undefined,
     pdfUrl: data.pdf_file_url || undefined,
+    pdfFileName: data.document_name,
     uploadDate: data.upload_date,
     qrCodeData: data.qr_code_data || undefined,
+    extractedDate: data.extracted_date,
   };
 };
 

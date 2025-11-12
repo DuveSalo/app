@@ -50,61 +50,244 @@ export const createSelfProtectionSystem = async (systemData: Omit<SelfProtection
 
   const company = await getCompanyByUserId(currentUser.id);
 
-  // TODO: Upload PDF files to Supabase Storage and get URLs
-  // For now, we'll just store the file names
+  // Upload PDF files to Supabase Storage
+  let probatoryPdfUrl: string | null = null;
+  let extensionPdfUrl: string | null = null;
+  const drillsWithUrls = [];
 
-  // Use RPC call to bypass schema cache issue
-  const { data, error } = await supabase.rpc('create_self_protection_system', {
-    p_company_id: company.id,
-    p_probatory_disposition_date: systemData.probatoryDispositionDate || null,
-    p_probatory_disposition_pdf_name: systemData.probatoryDispositionPdfName || null,
-    p_extension_date: systemData.extensionDate,
-    p_extension_pdf_name: systemData.extensionPdfName || null,
-    p_expiration_date: systemData.expirationDate,
-    p_drills: JSON.stringify(systemData.drills || []),
-    p_intervener: systemData.intervener,
-    p_registration_number: systemData.registrationNumber,
-  });
+  // Upload probatory disposition PDF
+  if (systemData.probatoryDispositionPdf && systemData.probatoryDispositionPdf instanceof File) {
+    const originalName = systemData.probatoryDispositionPdfName || systemData.probatoryDispositionPdf.name;
+    const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const fileName = `${company.id}/probatory/${Date.now()}_${sanitizedName}`;
+    const { data: uploadData, error: uploadError} = await supabase.storage
+      .from('self-protection-systems')
+      .upload(fileName, systemData.probatoryDispositionPdf, {
+        contentType: systemData.probatoryDispositionPdf.type || 'application/pdf',
+        upsert: false
+      });
+
+    if (uploadError) {
+      handleSupabaseError(uploadError, 'Error al subir el PDF de disposición probatoria');
+    }
+
+    if (uploadData) {
+      const { data: urlData } = supabase.storage
+        .from('self-protection-systems')
+        .getPublicUrl(uploadData.path);
+      probatoryPdfUrl = urlData.publicUrl;
+    }
+  }
+
+  // Upload extension PDF
+  if (systemData.extensionPdf && systemData.extensionPdf instanceof File) {
+    const originalName = systemData.extensionPdfName || systemData.extensionPdf.name;
+    const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const fileName = `${company.id}/extension/${Date.now()}_${sanitizedName}`;
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('self-protection-systems')
+      .upload(fileName, systemData.extensionPdf, {
+        contentType: systemData.extensionPdf.type || 'application/pdf',
+        upsert: false
+      });
+
+    if (uploadError) {
+      handleSupabaseError(uploadError, 'Error al subir el PDF de extensión');
+    }
+
+    if (uploadData) {
+      const { data: urlData } = supabase.storage
+        .from('self-protection-systems')
+        .getPublicUrl(uploadData.path);
+      extensionPdfUrl = urlData.publicUrl;
+    }
+  }
+
+  // Upload drill PDFs
+  for (const drill of systemData.drills || []) {
+    let drillPdfUrl: string | null = null;
+
+    if (drill.pdfFile && drill.pdfFile instanceof File) {
+      const originalName = drill.pdfFileName || drill.pdfFile.name;
+      const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `${company.id}/drills/${Date.now()}_${sanitizedName}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('self-protection-systems')
+        .upload(fileName, drill.pdfFile, {
+          contentType: drill.pdfFile.type || 'application/pdf',
+          upsert: false
+        });
+
+      if (uploadError) {
+        handleSupabaseError(uploadError, 'Error al subir el PDF del simulacro');
+      }
+
+      if (uploadData) {
+        const { data: urlData } = supabase.storage
+          .from('self-protection-systems')
+          .getPublicUrl(uploadData.path);
+        drillPdfUrl = urlData.publicUrl;
+      }
+    }
+
+    drillsWithUrls.push({
+      date: drill.date,
+      pdfFileName: drill.pdfFileName || null,
+      pdfUrl: drillPdfUrl
+    });
+  }
+
+  // Insert the record directly
+  const { data, error } = await supabase
+    .from('self_protection_systems')
+    .insert({
+      company_id: company.id,
+      probatory_disposition_date: systemData.probatoryDispositionDate || null,
+      probatory_disposition_pdf_name: systemData.probatoryDispositionPdfName || null,
+      probatory_disposition_pdf_url: probatoryPdfUrl,
+      extension_date: systemData.extensionDate,
+      extension_pdf_name: systemData.extensionPdfName || null,
+      extension_pdf_url: extensionPdfUrl,
+      expiration_date: systemData.expirationDate,
+      drills: drillsWithUrls,
+      intervener: systemData.intervener,
+      registration_number: systemData.registrationNumber,
+    })
+    .select()
+    .single();
 
   if (error) {
     handleSupabaseError(error);
   }
 
-  // Fetch the created record
-  const { data: createdData, error: fetchError } = await supabase
-    .from('self_protection_systems')
-    .select()
-    .eq('company_id', company.id)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .single();
-
-  if (fetchError) {
-    handleSupabaseError(fetchError);
-  }
-
-  return mapSystemFromDb(createdData);
+  return mapSystemFromDb(data);
 };
 
 export const updateSelfProtectionSystem = async (systemData: SelfProtectionSystem): Promise<SelfProtectionSystem> => {
-  // TODO: Upload PDF files to Supabase Storage and get URLs
-  // For now, we'll just store the file names
+  const currentUser = await getCurrentUser();
+  if (!currentUser) throw new AuthError("Usuario no autenticado");
+
+  const company = await getCompanyByUserId(currentUser.id);
+
+  // Upload PDF files to Supabase Storage
+  let probatoryPdfUrl: string | null = null;
+  let extensionPdfUrl: string | null = null;
+  const drillsWithUrls = [];
+
+  // Upload probatory disposition PDF if new file provided
+  if (systemData.probatoryDispositionPdf && systemData.probatoryDispositionPdf instanceof File) {
+    const originalName = systemData.probatoryDispositionPdfName || systemData.probatoryDispositionPdf.name;
+    const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const fileName = `${company.id}/probatory/${Date.now()}_${sanitizedName}`;
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('self-protection-systems')
+      .upload(fileName, systemData.probatoryDispositionPdf, {
+        contentType: systemData.probatoryDispositionPdf.type || 'application/pdf',
+        upsert: false
+      });
+
+    if (uploadError) {
+      handleSupabaseError(uploadError, 'Error al subir el PDF de disposición probatoria');
+    }
+
+    if (uploadData) {
+      const { data: urlData } = supabase.storage
+        .from('self-protection-systems')
+        .getPublicUrl(uploadData.path);
+      probatoryPdfUrl = urlData.publicUrl;
+    }
+  }
+
+  // Upload extension PDF if new file provided
+  if (systemData.extensionPdf && systemData.extensionPdf instanceof File) {
+    const originalName = systemData.extensionPdfName || systemData.extensionPdf.name;
+    const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const fileName = `${company.id}/extension/${Date.now()}_${sanitizedName}`;
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('self-protection-systems')
+      .upload(fileName, systemData.extensionPdf, {
+        contentType: systemData.extensionPdf.type || 'application/pdf',
+        upsert: false
+      });
+
+    if (uploadError) {
+      handleSupabaseError(uploadError, 'Error al subir el PDF de extensión');
+    }
+
+    if (uploadData) {
+      const { data: urlData } = supabase.storage
+        .from('self-protection-systems')
+        .getPublicUrl(uploadData.path);
+      extensionPdfUrl = urlData.publicUrl;
+    }
+  }
+
+  // Upload drill PDFs
+  for (const drill of systemData.drills || []) {
+    let drillPdfUrl: string | null = drill.pdfUrl || null;
+
+    if (drill.pdfFile && drill.pdfFile instanceof File) {
+      const originalName = drill.pdfFileName || drill.pdfFile.name;
+      const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `${company.id}/drills/${Date.now()}_${sanitizedName}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('self-protection-systems')
+        .upload(fileName, drill.pdfFile, {
+          contentType: drill.pdfFile.type || 'application/pdf',
+          upsert: false
+        });
+
+      if (uploadError) {
+        handleSupabaseError(uploadError, 'Error al subir el PDF del simulacro');
+      }
+
+      if (uploadData) {
+        const { data: urlData } = supabase.storage
+          .from('self-protection-systems')
+          .getPublicUrl(uploadData.path);
+        drillPdfUrl = urlData.publicUrl;
+      }
+    }
+
+    drillsWithUrls.push({
+      date: drill.date,
+      pdfFileName: drill.pdfFileName || null,
+      pdfUrl: drillPdfUrl
+    });
+  }
+
+  // Prepare update data
+  const updateData: any = {
+    probatory_disposition_date: systemData.probatoryDispositionDate || null,
+    extension_date: systemData.extensionDate,
+    expiration_date: systemData.expirationDate,
+    drills: drillsWithUrls,
+    intervener: systemData.intervener,
+    registration_number: systemData.registrationNumber,
+  };
+
+  // Only update PDF fields if new files were uploaded
+  if (probatoryPdfUrl) {
+    updateData.probatory_disposition_pdf_url = probatoryPdfUrl;
+    updateData.probatory_disposition_pdf_name = systemData.probatoryDispositionPdfName;
+  }
+
+  if (extensionPdfUrl) {
+    updateData.extension_pdf_url = extensionPdfUrl;
+    updateData.extension_pdf_name = systemData.extensionPdfName;
+  }
+
+  console.log('Update data being sent:', updateData);
+  console.log('Extension PDF URL:', extensionPdfUrl);
 
   const { data, error } = await supabase
     .from('self_protection_systems')
-    .update({
-      probatory_disposition_date: systemData.probatoryDispositionDate || null,
-      probatory_disposition_pdf_name: systemData.probatoryDispositionPdfName || null,
-      extension_date: systemData.extensionDate,
-      extension_pdf_name: systemData.extensionPdfName || null,
-      expiration_date: systemData.expirationDate,
-      drills: systemData.drills || [],
-      intervener: systemData.intervener,
-      registration_number: systemData.registrationNumber,
-    })
+    .update(updateData)
     .eq('id', systemData.id)
     .select()
     .single();
+
+  console.log('Updated data returned from DB:', data);
 
   if (error) {
     handleSupabaseError(error);

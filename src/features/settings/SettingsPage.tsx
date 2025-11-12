@@ -289,12 +289,7 @@ export const SettingsPage: React.FC = () => {
                     <Button type="button" variant="outline" onClick={handleCancelCompanyEdit}>Cancelar</Button>
                     <Button type="submit" form="company-form" loading={isLoading} disabled={!isCompanyFormValid()}>Guardar cambios</Button>
                 </div>
-            ) : (
-                <Button type="button" onClick={() => setIsEditingCompany(true)}>
-                    <EditIcon className="w-4 h-4 mr-2" />
-                    Editar información
-                </Button>
-            );
+            ) : null;
         case 'profile':
             return isEditingProfile ? (
                 <div className="w-full flex justify-between">
@@ -341,7 +336,9 @@ export const SettingsPage: React.FC = () => {
                 {activeTab === 'company' && (
                     isEditingCompany ? (
                         <form id="company-form" onSubmit={handleCompanySubmit} className="space-y-6">
-                            <h2 className="text-lg font-medium text-gray-900">Información de la empresa</h2>
+                            <div className="flex justify-between items-center mb-2">
+                                <h2 className="text-lg font-medium text-gray-900">Información de la empresa</h2>
+                            </div>
                             <div className="space-y-4">
                                  <Input id="companyName" label="Nombre de la empresa" name="name" value={companyForm.name || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.name} />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -370,7 +367,13 @@ export const SettingsPage: React.FC = () => {
                         </form>
                     ) : (
                         <div className="space-y-6">
-                            <h2 className="text-lg font-medium text-gray-900">Información de la empresa</h2>
+                            <div className="flex justify-between items-center">
+                                <h2 className="text-lg font-medium text-gray-900">Información de la empresa</h2>
+                                <Button type="button" onClick={() => setIsEditingCompany(true)}>
+                                    <EditIcon className="w-4 h-4 mr-2" />
+                                    Editar información
+                                </Button>
+                            </div>
                             <Card>
                                 <div className="space-y-4">
                                     <div>

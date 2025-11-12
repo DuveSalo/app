@@ -8,16 +8,17 @@ import { Button } from '../../components/common/Button';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { TrashIcon, PlusIcon, QrCodeIcon } from '../../components/common/Icons';
+import { TrashIcon, PlusIcon, QrCodeIcon, EyeIcon, EditIcon } from '../../components/common/Icons';
 import PageLayout from '../../components/layout/PageLayout';
 
 interface QRModulePageProps {
   qrType: QRDocumentType;
   title: string;
   uploadPath: string;
+  editPath: string;
 }
 
-const QRModuleListPage: React.FC<QRModulePageProps> = ({ qrType, title, uploadPath }) => {
+const QRModuleListPage: React.FC<QRModulePageProps> = ({ qrType, title, uploadPath, editPath }) => {
   const [documents, setDocuments] = useState<QRDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -95,38 +96,65 @@ const QRModuleListPage: React.FC<QRModulePageProps> = ({ qrType, title, uploadPa
           </Button>
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nombre Archivo</TableHead>
-              <TableHead>Fecha de Vencimiento</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {documents.map(doc => {
-              const expirationDate = calculateExpiration(doc.extractedDate);
-              return (
-                <TableRow key={doc.id} className="hover:bg-gray-50">
-                  <TableCell className="font-medium truncate max-w-md">{doc.pdfFileName}</TableCell>
-                  <TableCell>{expirationDate.toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={getStatus(expirationDate)} />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      {doc.pdfUrl && (
-                        <a href={doc.pdfUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm font-medium">Ver</a>
-                      )}
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(doc.id)} className="text-red-600 hover:bg-red-100"><TrashIcon/></Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nombre Archivo</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {documents.map(doc => {
+                const expirationDate = calculateExpiration(doc.extractedDate);
+                return (
+                  <TableRow key={doc.id} className="hover:bg-gray-50">
+                    <TableCell className="font-medium truncate max-w-md">{doc.pdfFileName}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={getStatus(expirationDate)} />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <button
+                          type="button"
+                          className="inline-flex items-center justify-center p-2 text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                          onClick={() => {
+                            if (doc.pdfUrl) {
+                              window.open(doc.pdfUrl, '_blank');
+                            } else {
+                              alert('No hay PDF disponible para este documento. Suba un nuevo documento con PDF.');
+                            }
+                          }}
+                          title="Ver PDF"
+                        >
+                          <EyeIcon className="w-4 h-4" />
+                        </button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(editPath.replace(':id', doc.id))}
+                          title="Editar"
+                        >
+                          <EditIcon className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(doc.id)}
+                          className="text-red-600 hover:bg-red-50"
+                          title="Eliminar"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </PageLayout>
   );

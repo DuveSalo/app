@@ -20,12 +20,14 @@ import {
     AlertTriangle,
     ChevronsLeft,
     ChevronsRight,
+    ChevronDown,
     Users,
     Calendar,
     TrendingUp,
     AlertCircle,
     CheckCircle,
-    Search
+    Search,
+    Eye
 } from 'lucide-react';
 
 const STROKE_WIDTH = 1.5;
@@ -73,8 +75,10 @@ export const BellAlertIcon: React.FC<{ className?: string }> = ({ className = "w
 export const ExclamationTriangleIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <AlertTriangle className={className} strokeWidth={STROKE_WIDTH} {...props} />;
 export const ChevronDoubleLeftIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <ChevronsLeft className={className} strokeWidth={STROKE_WIDTH} {...props} />;
 export const ChevronDoubleRightIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <ChevronsRight className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const ChevronDownIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5", ...props }) => <ChevronDown className={className} strokeWidth={STROKE_WIDTH} {...props} />;
 export const UsersIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <Users className={className} strokeWidth={STROKE_WIDTH} {...props} />;
 export const SearchIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <Search className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const EyeIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5", ...props }) => <Eye className={className} strokeWidth={STROKE_WIDTH} {...props} />;
 
 
 // --- Iconos del Dashboard ---

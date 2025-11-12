@@ -16,6 +16,8 @@ export interface QRDocument {
   floor?: string;
   unit?: string;
   pdfUrl?: string;
+  pdfFileName?: string;
   uploadDate: string;
   qrCodeData?: string;
+  extractedDate: string;
 }
