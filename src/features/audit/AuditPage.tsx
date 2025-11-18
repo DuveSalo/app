@@ -8,6 +8,9 @@ import { useAuth } from '../auth/AuthContext';
 import { useToast } from '../../components/common/Toast';
 import type { AuditLog, AuditFilters as AuditFiltersType, AuditStats } from '../../types/audit';
 import * as auditApi from '../../lib/api/auditApi';
+import { createLogger } from '../../lib/utils/logger';
+
+const logger = createLogger('AuditPage');
 
 export const AuditPage: React.FC = () => {
   const { currentCompany } = useAuth();
@@ -51,7 +54,7 @@ export const AuditPage: React.FC = () => {
       );
       setStats(data);
     } catch (error: any) {
-      console.error('Error loading audit stats:', error);
+      logger.error('Error loading audit stats', error, { companyId: currentCompany.id });
     }
   }, [currentCompany, filters.dateFrom, filters.dateTo]);
 

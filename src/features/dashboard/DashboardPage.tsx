@@ -14,6 +14,9 @@ import { CalendarIcon, TrendingUpIcon, AlertCircleIcon, CheckCircleIcon } from '
 import PageLayout from '../../components/layout/PageLayout';
 import { calculateExpirationStatus, calculateDaysUntilExpiration } from '../../lib/utils/dateUtils';
 import { ExpirationStatus } from '../../types/expirable';
+import { createLogger } from '../../lib/utils/logger';
+
+const logger = createLogger('DashboardPage');
 
 interface DashboardItem {
   id: string;
@@ -105,7 +108,7 @@ const DashboardPage: React.FC = () => {
                 setItems(allItems.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]));
 
             } catch (err: any) {
-                console.error("Error fetching dashboard data:", err);
+                logger.error("Error fetching dashboard data", err, { companyId: currentCompany?.id });
             } finally {
                 setIsLoading(false);
             }

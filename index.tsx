@@ -3,6 +3,12 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './src/App';
 import { HashRouter } from 'react-router-dom';
+import { initializeLogger } from './src/config/logger.config';
+import { initializeEmailAdapter } from './src/config/email.config';
+
+// Inicializar servicios
+initializeLogger();
+initializeEmailAdapter();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

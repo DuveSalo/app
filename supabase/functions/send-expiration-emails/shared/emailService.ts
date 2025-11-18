@@ -1,24 +1,29 @@
 /**
  * Email Service
- * Servicio para enviar emails usando Resend API
+ * Servicio para enviar emails usando adaptadores
  */
 
 import { ExpiringService, EmailResponse } from './types.ts';
 import { getEmailSubject, generateEmailHTML } from '../../../src/lib/utils/emailUtils.ts';
+import { createEmailAdapter } from './emailAdapter.ts';
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SENDER_EMAIL = Deno.env.get("SENDER_EMAIL") || "notificaciones@tudominio.com";
 const APP_URL = Deno.env.get("APP_URL");
 
+// Crear adaptador una vez al inicio
+const emailAdapter = createEmailAdapter();
+
+console.log(`Email Service inicializado con: ${emailAdapter.getProviderName()}`);
+
 /**
- * Envía un email de notificación usando Resend
+ * Envía un email de notificación usando el adaptador configurado
  */
 export async function sendEmail(service: ExpiringService): Promise<EmailResponse> {
-  if (!RESEND_API_KEY) {
-    console.error("RESEND_API_KEY no está configurada");
+  if (!emailAdapter.isConfigured()) {
+    console.error("Email adapter no está configurado");
     return {
       success: false,
-      error: "RESEND_API_KEY no configurada"
+      error: "Email adapter no configurado"
     };
   }
 
@@ -26,36 +31,18 @@ export async function sendEmail(service: ExpiringService): Promise<EmailResponse
   const html = generateEmailHTML(service, APP_URL);
 
   try {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: SENDER_EMAIL,
-        to: service.userEmail,
-        subject,
-        html,
-      }),
+    const result = await emailAdapter.sendEmail({
+      from: SENDER_EMAIL,
+      to: service.userEmail,
+      subject,
+      html,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Error enviando email a ${service.userEmail}:`, errorText);
-      return {
-        success: false,
-        error: errorText
-      };
+    if (result.success) {
+      console.log(`Email enviado exitosamente a ${service.userEmail} para ${service.name}`);
     }
 
-    const data = await response.json();
-    console.log(`Email enviado exitosamente a ${service.userEmail} para ${service.name}`);
-
-    return {
-      success: true,
-      emailId: data.id
-    };
+    return result;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
     console.error(`Error enviando email a ${service.userEmail}:`, errorMessage);

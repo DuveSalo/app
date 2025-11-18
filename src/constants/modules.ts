@@ -7,6 +7,7 @@ export const MODULE_TITLES = {
   QR_FIRE_SAFETY: "Instalación Fija Contra Incendios",
   QR_DETECTION: "Detección",
   EVENT_INFORMATION: "Información del Evento",
+  FIRE_EXTINGUISHERS: "Control de Extintores",
   SETTINGS: "Configuración",
   DASHBOARD: "Dashboard",
 

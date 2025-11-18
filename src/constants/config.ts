@@ -5,7 +5,7 @@ export const MOCK_USER_ID = "user-123";
 export const MOCK_COMPANY_ID = "company-abc";
 
 // App Configuration
-export const APP_NAME = "SafetyGuard Pro";
+export const APP_NAME = "Escuela Segura";
 export const APP_VERSION = "1.0.0";
 
 // Pagination

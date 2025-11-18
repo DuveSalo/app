@@ -5,6 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import { User, Company, PaymentDetails } from '../../types/index';
 import * as api from '../../lib/api/supabaseApi';
 import { ROUTE_PATHS } from '../../constants/index';
+import { createLogger } from '../../lib/utils/logger';
+
+const logger = createLogger('AuthContext');
 
 interface AuthContextType {
   currentUser: User | null;
@@ -12,6 +15,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, pass: string) => Promise<void>;
   register: (name: string, email: string, pass: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   setCompany: (company: Company) => void;
   refreshCompany: () => Promise<void>;
@@ -45,7 +49,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setCurrentCompany(null);
       }
     } catch (error) {
-      console.error("Error fetching initial data:", error);
+      logger.error("Error fetching initial data", error);
       setCurrentUser(null);
       setCurrentCompany(null);
     } finally {
@@ -126,7 +130,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const company = await api.getCompanyByUserId(currentUser.id);
         setCurrentCompany(company);
       } catch (error) {
-        console.error("Error refreshing company data:", error);
+        logger.error("Error refreshing company data", error, { userId: currentUser.id });
         setCurrentCompany(null); 
       } finally {
         setIsLoading(false);
@@ -142,7 +146,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setCurrentCompany(updatedCompany);
       navigate(ROUTE_PATHS.DASHBOARD);
     } catch (error) {
-      console.error("Error completing subscription:", error);
+      logger.error("Error completing subscription", error, { companyId: currentCompany.id, plan });
       throw error;
     } finally {
       setIsLoading(false);
@@ -156,7 +160,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const updatedCompany = await api.changeSubscriptionPlan(newPlanId);
       setCurrentCompany(updatedCompany);
     } catch (error) {
-      console.error("Error changing subscription plan:", error);
+      logger.error("Error changing subscription plan", error, { companyId: currentCompany.id, newPlanId });
       throw error;
     } finally {
       setIsLoading(false);
@@ -170,7 +174,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const updatedCompany = await api.cancelSubscription();
       setCurrentCompany(updatedCompany);
     } catch (error) {
-      console.error("Error cancelling subscription:", error);
+      logger.error("Error cancelling subscription", error, { companyId: currentCompany.id });
       throw error;
     } finally {
       setIsLoading(false);
@@ -186,22 +190,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Also refresh company data in case the user name is used as an employee name
         await refreshCompanyData();
     } catch (error) {
-        console.error("Error updating user details:", error);
+        logger.error("Error updating user details", error, { userId: currentUser.id });
         throw error;
     } finally {
         setIsLoading(false);
     }
   };
 
+  const loginWithGoogleProvider = async () => {
+    setIsLoading(true);
+    try {
+      await api.signInWithGoogle();
+      // The OAuth flow will redirect to the callback URL
+      // The user will be authenticated after the redirect
+    } catch (error) {
+      setIsLoading(false);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ 
-      currentUser, 
-      currentCompany, 
-      isLoading, 
-      login: loginUser, 
-      register: registerUser, 
-      logout: logoutUser, 
-      setCompany: setCompanyContext, 
+    <AuthContext.Provider value={{
+      currentUser,
+      currentCompany,
+      isLoading,
+      login: loginUser,
+      register: registerUser,
+      loginWithGoogle: loginWithGoogleProvider,
+      logout: logoutUser,
+      setCompany: setCompanyContext,
       refreshCompany: refreshCompanyData,
       completeSubscription: completeSubscriptionContext,
       changePlan: changePlanContext,

@@ -153,3 +153,20 @@ export const sendPasswordResetEmail = async (email: string): Promise<void> => {
     handleSupabaseError(error);
   }
 };
+
+export const signInWithGoogle = async (): Promise<void> => {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      },
+    },
+  });
+
+  if (error) {
+    throw new AuthError(error.message || "Error al iniciar sesión con Google.", 'GOOGLE_AUTH_ERROR');
+  }
+};

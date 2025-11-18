@@ -34,6 +34,10 @@ export const ROUTE_PATHS = {
   NEW_EVENT_INFORMATION: "/event-information/new",
   EDIT_EVENT_INFORMATION: "/event-information/:id/edit",
 
+  FIRE_EXTINGUISHERS: "/fire-extinguishers",
+  NEW_FIRE_EXTINGUISHER: "/fire-extinguishers/new",
+  EDIT_FIRE_EXTINGUISHER: "/fire-extinguishers/:id/edit",
+
   SETTINGS: "/settings",
 
   // New Modules

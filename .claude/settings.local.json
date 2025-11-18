@@ -23,7 +23,8 @@
       "Bash(done)",
       "Bash(npm run build:*)",
       "Bash(find:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "mcp__supabase__apply_migration"
     ]
   },
   "enabledMcpjsonServers": [

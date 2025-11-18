@@ -131,7 +131,7 @@ const CreateEditConservationCertificatePage: React.FC = () => {
     <>
       <Button
         type="button"
-        variant="secondary"
+        variant="outline"
         onClick={() => navigate(ROUTE_PATHS.CONSERVATION_CERTIFICATES)}
         disabled={isSubmitting}
       >

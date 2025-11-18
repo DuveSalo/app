@@ -10,6 +10,7 @@ interface DynamicListInputProps {
   placeholder?: string;
   minItems?: number;
   addButtonLabel?: string;
+  description?: string;
 }
 
 export const DynamicListInput: React.FC<DynamicListInputProps> = ({
@@ -18,7 +19,8 @@ export const DynamicListInput: React.FC<DynamicListInputProps> = ({
   onChange,
   placeholder = 'Escriba aquí...',
   minItems = 0,
-  addButtonLabel
+  addButtonLabel,
+  description
 }) => {
   const addItem = () => {
     onChange([...items, '']);
@@ -38,9 +40,12 @@ export const DynamicListInput: React.FC<DynamicListInputProps> = ({
 
   return (
     <div className="w-full">
-      <label className="block text-sm font-medium text-gray-700 mb-3">
+      <label className="block text-sm font-medium text-gray-700 mb-1">
         {label}
       </label>
+      {description && (
+        <p className="text-xs text-gray-500 italic mb-3">{description}</p>
+      )}
       <div className="space-y-3">
         {items.map((item, index) => (
           <div key={index} className="relative bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">

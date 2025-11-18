@@ -12,6 +12,9 @@ import { PdfPreview } from '../../components/common/PdfPreview';
 import PageLayout from '../../components/layout/PageLayout';
 import { Tabs } from '../../components/common/Tabs';
 import { TrashIcon, EyeIcon } from '../../components/common/Icons';
+import { createLogger } from '../../lib/utils/logger';
+
+const logger = createLogger('CreateEditSelfProtectionSystemPage');
 
 const CreateEditSelfProtectionSystemPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -92,7 +95,7 @@ const CreateEditSelfProtectionSystemPage: React.FC = () => {
                 expirationDate: expirationDate.toISOString().split('T')[0],
             }));
         } catch(e) {
-            console.error("Invalid date format for auto-calculation.", e);
+            logger.warn("Invalid date format for auto-calculation", { error: e, date: currentFormData.probatoryDispositionDate });
         }
     }
   }, [currentFormData.probatoryDispositionDate]);

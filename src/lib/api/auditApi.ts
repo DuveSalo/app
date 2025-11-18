@@ -6,6 +6,9 @@ import type {
   AuditStats,
 } from '../../types/audit';
 import { Tables } from '../supabase/database.types';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('AuditAPI');
 
 /**
  * Maps audit log data from the database to the application format.
@@ -68,7 +71,7 @@ export const getAuditLogs = async (
 
     return data ? data.map(mapAuditLogFromDb) : [];
   } catch (error) {
-    console.error('Error fetching audit logs:', error);
+    logger.error('Error fetching audit logs', error, { companyId, filters });
     throw error;
   }
 };
@@ -92,7 +95,7 @@ export const getRecordHistory = async (
 
     return data ? data.map(mapAuditLogFromDb) : [];
   } catch (error) {
-    console.error('Error fetching record history:', error);
+    logger.error('Error fetching record history', error, { recordId, tableName });
     throw error;
   }
 };
@@ -133,7 +136,7 @@ export const getAuditStats = async (
 
     return stats;
   } catch (error) {
-    console.error('Error fetching audit stats:', error);
+    logger.error('Error fetching audit stats', error, { companyId, dateFrom, dateTo });
     throw error;
   }
 };
@@ -157,7 +160,7 @@ export const getRecentAuditLogs = async (
 
     return data ? data.map(mapAuditLogFromDb) : [];
   } catch (error) {
-    console.error('Error fetching recent audit logs:', error);
+    logger.error('Error fetching recent audit logs', error, { companyId, limit });
     throw error;
   }
 };

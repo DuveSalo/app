@@ -12,3 +12,4 @@ export * from './event';
 export * from './common';
 export * from './audit';
 export * from './expirable';
+export * from './fire-extinguisher';

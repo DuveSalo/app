@@ -8,7 +8,7 @@ import { NavItem, QRDocumentType } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
 import {
     HomeIcon, DocumentTextIcon, ShieldCheckIcon, QrCodeIcon,
-    ExclamationTriangleIcon, Cog6ToothIcon, ChevronDoubleLeftIcon, ChevronDoubleRightIcon,
+    ExclamationTriangleIcon, FireIcon, Cog6ToothIcon, ChevronDoubleLeftIcon, ChevronDoubleRightIcon,
 } from '../common/Icons';
 
 interface SidebarProps {
@@ -85,6 +85,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
         { path: ROUTE_PATHS.DASHBOARD, label: 'Dashboard', icon: <HomeIcon /> },
         { path: ROUTE_PATHS.CONSERVATION_CERTIFICATES, label: MODULE_TITLES.CONSERVATION_CERTIFICATES, icon: <DocumentTextIcon /> },
         { path: ROUTE_PATHS.SELF_PROTECTION_SYSTEMS, label: MODULE_TITLES.SELF_PROTECTION_SYSTEMS, icon: <ShieldCheckIcon /> },
+        { path: ROUTE_PATHS.FIRE_EXTINGUISHERS, label: MODULE_TITLES.FIRE_EXTINGUISHERS, icon: <FireIcon /> },
         { path: ROUTE_PATHS.EVENT_INFORMATION, label: MODULE_TITLES.EVENT_INFORMATION, icon: <ExclamationTriangleIcon/> },
     ];
     

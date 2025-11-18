@@ -7,6 +7,7 @@ export interface EventInformation {
   time: string;
   description: string;
   correctiveActions: string;
+  physicalEvidenceDescription?: string;
   testimonials: string[];
   observations: string[];
   finalChecks: { [key: string]: boolean };

@@ -5,6 +5,9 @@ import { mapSystemFromDb } from '../mappers';
 import { AuthError, NotFoundError, handleSupabaseError } from '../../utils/errors';
 import { getCurrentUser } from './auth';
 import { getCompanyByUserId } from './company';
+import { createLogger } from '../../utils/logger';
+
+const logger = createLogger('SystemService');
 
 export const getSelfProtectionSystems = async (companyId?: string): Promise<SelfProtectionSystem[]> => {
   let finalCompanyId = companyId;
@@ -277,8 +280,10 @@ export const updateSelfProtectionSystem = async (systemData: SelfProtectionSyste
     updateData.extension_pdf_name = systemData.extensionPdfName;
   }
 
-  console.log('Update data being sent:', updateData);
-  console.log('Extension PDF URL:', extensionPdfUrl);
+  logger.debug('Updating self protection system', {
+    systemId: systemData.id,
+    hasExtensionPdf: !!extensionPdfUrl
+  });
 
   const { data, error } = await supabase
     .from('self_protection_systems')
@@ -287,7 +292,9 @@ export const updateSelfProtectionSystem = async (systemData: SelfProtectionSyste
     .select()
     .single();
 
-  console.log('Updated data returned from DB:', data);
+  if (data) {
+    logger.debug('Self protection system updated successfully', { systemId: data.id });
+  }
 
   if (error) {
     handleSupabaseError(error);

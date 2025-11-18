@@ -6,3 +6,4 @@ export * from './typeGuards';
 export * from './validation';
 export * from './auditUtils';
 export * from './companyUtils';
+export * from './logger';

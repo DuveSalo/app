@@ -89,7 +89,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children, variant, title, subti
         <div className="min-h-screen bg-gray-50 flex flex-col items-center py-6 px-4 sm:px-6 lg:px-8">
             <Link to="/" className="mb-4 flex items-center gap-2 text-gray-800">
                 <AppLogoIcon className="w-7 h-7 text-primary" />
-                <span className="text-xl font-bold">SafetyGuard Pro</span>
+                <span className="text-xl font-bold">Escuela Segura</span>
             </Link>
             <WizardStepper steps={wizardSteps} currentStep={currentStep} />
             <main className="w-full flex-1 flex items-start justify-center overflow-y-auto">

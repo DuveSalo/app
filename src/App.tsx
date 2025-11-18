@@ -14,6 +14,7 @@ import MainLayout from './components/layout/MainLayout';
 
 // Page Components - Statically imported to debug module resolution issues
 import AuthPage from './features/auth/AuthPage';
+import AuthCallbackPage from './features/auth/AuthCallbackPage';
 import CreateCompanyPage from './features/auth/CreateCompanyPage';
 import SubscriptionPage from './features/auth/SubscriptionPage';
 import DashboardPage from './features/dashboard/DashboardPage';
@@ -26,6 +27,8 @@ import UploadQRDocumentPage from './features/qr/UploadQRDocumentPage';
 import EditQRDocumentPage from './features/qr/EditQRDocumentPage';
 import EventInformationListPage from './features/event-information/EventInformationListPage';
 import CreateEditEventInformationPage from './features/event-information/CreateEditEventInformationPage';
+import FireExtinguisherListPage from './features/fire-extinguishers/FireExtinguisherListPage';
+import CreateEditFireExtinguisherPage from './features/fire-extinguishers/CreateEditFireExtinguisherPage';
 import SettingsPage from './features/settings/SettingsPage';
 import PlaceholderPage from './features/placeholders/PlaceholderPage';
 
@@ -38,10 +41,11 @@ const App: React.FC = () => {
         <Routes>
           <Route path={ROUTE_PATHS.LOGIN} element={<AuthPage mode="login" />} />
           <Route path={ROUTE_PATHS.REGISTER} element={<AuthPage mode="register" />} />
-          
-          <Route 
-            path={ROUTE_PATHS.CREATE_COMPANY} 
-            element={<ProtectedRoute><CreateCompanyPage /></ProtectedRoute>} 
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
+
+          <Route
+            path={ROUTE_PATHS.CREATE_COMPANY}
+            element={<ProtectedRoute><CreateCompanyPage /></ProtectedRoute>}
           />
           <Route 
             path={ROUTE_PATHS.SUBSCRIPTION} 
@@ -86,7 +90,11 @@ const App: React.FC = () => {
                   <Route path={ROUTE_PATHS.EVENT_INFORMATION.substring(1)} element={<EventInformationListPage />} />
                   <Route path={ROUTE_PATHS.NEW_EVENT_INFORMATION.substring(1)} element={<CreateEditEventInformationPage />} />
                   <Route path={ROUTE_PATHS.EDIT_EVENT_INFORMATION.substring(1)} element={<CreateEditEventInformationPage />} />
-                  
+
+                  <Route path={ROUTE_PATHS.FIRE_EXTINGUISHERS.substring(1)} element={<FireExtinguisherListPage />} />
+                  <Route path={ROUTE_PATHS.NEW_FIRE_EXTINGUISHER.substring(1)} element={<CreateEditFireExtinguisherPage />} />
+                  <Route path={ROUTE_PATHS.EDIT_FIRE_EXTINGUISHER.substring(1)} element={<CreateEditFireExtinguisherPage />} />
+
                   <Route path={ROUTE_PATHS.SETTINGS.substring(1)} element={<SettingsPage />} />
 
                   <Route path={ROUTE_PATHS.WATER_TANKS.substring(1)} element={<PlaceholderPage title={MODULE_TITLES.WATER_TANKS} />} />

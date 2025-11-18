@@ -12,12 +12,16 @@ import { Checkbox } from '../../components/common/Checkbox';
 import { DynamicListInput } from '../../components/common/DynamicListInput';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import PageLayout from '../../components/layout/PageLayout';
+import { createLogger } from '../../lib/utils/logger';
+
+const logger = createLogger('CreateEditEventInformationPage');
 
 interface EventFormDataType {
   date: string;
   time: string;
   description: string;
   correctiveActions: string;
+  physicalEvidenceDescription: string;
   testimonials: string[];
   observations: string[];
   finalChecks: { [key: string]: boolean };
@@ -28,6 +32,7 @@ const createInitialFormState = (): EventFormDataType => ({
   time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
   description: '',
   correctiveActions: '',
+  physicalEvidenceDescription: '',
   testimonials: [],
   observations: [],
   finalChecks: {
@@ -61,6 +66,7 @@ const CreateEditEventInformationPage: React.FC = () => {
             time: eventToEdit.time,
             description: eventToEdit.description,
             correctiveActions: eventToEdit.correctiveActions,
+            physicalEvidenceDescription: eventToEdit.physicalEvidenceDescription || '',
             testimonials: eventToEdit.testimonials || [],
             observations: eventToEdit.observations || [],
             finalChecks: {
@@ -139,7 +145,7 @@ const CreateEditEventInformationPage: React.FC = () => {
     try {
       await api.downloadEventPDF(eventDataForPDF, currentCompany.name);
     } catch (error) {
-      console.error("PDF Download Error:", error);
+      logger.error("PDF Download Error", error, { eventId: eventDataForPDF.id });
       alert("Ocurrió un error al generar el PDF.");
     } finally {
       setIsSubmitting(prevSubmittingState); // Restore previous submitting state
@@ -178,13 +184,44 @@ const CreateEditEventInformationPage: React.FC = () => {
 
   return (
     <PageLayout title={pageTitle} footer={footerActions}>
+      <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+        <p className="text-sm text-gray-700">
+          Por favor, asegúrese de que el informe sea objetivo y no tenga la intención de señalar responsables.
+          Este documento será presentado a la autoridad competente (UERESGP) para la implementación
+          de medidas de seguridad en todas las escuelas.
+        </p>
+      </div>
       <form id="event-form" onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Fecha" id="date" type="date" name="date" value={currentFormData.date} onChange={handleChange} required />
           <Input label="Horario" id="time" type="time" name="time" value={currentFormData.time} onChange={handleChange} required />
         </div>
-        <Textarea label="Descripción Detallada" id="description" name="description" value={currentFormData.description} onChange={handleChange} required />
-        <Textarea label="Acciones Correctivas Propuestas" id="correctiveActions" name="correctiveActions" value={currentFormData.correctiveActions} onChange={handleChange} required />
+        <Textarea
+          label="Descripción Detallada"
+          id="description"
+          name="description"
+          value={currentFormData.description}
+          onChange={handleChange}
+          placeholder="Detalles completos del evento, incluyendo cualquier información relevante"
+          required
+        />
+        <Textarea
+          label="Acciones Correctivas Propuestas"
+          id="correctiveActions"
+          name="correctiveActions"
+          value={currentFormData.correctiveActions}
+          onChange={handleChange}
+          placeholder="Acciones que se debe tomar para evitar futuros eventos similares"
+          required
+        />
+        <Textarea
+          label="Evidencias Físicas Disponibles"
+          id="physicalEvidenceDescription"
+          name="physicalEvidenceDescription"
+          value={currentFormData.physicalEvidenceDescription}
+          onChange={handleChange}
+          placeholder="Evidencias físicas relevantes que se puedan haber obtenido en el evento"
+        />
 
         <DynamicListInput
           label="Testimonios"
@@ -192,6 +229,7 @@ const CreateEditEventInformationPage: React.FC = () => {
           onChange={(items) => setCurrentFormData(p => ({...p, testimonials: items}))}
           placeholder="Testimonio"
           addButtonLabel="Añadir testimonio"
+          description="Testimonios de las personas que estuvieron presentes en el evento"
         />
         <DynamicListInput
           label="Observaciones"
