@@ -4,7 +4,7 @@ import { cva } from 'class-variance-authority';
 import { clsx } from 'clsx';
 import { Loader2 } from 'lucide-react';
 
-const spinnerVariants = cva('animate-spin text-blue-600', {
+const spinnerVariants = cva('animate-spin text-slate-900', {
   variants: {
     size: {
       sm: 'w-4 h-4',

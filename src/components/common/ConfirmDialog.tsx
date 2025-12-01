@@ -1,21 +1,26 @@
 
 import React from 'react';
-import { cva } from 'class-variance-authority';
 import { clsx } from 'clsx';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Info, AlertCircle } from 'lucide-react';
 import { Button, ButtonProps } from './Button';
 
 const variantStyles = {
   danger: {
-    icon: 'bg-red-100 text-red-600',
+    iconBg: 'bg-red-50',
+    iconColor: 'text-red-500',
+    icon: AlertTriangle,
     button: 'danger' as ButtonProps['variant'],
   },
   warning: {
-    icon: 'bg-yellow-100 text-yellow-600',
+    iconBg: 'bg-amber-50',
+    iconColor: 'text-amber-500',
+    icon: AlertCircle,
     button: 'secondary' as ButtonProps['variant'],
   },
   info: {
-    icon: 'bg-blue-100 text-blue-600',
+    iconBg: 'bg-blue-50',
+    iconColor: 'text-blue-500',
+    icon: Info,
     button: 'primary' as ButtonProps['variant'],
   },
 };
@@ -46,36 +51,43 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   if (!isOpen) return null;
 
   const styles = variantStyles[variant];
+  const IconComponent = styles.icon;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto animate-fade-in">
-      <div className="flex items-center justify-center min-h-screen px-4 py-6">
+      <div className="flex items-center justify-center min-h-screen p-4">
         <div className="fixed inset-0 transition-opacity animate-fade-in" aria-hidden="true">
-          <div className="absolute inset-0 bg-gray-500 opacity-75" onClick={onClose}></div>
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}></div>
         </div>
 
-        <div className="relative inline-block bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all max-w-lg w-full animate-scale-in">
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <div className="sm:flex sm:items-start">
+        <div className="relative bg-white rounded-2xl text-left shadow-xl transform transition-all max-w-md w-full animate-scale-in">
+          <div className="p-6">
+            <div className="flex gap-4">
               <div
                 className={clsx(
-                  'mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10',
-                  styles.icon
+                  'flex-shrink-0 flex items-center justify-center h-11 w-11 rounded-xl',
+                  styles.iconBg
                 )}
               >
-                <AlertTriangle className="h-6 w-6" />
+                <IconComponent className={clsx('h-5 w-5', styles.iconColor)} />
               </div>
-              <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left flex-1">
-                <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-semibold text-slate-900" id="modal-title">
                   {title}
                 </h3>
-                <div className="mt-2">
-                  <p className="text-sm text-gray-500">{message}</p>
-                </div>
+                <p className="mt-1.5 text-sm text-slate-500 leading-relaxed">{message}</p>
               </div>
             </div>
           </div>
-          <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
+          <div className="px-6 py-4 bg-slate-50/50 rounded-b-2xl flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              disabled={isLoading}
+              className="w-full sm:w-auto"
+            >
+              {cancelText}
+            </Button>
             <Button
               variant={styles.button}
               onClick={onConfirm}
@@ -83,14 +95,6 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               className="w-full sm:w-auto"
             >
               {isLoading ? 'Procesando...' : confirmText}
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={onClose}
-              disabled={isLoading}
-              className="w-full sm:w-auto mt-3 sm:mt-0"
-            >
-              {cancelText}
             </Button>
           </div>
         </div>

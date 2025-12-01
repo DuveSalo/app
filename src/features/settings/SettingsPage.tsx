@@ -320,13 +320,13 @@ export const SettingsPage: React.FC = () => {
   return (
     <PageLayout title="Configuración" footer={footerContent}>
         <div className="flex flex-col h-full">
-            <div className="border-b border-gray-200 flex-shrink-0">
-                <nav className="-mb-px flex space-x-8">
+            <div className="border-b border-slate-200 flex-shrink-0">
+                <nav className="-mb-px flex space-x-6">
                 {tabs.map((tab) => (
                     <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`py-2 px-1 border-b-2 font-medium text-sm focus:outline-none ${activeTab === tab.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                    className={`py-2.5 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none ${activeTab === tab.id ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}
                     >{tab.label}</button>
                 ))}
                 </nav>
@@ -368,7 +368,7 @@ export const SettingsPage: React.FC = () => {
                     ) : (
                         <div className="space-y-6">
                             <div className="flex justify-between items-center">
-                                <h2 className="text-lg font-medium text-gray-900">Información de la empresa</h2>
+                                <h2 className="text-base font-semibold text-slate-900">Información de la empresa</h2>
                                 <Button type="button" onClick={() => setIsEditingCompany(true)}>
                                     <EditIcon className="w-4 h-4 mr-2" />
                                     Editar información
@@ -377,42 +377,42 @@ export const SettingsPage: React.FC = () => {
                             <Card>
                                 <div className="space-y-4">
                                     <div>
-                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Nombre de la empresa</p>
-                                        <p className="text-base text-gray-900">{currentCompany.name}</p>
+                                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Nombre de la empresa</p>
+                                        <p className="text-sm text-slate-900">{currentCompany.name}</p>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-100 pt-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
                                         <div>
-                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">CUIT</p>
-                                            <p className="text-base text-gray-900">{currentCompany.cuit}</p>
+                                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">CUIT</p>
+                                            <p className="text-sm text-slate-900">{currentCompany.cuit}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Código Postal</p>
-                                            <p className="text-base text-gray-900">{currentCompany.postalCode}</p>
-                                        </div>
-                                    </div>
-                                    <div className="border-t border-gray-100 pt-4">
-                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Dirección</p>
-                                        <p className="text-base text-gray-900">{currentCompany.address}</p>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-gray-100 pt-4">
-                                        <div>
-                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Ciudad</p>
-                                            <p className="text-base text-gray-900">{currentCompany.city}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Provincia</p>
-                                            <p className="text-base text-gray-900">{currentCompany.province}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">País</p>
-                                            <p className="text-base text-gray-900">{currentCompany.country}</p>
+                                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Código Postal</p>
+                                            <p className="text-sm text-slate-900">{currentCompany.postalCode}</p>
                                         </div>
                                     </div>
-                                    <div className="border-t border-gray-100 pt-4">
-                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Servicios Contratados</p>
+                                    <div className="border-t border-slate-100 pt-4">
+                                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Dirección</p>
+                                        <p className="text-sm text-slate-900">{currentCompany.address}</p>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-100 pt-4">
+                                        <div>
+                                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Ciudad</p>
+                                            <p className="text-sm text-slate-900">{currentCompany.city}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Provincia</p>
+                                            <p className="text-sm text-slate-900">{currentCompany.province}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">País</p>
+                                            <p className="text-sm text-slate-900">{currentCompany.country}</p>
+                                        </div>
+                                    </div>
+                                    <div className="border-t border-slate-100 pt-4">
+                                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Servicios Contratados</p>
                                         <div className="flex flex-wrap gap-2">
                                             {currentCompany.services && Object.entries(currentCompany.services).filter(([_, enabled]) => enabled).map(([service]) => (
-                                                <span key={service} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                                <span key={service} className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-700">
                                                     {serviceValueToLabelMap.get(service as QRDocumentType)}
                                                 </span>
                                             ))}
@@ -427,34 +427,36 @@ export const SettingsPage: React.FC = () => {
                 {activeTab === 'employees' && (
                     <div className="h-full flex flex-col">
                         <div className="flex justify-between items-center mb-6 flex-shrink-0">
-                            <h2 className="text-lg font-medium text-gray-900">Empleados</h2>
+                            <h2 className="text-base font-semibold text-slate-900">Empleados</h2>
                             <Button onClick={() => openEmployeeModal()}>Agregar empleado</Button>
                         </div>
-                        <div className="overflow-y-auto flex-grow min-h-0 border border-gray-200 rounded-md">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50 sticky top-0">
+                        <div className="overflow-y-auto flex-grow min-h-0 border border-slate-200/60 rounded-xl bg-white">
+                            <table className="min-w-full divide-y divide-slate-100">
+                                <thead className="bg-slate-50/50 sticky top-0">
                                     <tr>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rol</th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Nombre</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Rol</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="bg-white divide-y divide-slate-100">
                                     {currentCompany.employees.map((employee) => (
-                                        <tr key={employee.id} className="hover:bg-gray-50">
-                                            <td className="px-4 py-3 text-sm">{employee.name}</td>
-                                            <td className="px-4 py-3 text-sm">{employee.email}</td>
-                                            <td className="px-4 py-3 text-sm">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${employee.role === 'Administrador' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+                                        <tr key={employee.id} className="hover:bg-slate-50 transition-colors">
+                                            <td className="px-4 py-3.5 text-sm text-slate-700">{employee.name}</td>
+                                            <td className="px-4 py-3.5 text-sm text-slate-700">{employee.email}</td>
+                                            <td className="px-4 py-3.5 text-sm">
+                                                <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-md ${employee.role === 'Administrador' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}>
                                                     {employee.role}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-3 space-x-2">
-                                                <Button variant="ghost" size="sm" onClick={() => openEmployeeModal(employee)} disabled={isLoading}><EditIcon /></Button>
-                                                {currentUser.email !== employee.email && (
-                                                    <Button variant="ghost" size="sm" onClick={() => handleDeleteEmployee(employee)} className="text-red-600 hover:bg-red-100" disabled={isLoading}><TrashIcon /></Button>
-                                                )}
+                                            <td className="px-4 py-3.5">
+                                                <div className="flex items-center gap-0.5">
+                                                    <Button variant="ghost" size="sm" onClick={() => openEmployeeModal(employee)} disabled={isLoading}><EditIcon /></Button>
+                                                    {currentUser.email !== employee.email && (
+                                                        <Button variant="ghost" size="sm" onClick={() => handleDeleteEmployee(employee)} className="text-red-500 hover:bg-red-50 hover:text-red-600" disabled={isLoading}><TrashIcon /></Button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -466,20 +468,20 @@ export const SettingsPage: React.FC = () => {
 
                 {activeTab === 'billing' && (
                     <div className="space-y-6">
-                        <h2 className="text-lg font-medium text-gray-900">Facturación</h2>
+                        <h2 className="text-base font-semibold text-slate-900">Facturación</h2>
                         <Card>
-                            <h3 className="font-medium text-gray-900">Plan actual</h3>
-                            <p className="text-sm text-gray-600">
+                            <h3 className="text-sm font-semibold text-slate-900">Plan actual</h3>
+                            <p className="text-sm text-slate-600 mt-1">
                                 Plan {currentCompany.selectedPlan} - {plansData.find(p => p.id === currentCompany.selectedPlan)?.price}/mes
                             </p>
-                            <p className="text-sm text-gray-600 mt-1">
-                                {currentCompany.subscriptionStatus === 'canceled' 
+                            <p className="text-sm text-slate-500 mt-1">
+                                {currentCompany.subscriptionStatus === 'canceled'
                                     ? <span className="text-red-600 font-semibold">Cancelado</span>
                                     : `Próxima facturación: ${currentCompany.subscriptionRenewalDate ? new Date(currentCompany.subscriptionRenewalDate).toLocaleDateString() : 'N/A'}`
                                 }
                             </p>
                         </Card>
-                        <div className="flex space-x-4">
+                        <div className="flex gap-3">
                             <Button variant="outline" onClick={() => { setBillingAction('change'); setShowBillingModal(true); }}>Cambiar plan</Button>
                             {currentCompany.subscriptionStatus !== 'canceled' &&
                             <Button variant="danger" onClick={() => { setBillingAction('cancel'); setShowBillingModal(true); }}>Cancelar suscripción</Button>
@@ -492,14 +494,14 @@ export const SettingsPage: React.FC = () => {
                     isEditingProfile ? (
                         <form id="profile-form" onSubmit={handleProfileSubmit} className="space-y-6">
                             <div>
-                                <h2 className="text-lg font-medium text-gray-900">Mi Perfil</h2>
+                                <h2 className="text-base font-semibold text-slate-900">Mi Perfil</h2>
                                 <Input id="profileName" label="Nombre completo" value={profileForm.name} onChange={(e) => setProfileForm(prev => ({ ...prev, name: e.target.value }))} required className="mt-4" />
                                 <Input id="profileEmail" label="Email" value={profileForm.email} disabled className="mt-4"/>
                             </div>
 
-                            <div className="border-t pt-6">
-                                <h3 className="text-base font-medium text-gray-900">Seguridad de la Cuenta</h3>
-                                <p className="text-sm text-gray-500 mt-1">Para cambiar su contraseña, le enviaremos un enlace seguro a su correo electrónico.</p>
+                            <div className="border-t border-slate-100 pt-6">
+                                <h3 className="text-sm font-semibold text-slate-900">Seguridad de la Cuenta</h3>
+                                <p className="text-sm text-slate-500 mt-1">Para cambiar su contraseña, le enviaremos un enlace seguro a su correo electrónico.</p>
                                 <Button type="button" variant="outline" onClick={handlePasswordReset} loading={isPasswordResetLoading} className="mt-4">
                                     Enviar enlace para restablecer contraseña
                                 </Button>
@@ -508,24 +510,24 @@ export const SettingsPage: React.FC = () => {
                         </form>
                     ) : (
                         <div className="space-y-6">
-                            <h2 className="text-lg font-medium text-gray-900">Mi Perfil</h2>
+                            <h2 className="text-base font-semibold text-slate-900">Mi Perfil</h2>
                             <Card>
                                 <div className="space-y-3">
                                     <div>
-                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Nombre completo</p>
-                                        <p className="text-base text-gray-900">{currentUser.name}</p>
+                                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Nombre completo</p>
+                                        <p className="text-sm text-slate-900">{currentUser.name}</p>
                                     </div>
-                                    <div className="border-t border-gray-100 pt-3">
-                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Email</p>
-                                        <p className="text-base text-gray-900">{currentUser.email}</p>
+                                    <div className="border-t border-slate-100 pt-3">
+                                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Email</p>
+                                        <p className="text-sm text-slate-900">{currentUser.email}</p>
                                     </div>
                                 </div>
                             </Card>
 
                             <Card>
                                 <div className="space-y-3">
-                                    <h3 className="text-base font-medium text-gray-900">Seguridad de la Cuenta</h3>
-                                    <p className="text-sm text-gray-600">Para cambiar su contraseña, le enviaremos un enlace seguro a su correo electrónico.</p>
+                                    <h3 className="text-sm font-semibold text-slate-900">Seguridad de la Cuenta</h3>
+                                    <p className="text-sm text-slate-500">Para cambiar su contraseña, le enviaremos un enlace seguro a su correo electrónico.</p>
                                     <Button type="button" variant="outline" onClick={handlePasswordReset} loading={isPasswordResetLoading} className="mt-2">
                                         Enviar enlace para restablecer contraseña
                                     </Button>
@@ -551,26 +553,26 @@ export const SettingsPage: React.FC = () => {
 
         <Modal isOpen={showBillingModal} onClose={() => setShowBillingModal(false)} title={billingAction === 'change' ? 'Cambiar plan' : 'Cancelar suscripción'}>
             <div className="space-y-4">
-            <p className="text-gray-600">
+            <p className="text-sm text-slate-600">
                 {billingAction === 'change' ? 'Selecciona un nuevo plan para tu suscripción.' : '¿Estás seguro de que deseas cancelar tu suscripción? Perderás el acceso a las funciones al final de tu ciclo de facturación actual.'}
             </p>
             {billingAction === 'change' && (
                 <div className="space-y-2">
                 {plansData.map((plan) => (
-                    <div key={plan.id} className={`border rounded-lg p-3 cursor-pointer ${newSelectedPlanId === plan.id ? 'border-blue-600 ring-2 ring-blue-500' : 'border-gray-300'}`} onClick={() => setNewSelectedPlanId(plan.id)}>
+                    <div key={plan.id} className={`border rounded-xl p-4 cursor-pointer transition-all ${newSelectedPlanId === plan.id ? 'border-slate-900 ring-2 ring-slate-900' : 'border-slate-200 hover:border-slate-300'}`} onClick={() => setNewSelectedPlanId(plan.id)}>
                     <div className="flex justify-between items-center">
                         <div>
-                        <h3 className="font-medium">{plan.name}</h3>
-                        <p className="text-sm text-gray-500">{plan.price}/mes</p>
+                        <h3 className="font-semibold text-slate-900">{plan.name}</h3>
+                        <p className="text-sm text-slate-500">{plan.price}/mes</p>
                         </div>
-                        <input type="radio" name="plan" value={plan.id} checked={newSelectedPlanId === plan.id} readOnly className="h-4 w-4 text-blue-600 focus:ring-blue-500" />
+                        <input type="radio" name="plan" value={plan.id} checked={newSelectedPlanId === plan.id} readOnly className="h-4 w-4 text-slate-900 focus:ring-slate-500" />
                     </div>
                     </div>
                 ))}
                 </div>
             )}
             {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-            <div className="flex justify-end space-x-4 pt-4 mt-2">
+            <div className="flex justify-end gap-2.5 pt-4 mt-2">
                 <Button variant="outline" onClick={() => setShowBillingModal(false)}>Cancelar</Button>
                 <Button variant={billingAction === 'cancel' ? 'danger' : 'primary'} onClick={handleBillingAction} loading={isLoading}>
                 {billingAction === 'change' ? 'Cambiar plan' : 'Confirmar Cancelación'}

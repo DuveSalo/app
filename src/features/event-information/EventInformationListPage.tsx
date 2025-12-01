@@ -123,13 +123,13 @@ const EventInformationListPage: React.FC = () => {
           <LoadingSpinner size="lg" />
         </div>
       ) : events.length === 0 ? (
-        <div className="text-center py-16 flex flex-col items-center justify-center h-full">
-          <ExclamationTriangleIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900">No hay eventos registrados</h3>
-          <p className="text-gray-500 mb-4">Comience registrando su primer evento o incidente.</p>
-          <Button 
-            onClick={() => navigate(ROUTE_PATHS.NEW_EVENT_INFORMATION)}
-          >
+        <div className="text-center py-16 flex flex-col items-center justify-center h-full bg-white rounded-xl border border-slate-300">
+          <div className="h-16 w-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-5">
+            <ExclamationTriangleIcon className="w-8 h-8 text-slate-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-slate-900 mb-1.5">No hay eventos registrados</h3>
+          <p className="text-sm text-slate-500 mb-6 max-w-sm">Comience registrando su primer evento o incidente.</p>
+          <Button onClick={() => navigate(ROUTE_PATHS.NEW_EVENT_INFORMATION)}>
             <PlusIcon className="w-4 h-4 mr-2" />
             Registrar primer evento
           </Button>
@@ -145,7 +145,7 @@ const EventInformationListPage: React.FC = () => {
             searchPlaceholder="Buscar por descripción..."
           />
 
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -156,21 +156,20 @@ const EventInformationListPage: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAndSortedEvents.map((event, index) => (
+                {filteredAndSortedEvents.map((event) => (
                   <TableRow
                     key={event.id}
-                    className="hover:bg-gray-50 transition-colors animate-fade-in"
-                    style={{ animationDelay: `${index * 50}ms` }}
+                    className="hover:bg-slate-50 transition-colors"
                   >
                     <TableCell className="font-medium">{event.description}</TableCell>
                     <TableCell className="text-center">{new Date(event.date).toLocaleDateString('es-AR')}</TableCell>
                     <TableCell className="text-center">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200">
                         Registrado
                       </span>
                     </TableCell>
                     <TableCell className="text-center">
-                      <div className="flex space-x-1 justify-center">
+                      <div className="flex items-center gap-0.5 justify-center">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -183,7 +182,7 @@ const EventInformationListPage: React.FC = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteClick(event.id)}
-                          className="text-red-600 hover:bg-red-50"
+                          className="text-red-500 hover:bg-red-50 hover:text-red-600"
                           title="Eliminar"
                         >
                           <TrashIcon className="w-4 h-4" />
@@ -197,8 +196,8 @@ const EventInformationListPage: React.FC = () => {
           </div>
 
           {filteredAndSortedEvents.length === 0 && events.length > 0 && (
-            <div className="text-center py-8 bg-white rounded-lg border border-gray-200">
-              <p className="text-gray-500">No se encontraron eventos con los filtros aplicados.</p>
+            <div className="text-center py-12 bg-white rounded-xl border border-slate-300">
+              <p className="text-sm text-slate-500">No se encontraron eventos con los filtros aplicados.</p>
             </div>
           )}
         </>

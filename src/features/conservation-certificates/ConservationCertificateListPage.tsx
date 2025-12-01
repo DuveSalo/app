@@ -148,17 +148,18 @@ const ConservationCertificateListPage: React.FC = () => {
           <LoadingSpinner size="lg" />
         </div>
       ) : certificates.length === 0 ? (
-        <div className="text-center py-16 flex flex-col items-center justify-center h-full bg-white rounded-lg border border-gray-200">
-          <DocumentTextIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No hay certificados</h3>
-          <p className="text-gray-500 mb-6 max-w-md">
+        <div className="text-center py-16 flex flex-col items-center justify-center h-full bg-white rounded-xl border border-slate-300">
+          <div className="h-16 w-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-5">
+            <DocumentTextIcon className="w-8 h-8 text-slate-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-slate-900 mb-1.5">No hay certificados</h3>
+          <p className="text-sm text-slate-500 mb-6 max-w-sm">
             Comience registrando su primer certificado de conservación para mantener el control de vencimientos.
           </p>
           <Button
             onClick={() => navigate(ROUTE_PATHS.NEW_CONSERVATION_CERTIFICATE)}
-            size="lg"
           >
-            <PlusIcon className="w-5 h-5 mr-2" />
+            <PlusIcon className="w-4 h-4 mr-2" />
             Crear primer certificado
           </Button>
         </div>
@@ -176,7 +177,7 @@ const ConservationCertificateListPage: React.FC = () => {
             searchPlaceholder="Buscar por interviniente o N° de registro..."
           />
 
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -190,27 +191,26 @@ const ConservationCertificateListPage: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAndSortedCertificates.map((cert, index) => (
+                {filteredAndSortedCertificates.map((cert) => (
                   <TableRow
                     key={cert.id}
-                    className="hover:bg-gray-50 transition-colors animate-fade-in"
-                    style={{ animationDelay: `${index * 50}ms` }}
+                    className="hover:bg-slate-50 transition-colors"
                   >
                     <TableCell className="font-medium max-w-0 truncate">{cert.intervener}</TableCell>
                     <TableCell className="text-xs">{cert.registrationNumber}</TableCell>
                     <TableCell className="text-xs whitespace-nowrap">{new Date(cert.presentationDate).toLocaleDateString('es-AR')}</TableCell>
                     <TableCell className="text-xs whitespace-nowrap">{new Date(cert.expirationDate).toLocaleDateString('es-AR')}</TableCell>
-                    <TableCell className="max-w-0 truncate text-xs text-gray-600" title={cert.pdfFileName || 'N/A'}>
+                    <TableCell className="max-w-0 truncate text-xs text-slate-500" title={cert.pdfFileName || 'N/A'}>
                       {cert.pdfFileName || 'N/A'}
                     </TableCell>
                     <TableCell>
                       <StatusBadge status={getStatus(cert.expirationDate)} />
                     </TableCell>
                     <TableCell>
-                      <div className="flex space-x-1">
+                      <div className="flex items-center gap-0.5">
                         <button
                           type="button"
-                          className="inline-flex items-center justify-center p-2 text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                          className="inline-flex items-center justify-center p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
                           onClick={() => {
                             if (cert.pdfFile && typeof cert.pdfFile === 'string') {
                               window.open(cert.pdfFile, '_blank');
@@ -234,7 +234,7 @@ const ConservationCertificateListPage: React.FC = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteClick(cert.id)}
-                          className="text-red-600 hover:bg-red-50"
+                          className="text-red-500 hover:bg-red-50 hover:text-red-600"
                           title="Eliminar"
                         >
                           <TrashIcon className="w-4 h-4" />
@@ -248,8 +248,8 @@ const ConservationCertificateListPage: React.FC = () => {
           </div>
 
           {filteredAndSortedCertificates.length === 0 && certificates.length > 0 && (
-            <div className="text-center py-8 bg-white rounded-lg border border-gray-200">
-              <p className="text-gray-500">No se encontraron certificados con los filtros aplicados.</p>
+            <div className="text-center py-12 bg-white rounded-xl border border-slate-300">
+              <p className="text-sm text-slate-500">No se encontraron certificados con los filtros aplicados.</p>
             </div>
           )}
         </>

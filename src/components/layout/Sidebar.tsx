@@ -10,6 +10,8 @@ import {
     HomeIcon, DocumentTextIcon, ShieldCheckIcon, QrCodeIcon,
     ExclamationTriangleIcon, FireIcon, Cog6ToothIcon, ChevronDoubleLeftIcon, ChevronDoubleRightIcon,
 } from '../common/Icons';
+import { ConfirmDialog } from '../common/ConfirmDialog';
+import { LogOut, Settings } from 'lucide-react';
 
 interface SidebarProps {
     isCollapsed: boolean;
@@ -20,18 +22,18 @@ const MainNavLink: React.FC<{ item: NavItem; isCollapsed: boolean }> = ({ item, 
     const location = useLocation();
     const isActive = location.pathname.startsWith(item.path);
     return (
-        <Link 
+        <Link
             to={item.path}
             title={item.label}
-            className={`flex items-center gap-3 rounded-md transition-colors duration-200 text-sm font-medium ${
-                isCollapsed ? 'p-2 justify-center' : 'px-3 py-2'
+            className={`flex items-center gap-3 rounded-lg transition-all duration-150 text-sm font-medium ${
+                isCollapsed ? 'p-2.5 justify-center' : 'px-3 py-2.5'
             } ${
-            isActive 
-                ? 'bg-blue-50 text-blue-700' 
-                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+            isActive
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
         >
-            {React.cloneElement(item.icon, { className: "w-5 h-5 flex-shrink-0" })}
+            {React.cloneElement(item.icon, { className: `w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : ''}` })}
             <span className={isCollapsed ? 'hidden' : ''}>{item.label}</span>
         </Link>
     );
@@ -44,16 +46,16 @@ const ModuleLink: React.FC<{ item: NavItem; isCollapsed: boolean }> = ({ item, i
         <Link
             to={item.path}
             title={item.label}
-            className={`flex items-center gap-3 rounded-md text-sm truncate transition-colors duration-200 ${
-                isCollapsed ? 'p-2 justify-center' : 'px-3 py-1.5'
+            className={`flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-150 ${
+                isCollapsed ? 'p-2.5 justify-center' : 'px-3 py-2'
             } ${
             isActive
-                ? 'bg-blue-50 text-blue-700 font-medium'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
             }`}
         >
-            {React.cloneElement(item.icon, { className: "w-5 h-5 flex-shrink-0" })}
-            <span className={isCollapsed ? 'hidden' : ''}>{item.label}</span>
+            {React.cloneElement(item.icon, { className: `w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : ''}` })}
+            <span className={`${isCollapsed ? 'hidden' : ''} leading-tight`}>{item.label}</span>
         </Link>
     );
 };
@@ -62,6 +64,7 @@ const ModuleLink: React.FC<{ item: NavItem; isCollapsed: boolean }> = ({ item, i
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
     const { currentUser, currentCompany, logout } = useAuth();
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -100,73 +103,106 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
     const enabledServiceItems = serviceNavItems.filter(item => item.service && currentCompany?.services?.[item.service]);
 
     return (
-        <aside className={`bg-white border-r border-gray-200 flex flex-col flex-shrink-0 p-4 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}>
-            <div className="flex-1 flex flex-col gap-y-7 overflow-y-auto overflow-x-hidden">
+        <aside className={`bg-white border-r border-slate-200/60 flex flex-col flex-shrink-0 transition-all duration-300 ${isCollapsed ? 'w-[72px]' : 'w-64'}`}>
+            {/* Logo area */}
+            <div className={`h-16 flex items-center border-b border-slate-100 ${isCollapsed ? 'justify-center px-3' : 'px-5'}`}>
+                <div className="flex items-center gap-2.5">
+                    <div className="h-8 w-8 rounded-lg bg-slate-900 flex items-center justify-center flex-shrink-0">
+                        <span className="text-white font-bold text-sm">ES</span>
+                    </div>
+                    <span className={`font-semibold text-slate-900 ${isCollapsed ? 'hidden' : ''}`}>Escuela Segura</span>
+                </div>
+            </div>
+
+            {/* Navigation */}
+            <div className="flex-1 flex flex-col gap-y-6 overflow-hidden p-3">
                 <nav className="flex flex-col gap-y-1">
                     {mainNavItems.map(item => <MainNavLink key={item.path} item={item} isCollapsed={isCollapsed} />)}
                 </nav>
 
                 {enabledServiceItems.length > 0 && (
-                    <div className="space-y-3">
-                        <div className="border-t border-gray-200" />
-                        <div className="space-y-1">
+                    <div className="space-y-2">
+                        {!isCollapsed && (
+                            <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Servicios</p>
+                        )}
+                        <div className="space-y-0.5">
                             {enabledServiceItems.map(item => <ModuleLink key={item.path} item={item} isCollapsed={isCollapsed} />)}
                         </div>
                     </div>
                 )}
             </div>
 
-            <div className="mt-auto">
-                 <div className="border-t border-gray-200" ref={menuRef}>
-                    <div className="relative mt-4">
-                        <div 
-                            className={`flex items-center p-2 rounded-lg hover:bg-gray-100 cursor-pointer ${isCollapsed ? 'justify-center' : 'justify-between'}`}
+            {/* User area */}
+            <div className="mt-auto border-t border-slate-100" ref={menuRef}>
+                <div className="p-3">
+                    <div className="relative">
+                        <div
+                            className={`flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors ${isCollapsed ? 'justify-center' : ''}`}
                             onClick={() => setIsUserMenuOpen(prev => !prev)}
                         >
-                            <div className="flex items-center gap-x-3 group flex-1 min-w-0">
-                                <div className="h-9 w-9 flex-shrink-0 rounded-full bg-gray-200 flex items-center justify-center">
-                                    <span className="text-sm font-medium text-gray-700">{userInitials}</span>
-                                </div>
-                                <div className={`min-w-0 ${isCollapsed ? 'hidden' : ''}`}>
-                                    <p className="text-sm font-semibold text-gray-900 truncate">{currentUser?.name}</p>
-                                    <p className="text-xs text-gray-500 truncate">{currentCompany?.name}</p>
-                                </div>
+                            <div className="h-9 w-9 flex-shrink-0 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center ring-2 ring-white shadow-sm">
+                                <span className="text-xs font-semibold text-white">{userInitials}</span>
                             </div>
-                            <Cog6ToothIcon className={`w-5 h-5 text-gray-400 group-hover:text-gray-600 ${isCollapsed ? 'hidden' : ''}`}/>
+                            <div className={`flex-1 min-w-0 ${isCollapsed ? 'hidden' : ''}`}>
+                                <p className="text-sm font-semibold text-slate-900 truncate">{currentUser?.name}</p>
+                                <p className="text-xs text-slate-500 truncate">{currentCompany?.name}</p>
+                            </div>
+                            <Cog6ToothIcon className={`w-4.5 h-4.5 text-slate-400 ${isCollapsed ? 'hidden' : ''}`}/>
                         </div>
                         {isUserMenuOpen && (
-                             <div
-                                className={`absolute bottom-full mb-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-20 ${
+                            <div
+                                className={`absolute bottom-full mb-2 w-52 bg-white rounded-xl shadow-dropdown border border-slate-200/60 py-1.5 z-20 ${
                                     isCollapsed ? 'left-0' : 'right-0'
                                 }`}
                             >
                                 <Link
                                     to={ROUTE_PATHS.SETTINGS}
-                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    className="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                                     onClick={() => setIsUserMenuOpen(false)}
                                 >
+                                    <Settings className="w-4 h-4 text-slate-400" />
                                     Configuración
                                 </Link>
                                 <button
-                                    onClick={logout}
-                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    onClick={() => {
+                                        setIsUserMenuOpen(false);
+                                        setIsLogoutDialogOpen(true);
+                                    }}
+                                    className="flex items-center gap-2.5 w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                                 >
-                                    Cerrar Sesión
+                                    <LogOut className="w-4 h-4 text-slate-400" />
+                                    Cerrar sesión
                                 </button>
-                             </div>
+                            </div>
                         )}
                     </div>
                 </div>
-                 <div className="border-t border-gray-200 mt-2">
-                    <button 
+
+                {/* Collapse toggle */}
+                <div className="px-3 pb-3">
+                    <button
                         onClick={onToggle}
-                        className="w-full flex items-center justify-center p-1 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                        className="w-full flex items-center justify-center p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
                         title={isCollapsed ? 'Expandir menú' : 'Reducir menú'}
                     >
-                         {isCollapsed ? <ChevronDoubleRightIcon className="h-5 w-5"/> : <ChevronDoubleLeftIcon className="h-5 w-5"/>}
+                        {isCollapsed ? <ChevronDoubleRightIcon className="h-4 w-4"/> : <ChevronDoubleLeftIcon className="h-4 w-4"/>}
                     </button>
                 </div>
             </div>
+
+            <ConfirmDialog
+                isOpen={isLogoutDialogOpen}
+                onClose={() => setIsLogoutDialogOpen(false)}
+                onConfirm={() => {
+                    setIsLogoutDialogOpen(false);
+                    logout();
+                }}
+                title="¿Cerrar sesión?"
+                message="Se cerrará tu sesión actual y tendrás que volver a iniciar sesión para acceder."
+                confirmText="Cerrar sesión"
+                cancelText="Cancelar"
+                variant="danger"
+            />
         </aside>
     );
 };

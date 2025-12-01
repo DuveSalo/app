@@ -112,10 +112,12 @@ const FireExtinguisherListPage: React.FC = () => {
           <LoadingSpinner size="lg" />
         </div>
       ) : extinguishers.length === 0 ? (
-        <div className="text-center py-16 flex flex-col items-center justify-center h-full">
-          <FireIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900">No hay controles de extintores registrados</h3>
-          <p className="text-gray-500 mb-4">Comience registrando su primer control de extintor.</p>
+        <div className="text-center py-16 flex flex-col items-center justify-center h-full bg-white rounded-xl border border-slate-300">
+          <div className="h-16 w-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-5">
+            <FireIcon className="w-8 h-8 text-slate-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-slate-900 mb-1.5">No hay controles registrados</h3>
+          <p className="text-sm text-slate-500 mb-6 max-w-sm">Comience registrando su primer control de extintor.</p>
           <Button onClick={() => navigate(ROUTE_PATHS.NEW_FIRE_EXTINGUISHER)}>
             <PlusIcon className="w-4 h-4 mr-2" />
             Registrar primer control
@@ -133,11 +135,11 @@ const FireExtinguisherListPage: React.FC = () => {
           />
 
           {filteredAndSortedExtinguishers.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-              <p className="text-gray-500 mb-4">No se encontraron extintores que coincidan con la búsqueda.</p>
+            <div className="bg-white rounded-xl border border-slate-300 p-12 text-center">
+              <p className="text-sm text-slate-500">No se encontraron extintores que coincidan con la búsqueda.</p>
             </div>
           ) : (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -152,7 +154,7 @@ const FireExtinguisherListPage: React.FC = () => {
             </TableHeader>
             <TableBody>
               {filteredAndSortedExtinguishers.map((ext) => (
-                <TableRow key={ext.id}>
+                <TableRow key={ext.id} className="hover:bg-slate-50 transition-colors">
                   <TableCell className="font-medium">{ext.extinguisherNumber}</TableCell>
                   <TableCell>{ext.type}</TableCell>
                   <TableCell>{ext.capacity} kg</TableCell>
@@ -160,7 +162,7 @@ const FireExtinguisherListPage: React.FC = () => {
                   <TableCell>{new Date(ext.controlDate).toLocaleDateString('es-AR')}</TableCell>
                   <TableCell>{new Date(ext.chargeExpirationDate).toLocaleDateString('es-AR')}</TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end gap-0.5">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -174,8 +176,9 @@ const FireExtinguisherListPage: React.FC = () => {
                         size="sm"
                         onClick={() => setDeleteId(ext.id)}
                         title="Eliminar"
+                        className="text-red-500 hover:bg-red-50 hover:text-red-600"
                       >
-                        <TrashIcon className="w-4 h-4 text-red-600" />
+                        <TrashIcon className="w-4 h-4" />
                       </Button>
                     </div>
                   </TableCell>

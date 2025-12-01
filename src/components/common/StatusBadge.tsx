@@ -3,21 +3,24 @@ import React from 'react';
 import { cva } from 'class-variance-authority';
 import { clsx } from 'clsx';
 
-const badgeVariants = cva('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', {
-  variants: {
-    status: {
-      valid: 'bg-green-100 text-green-800',
-      expiring: 'bg-yellow-100 text-yellow-800',
-      expired: 'bg-red-100 text-red-800',
+const badgeVariants = cva(
+  'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold',
+  {
+    variants: {
+      status: {
+        valid: 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20',
+        expiring: 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20',
+        expired: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20',
+      },
     },
-  },
-});
+  }
+);
 
-const dotVariants = cva('-ml-0.5 mr-1.5 h-2 w-2', {
+const dotVariants = cva('h-1.5 w-1.5 rounded-full', {
   variants: {
     status: {
-      valid: 'bg-green-500',
-      expiring: 'bg-yellow-500',
+      valid: 'bg-emerald-500',
+      expiring: 'bg-amber-500',
       expired: 'bg-red-500',
     },
   },
@@ -25,7 +28,7 @@ const dotVariants = cva('-ml-0.5 mr-1.5 h-2 w-2', {
 
 const statusLabels = {
   valid: 'Vigente',
-  expiring: 'Próximo a Vencer',
+  expiring: 'Por vencer',
   expired: 'Vencido',
 };
 
@@ -36,9 +39,7 @@ interface StatusBadgeProps {
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   return (
     <span className={clsx(badgeVariants({ status }))}>
-      <svg className={clsx(dotVariants({ status }))} fill="currentColor" viewBox="0 0 8 8">
-        <circle cx="4" cy="4" r="3" />
-      </svg>
+      <span className={clsx(dotVariants({ status }))} />
       {statusLabels[status]}
     </span>
   );

@@ -68,11 +68,13 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
     return (
       <AuthLayout title={pageTitle} subtitle={pageSubtitle} variant="split">
         {registrationSuccess && (
-          <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-md mb-6 flex items-start" role="alert">
-            <CheckIcon className="w-5 h-5 mr-3 flex-shrink-0 mt-0.5" />
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl mb-6 flex items-start" role="alert">
+            <div className="h-8 w-8 rounded-lg bg-emerald-100 flex items-center justify-center mr-3 flex-shrink-0">
+              <CheckIcon className="w-4 h-4 text-emerald-600" />
+            </div>
             <div>
-              <p className="font-bold">¡Registro Exitoso!</p>
-              <p className="text-sm">Ahora puede iniciar sesión con sus nuevas credenciales.</p>
+              <p className="font-semibold text-sm">Registro Exitoso</p>
+              <p className="text-sm text-emerald-700 mt-0.5">Ahora puede iniciar sesión con sus nuevas credenciales.</p>
             </div>
           </div>
         )}
@@ -102,7 +104,7 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
           />
           <div className="flex items-center justify-between">
             <Checkbox label="Recordarme" id="remember" disabled={isLoading}/>
-            <a href="#" className="text-sm text-blue-600 hover:underline">¿Olvidó su contraseña?</a>
+            <a href="#" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">¿Olvidó su contraseña?</a>
           </div>
           {error && !error.includes("credenciales") && <p className="text-sm text-red-600 text-center py-2">{error}</p>}
           <div className="pt-2">
@@ -114,10 +116,10 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
+            <div className="w-full border-t border-slate-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">O continuar con</span>
+            <span className="px-3 bg-slate-50 text-slate-500">O continuar con</span>
           </div>
         </div>
 
@@ -138,10 +140,10 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
           Google
         </Button>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm text-slate-600">
           ¿No tiene una cuenta?{' '}
-          <Link to={ROUTE_PATHS.REGISTER} className="font-medium text-blue-600 hover:underline">
-            Regístrese.
+          <Link to={ROUTE_PATHS.REGISTER} className="font-medium text-slate-900 hover:underline">
+            Regístrese
           </Link>
         </p>
       </AuthLayout>
@@ -153,31 +155,33 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
   return (
     <AuthLayout variant="wizard" wizardSteps={wizardSteps} currentStep={1}>
         <div className="w-full max-w-md mx-auto">
-            <div className="text-center mb-4">
-                <h2 className="text-lg font-bold text-gray-900">Cree su Cuenta</h2>
-                <p className="text-gray-500 mt-0.5 text-xs">Comience gratis y centralice la gestión de su empresa.</p>
+            <div className="text-center mb-6">
+                <h2 className="text-xl font-bold text-slate-900">Cree su Cuenta</h2>
+                <p className="text-slate-500 mt-1 text-sm">Comience gratis y centralice la gestión de su empresa.</p>
             </div>
 
             {showConfirmationMessage ? (
-              <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-900 p-3 rounded-md mb-3" role="alert">
+              <div className="bg-blue-50 border border-blue-200 text-blue-900 p-4 rounded-xl" role="alert">
                 <div className="flex items-start">
-                  <CheckIcon className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5 text-blue-500" />
+                  <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3 flex-shrink-0">
+                    <CheckIcon className="w-4 h-4 text-blue-600" />
+                  </div>
                   <div>
-                    <p className="font-bold text-base mb-1">¡Registro Exitoso!</p>
-                    <p className="text-xs mb-2">
+                    <p className="font-semibold text-sm mb-1">Registro Exitoso</p>
+                    <p className="text-xs text-blue-800 mb-2">
                       Se ha enviado un email de confirmación a <strong>{email}</strong>
                     </p>
-                    <p className="text-xs mb-1">
+                    <p className="text-xs text-blue-800 mb-1.5">
                       Para continuar con la configuración de su empresa:
                     </p>
-                    <ol className="list-decimal list-inside text-xs space-y-0.5 ml-2">
+                    <ol className="list-decimal list-inside text-xs space-y-0.5 ml-1 text-blue-800">
                       <li>Revise su bandeja de entrada (o carpeta de spam)</li>
                       <li>Haga clic en el enlace de confirmación en el email</li>
                       <li>Será redirigido automáticamente para crear su empresa</li>
                     </ol>
-                    <div className="mt-2 p-2 bg-blue-100 rounded-md">
-                      <p className="text-xs font-medium">
-                        💡 <strong>Importante:</strong> No necesita iniciar sesión después de confirmar. Será redirigido automáticamente.
+                    <div className="mt-3 p-2.5 bg-blue-100/50 rounded-lg">
+                      <p className="text-xs text-blue-800">
+                        <strong>Importante:</strong> No necesita iniciar sesión después de confirmar. Será redirigido automáticamente.
                       </p>
                     </div>
                   </div>
@@ -218,23 +222,23 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
                         required
                         disabled={isLoading}
                     />
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-slate-500">
                       La contraseña debe tener al menos 8 caracteres e incluir mayúsculas, minúsculas y números.
                     </p>
                     {error && <p className="text-sm text-red-600 text-center py-1">{error}</p>}
-                    <div className="pt-1">
+                    <div className="pt-2">
                         <Button type="submit" loading={isLoading} size="lg" className="w-full" disabled={isLoading}>
                             Crear Cuenta
                         </Button>
                     </div>
                 </form>
 
-                <div className="relative my-4">
+                <div className="relative my-5">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300"></div>
+                    <div className="w-full border-t border-slate-200"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">O continuar con</span>
+                    <span className="px-3 bg-slate-50 text-slate-500">O continuar con</span>
                   </div>
                 </div>
 
@@ -255,14 +259,14 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
                   Google
                 </Button>
 
-                <p className="mt-4 text-center text-sm text-gray-600">
+                <p className="mt-5 text-center text-sm text-slate-600">
                     ¿Ya tiene una cuenta?{' '}
-                    <Link to={ROUTE_PATHS.LOGIN} className="font-medium text-blue-600 hover:underline">
-                        Inicie sesión.
+                    <Link to={ROUTE_PATHS.LOGIN} className="font-medium text-slate-900 hover:underline">
+                        Inicie sesión
                     </Link>
                 </p>
-                <p className="text-gray-500 text-xs font-normal text-center mt-2 max-w-xs mx-auto">
-                    Al registrarse, usted acepta nuestros <a href="#" className="underline hover:text-blue-600">Términos de Servicio</a> y nuestra <a href="#" className="underline hover:text-blue-600">Política de Privacidad</a>.
+                <p className="text-slate-400 text-xs font-normal text-center mt-3 max-w-xs mx-auto leading-relaxed">
+                    Al registrarse, usted acepta nuestros <a href="#" className="text-slate-600 hover:text-slate-900 transition-colors">Términos de Servicio</a> y nuestra <a href="#" className="text-slate-600 hover:text-slate-900 transition-colors">Política de Privacidad</a>.
                 </p>
               </>
             )}

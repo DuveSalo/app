@@ -6,7 +6,7 @@ import { ROUTE_PATHS } from '../../constants/index';
 import * as api from '../../lib/api/supabaseApi';
 import { useAuth } from '../auth/AuthContext';
 import { Card } from '../../components/common/Card';
-import { SkeletonDashboard } from '../../components/common/SkeletonLoader';
+import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { FilterSort } from '../../components/common/FilterSort';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
 import { StatusBadge } from '../../components/common/StatusBadge';
@@ -204,7 +204,9 @@ const DashboardPage: React.FC = () => {
     if (isLoading) {
         return (
             <PageLayout title="Dashboard">
-                <SkeletonDashboard />
+                <div className="flex items-center justify-center h-64">
+                    <LoadingSpinner size="lg" />
+                </div>
             </PageLayout>
         );
     }
@@ -212,62 +214,65 @@ const DashboardPage: React.FC = () => {
     return (
         <PageLayout title={`Dashboard de ${currentCompany?.name}`}>
             <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <Card>
-                        <div className="flex items-center justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-blue-600">Total de elementos</p>
-                                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Card padding="md" variant="flat">
+                        <div className="flex items-center gap-4">
+                            <div className="h-11 w-11 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                <CalendarIcon className="w-5 h-5 text-slate-600" />
                             </div>
-                            <div className="bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0" style={{ width: '40px', height: '40px' }}>
-                                <CalendarIcon className="w-5 h-5 text-blue-600" />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Total</p>
+                                <p className="text-2xl font-bold text-slate-900 mt-0.5">{stats.total}</p>
                             </div>
                         </div>
                     </Card>
-                    <Card>
-                        <div className="flex items-center justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-green-600">Vigentes</p>
-                                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.valid}</p>
+                    <Card padding="md" variant="flat">
+                        <div className="flex items-center gap-4">
+                            <div className="h-11 w-11 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                                <CheckCircleIcon className="w-5 h-5 text-emerald-600" />
                             </div>
-                            <div className="bg-green-100 rounded-full flex items-center justify-center flex-shrink-0" style={{ width: '40px', height: '40px' }}>
-                                <CheckCircleIcon className="w-5 h-5 text-green-600" />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Vigentes</p>
+                                <p className="text-2xl font-bold text-slate-900 mt-0.5">{stats.valid}</p>
                             </div>
                         </div>
                     </Card>
-                    <Card>
-                        <div className="flex items-center justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-yellow-600">Próximos a vencer</p>
-                                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.expiring}</p>
+                    <Card padding="md" variant="flat">
+                        <div className="flex items-center gap-4">
+                            <div className="h-11 w-11 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
+                                <TrendingUpIcon className="w-5 h-5 text-amber-600" />
                             </div>
-                            <div className="bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0" style={{ width: '40px', height: '40px' }}>
-                                <TrendingUpIcon className="w-5 h-5 text-yellow-600" />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Por vencer</p>
+                                <p className="text-2xl font-bold text-slate-900 mt-0.5">{stats.expiring}</p>
                             </div>
                         </div>
                     </Card>
-                    <Card>
-                        <div className="flex items-center justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-red-600">Vencidos</p>
-                                <p className="text-2xl font-bold text-gray-900 mt-1">{stats.expired}</p>
+                    <Card padding="md" variant="flat">
+                        <div className="flex items-center gap-4">
+                            <div className="h-11 w-11 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
+                                <AlertCircleIcon className="w-5 h-5 text-red-500" />
                             </div>
-                            <div className="bg-red-100 rounded-full flex items-center justify-center flex-shrink-0" style={{ width: '40px', height: '40px' }}>
-                                <AlertCircleIcon className="w-5 h-5 text-red-600" />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Vencidos</p>
+                                <p className="text-2xl font-bold text-slate-900 mt-0.5">{stats.expired}</p>
                             </div>
                         </div>
                     </Card>
                 </div>
 
                 <Card padding="none">
-                    <div className="px-6 py-4 border-b border-gray-200">
-                        <h2 className="text-lg font-medium text-gray-900">Control de Vencimientos</h2>
+                    <div className="px-6 py-4 border-b border-slate-100">
+                        <h2 className="text-base font-semibold text-slate-900">Control de Vencimientos</h2>
+                        <p className="text-sm text-slate-500 mt-0.5">Seguimiento de certificados y documentos</p>
                     </div>
                     {items.length === 0 ? (
                         <div className="text-center py-16">
-                            <CalendarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900">¡Todo en orden!</h3>
-                            <p className="text-gray-500">No hay elementos con vencimiento para mostrar.</p>
+                            <div className="h-14 w-14 rounded-xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                                <CalendarIcon className="w-7 h-7 text-slate-400" />
+                            </div>
+                            <h3 className="text-base font-semibold text-slate-900">Todo en orden</h3>
+                            <p className="text-sm text-slate-500 mt-1">No hay elementos con vencimiento para mostrar.</p>
                         </div>
                     ) : (
                         <>
@@ -284,18 +289,23 @@ const DashboardPage: React.FC = () => {
                                     searchPlaceholder="Buscar por nombre o tipo..."
                                     additionalFilters={
                                         typeFilterOptions.length > 0 ? (
-                                            <select
-                                                value={filterType}
-                                                onChange={(e) => setFilterType(e.target.value)}
-                                                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                            >
-                                                <option value="">Todos los tipos</option>
-                                                {typeFilterOptions.map(option => (
-                                                    <option key={option.value} value={option.value}>
-                                                        {option.label}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                            <div className="relative w-full md:w-48">
+                                                <select
+                                                    value={filterType}
+                                                    onChange={(e) => setFilterType(e.target.value)}
+                                                    className="w-full appearance-none px-3.5 py-2.5 pr-9 text-sm bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all duration-150 cursor-pointer"
+                                                >
+                                                    <option value="">Todos los tipos</option>
+                                                    {typeFilterOptions.map(option => (
+                                                        <option key={option.value} value={option.value}>
+                                                            {option.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
                                         ) : undefined
                                     }
                                 />
@@ -310,12 +320,11 @@ const DashboardPage: React.FC = () => {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {filteredAndSortedItems.map((item, index) => (
+                                    {filteredAndSortedItems.map((item) => (
                                         <TableRow
                                             key={item.id}
-                                            className="cursor-pointer hover:bg-gray-50 transition-colors animate-fade-in"
+                                            className="cursor-pointer hover:bg-slate-50 transition-colors"
                                             onClick={() => handleItemClick(item)}
-                                            style={{ animationDelay: `${index * 50}ms` }}
                                         >
                                             <TableCell className="font-medium">{item.name}</TableCell>
                                             <TableCell>{item.type}</TableCell>
@@ -328,8 +337,8 @@ const DashboardPage: React.FC = () => {
                                 </TableBody>
                             </Table>
                             {filteredAndSortedItems.length === 0 && items.length > 0 && (
-                                <div className="text-center py-8">
-                                    <p className="text-gray-500">No se encontraron elementos con los filtros aplicados.</p>
+                                <div className="text-center py-12">
+                                    <p className="text-sm text-slate-500">No se encontraron elementos con los filtros aplicados.</p>
                                 </div>
                             )}
                         </>

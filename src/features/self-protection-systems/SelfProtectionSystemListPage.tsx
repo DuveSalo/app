@@ -161,17 +161,16 @@ const SelfProtectionSystemListPage: React.FC = () => {
           <LoadingSpinner size="lg" />
         </div>
       ) : systems.length === 0 ? (
-        <div className="text-center py-16 flex flex-col items-center justify-center h-full bg-white rounded-lg border border-gray-200">
-          <ShieldCheckIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No hay sistemas registrados</h3>
-          <p className="text-gray-500 mb-6 max-w-md">
+        <div className="text-center py-16 flex flex-col items-center justify-center h-full bg-white rounded-xl border border-slate-300">
+          <div className="h-16 w-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-5">
+            <ShieldCheckIcon className="w-8 h-8 text-slate-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-slate-900 mb-1.5">No hay sistemas registrados</h3>
+          <p className="text-sm text-slate-500 mb-6 max-w-sm">
             Comience registrando su primer sistema de autoprotección para mantener el control de vencimientos.
           </p>
-          <Button
-            onClick={() => navigate(ROUTE_PATHS.NEW_SELF_PROTECTION_SYSTEM)}
-            size="lg"
-          >
-            <PlusIcon className="w-5 h-5 mr-2" />
+          <Button onClick={() => navigate(ROUTE_PATHS.NEW_SELF_PROTECTION_SYSTEM)}>
+            <PlusIcon className="w-4 h-4 mr-2" />
             Crear primer sistema
           </Button>
         </div>
@@ -189,7 +188,7 @@ const SelfProtectionSystemListPage: React.FC = () => {
             searchPlaceholder="Buscar por interviniente o N° de matrícula..."
           />
 
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -203,22 +202,19 @@ const SelfProtectionSystemListPage: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAndSortedSystems.map((sys, index) => {
+                {filteredAndSortedSystems.map((sys) => {
                   const isExpanded = expandedRows.has(sys.id);
                   return (
                     <React.Fragment key={sys.id}>
-                      <TableRow
-                        className="hover:bg-gray-50 transition-colors animate-fade-in"
-                        style={{ animationDelay: `${index * 50}ms` }}
-                      >
+                      <TableRow className="hover:bg-slate-50 transition-colors">
                         <TableCell>
                           <button
                             type="button"
                             onClick={() => toggleRow(sys.id)}
-                            className="p-1 hover:bg-gray-200 rounded transition-colors"
+                            className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
                             title={isExpanded ? "Contraer" : "Expandir"}
                           >
-                            <ChevronDownIcon className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                            <ChevronDownIcon className={`w-4 h-4 text-slate-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                           </button>
                         </TableCell>
                         <TableCell className="font-medium">{sys.intervener}</TableCell>
@@ -229,7 +225,7 @@ const SelfProtectionSystemListPage: React.FC = () => {
                           <StatusBadge status={getStatus(sys.expirationDate)} />
                         </TableCell>
                         <TableCell>
-                          <div className="flex space-x-1">
+                          <div className="flex items-center gap-0.5">
                             <Button
                               variant="ghost"
                               size="sm"
@@ -242,7 +238,7 @@ const SelfProtectionSystemListPage: React.FC = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteClick(sys.id)}
-                              className="text-red-600 hover:bg-red-50"
+                              className="text-red-500 hover:bg-red-50 hover:text-red-600"
                               title="Eliminar"
                             >
                               <TrashIcon className="w-4 h-4" />
@@ -251,24 +247,24 @@ const SelfProtectionSystemListPage: React.FC = () => {
                         </TableCell>
                       </TableRow>
                       {isExpanded && (
-                        <TableRow className="bg-gray-50">
+                        <TableRow className="bg-slate-50/50">
                           <TableCell colSpan={7} className="p-0">
-                            <div className="p-6 space-y-4">
+                            <div className="p-6 space-y-3">
                               {/* Disposición Aprobatoria */}
                               {sys.probatoryDispositionDate && (
-                                <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                                <div className="flex items-center justify-between py-2.5 border-b border-slate-200/60">
                                   <div className="flex-1">
-                                    <span className="font-medium text-gray-700">Disposición Aprobatoria:</span>
-                                    <span className="ml-2 text-gray-600">{new Date(sys.probatoryDispositionDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
+                                    <span className="text-sm font-medium text-slate-700">Disposición Aprobatoria:</span>
+                                    <span className="ml-2 text-sm text-slate-600">{new Date(sys.probatoryDispositionDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
                                   </div>
                                   {sys.probatoryDispositionPdfUrl && (
                                     <button
                                       type="button"
-                                      className="inline-flex items-center justify-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 rounded transition-colors"
+                                      className="inline-flex items-center justify-center px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
                                       onClick={() => window.open(sys.probatoryDispositionPdfUrl, '_blank')}
                                       title="Ver PDF"
                                     >
-                                      <EyeIcon className="w-4 h-4 mr-1" />
+                                      <EyeIcon className="w-4 h-4 mr-1.5" />
                                       Ver PDF
                                     </button>
                                   )}
@@ -276,51 +272,51 @@ const SelfProtectionSystemListPage: React.FC = () => {
                               )}
 
                               {/* Extensión */}
-                              <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                              <div className="flex items-center justify-between py-2.5 border-b border-slate-200/60">
                                 <div className="flex-1">
-                                  <span className="font-medium text-gray-700">Extensión:</span>
-                                  <span className="ml-2 text-gray-600">{new Date(sys.extensionDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
+                                  <span className="text-sm font-medium text-slate-700">Extensión:</span>
+                                  <span className="ml-2 text-sm text-slate-600">{new Date(sys.extensionDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
                                 </div>
                                 {sys.extensionPdfUrl && (
                                   <button
                                     type="button"
-                                    className="inline-flex items-center justify-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 rounded transition-colors"
+                                    className="inline-flex items-center justify-center px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
                                     onClick={() => window.open(sys.extensionPdfUrl, '_blank')}
                                     title="Ver PDF"
                                   >
-                                    <EyeIcon className="w-4 h-4 mr-1" />
+                                    <EyeIcon className="w-4 h-4 mr-1.5" />
                                     Ver PDF
                                   </button>
                                 )}
                               </div>
 
                               {/* Vencimiento */}
-                              <div className="flex items-center justify-between py-2 border-b border-gray-200">
+                              <div className="flex items-center justify-between py-2.5 border-b border-slate-200/60">
                                 <div className="flex-1">
-                                  <span className="font-medium text-gray-700">Vencimiento:</span>
-                                  <span className="ml-2 text-gray-600">{new Date(sys.expirationDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
+                                  <span className="text-sm font-medium text-slate-700">Vencimiento:</span>
+                                  <span className="ml-2 text-sm text-slate-600">{new Date(sys.expirationDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
                                 </div>
                               </div>
 
                               {/* Simulacros */}
                               {sys.drills && sys.drills.length > 0 && (
                                 <div className="pt-2">
-                                  <h4 className="font-medium text-gray-700 mb-3">Simulacros:</h4>
+                                  <h4 className="text-sm font-medium text-slate-700 mb-3">Simulacros:</h4>
                                   <div className="space-y-2">
                                     {sys.drills.map((drill, idx) => (
-                                      <div key={idx} className="flex items-center justify-between py-2 pl-4 border-l-2 border-gray-300">
+                                      <div key={idx} className="flex items-center justify-between py-2 pl-4 border-l-2 border-slate-300">
                                         <div className="flex-1">
-                                          <span className="text-gray-600">Simulacro {idx + 1}:</span>
-                                          <span className="ml-2 text-gray-600">{new Date(drill.date + 'T00:00:00').toLocaleDateString('es-AR')}</span>
+                                          <span className="text-sm text-slate-600">Simulacro {idx + 1}:</span>
+                                          <span className="ml-2 text-sm text-slate-600">{new Date(drill.date + 'T00:00:00').toLocaleDateString('es-AR')}</span>
                                         </div>
                                         {drill.pdfUrl && (
                                           <button
                                             type="button"
-                                            className="inline-flex items-center justify-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 rounded transition-colors"
+                                            className="inline-flex items-center justify-center px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
                                             onClick={() => window.open(drill.pdfUrl, '_blank')}
                                             title="Ver PDF"
                                           >
-                                            <EyeIcon className="w-4 h-4 mr-1" />
+                                            <EyeIcon className="w-4 h-4 mr-1.5" />
                                             Ver PDF
                                           </button>
                                         )}
@@ -341,8 +337,8 @@ const SelfProtectionSystemListPage: React.FC = () => {
           </div>
 
           {filteredAndSortedSystems.length === 0 && systems.length > 0 && (
-            <div className="text-center py-8 bg-white rounded-lg border border-gray-200">
-              <p className="text-gray-500">No se encontraron sistemas con los filtros aplicados.</p>
+            <div className="text-center py-12 bg-white rounded-xl border border-slate-300">
+              <p className="text-sm text-slate-500">No se encontraron sistemas con los filtros aplicados.</p>
             </div>
           )}
         </>

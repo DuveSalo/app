@@ -4,20 +4,25 @@ import { Card } from '../common/Card';
 
 interface PageLayoutProps {
   title: string;
+  subtitle?: string;
   headerActions?: React.ReactNode;
   children: React.ReactNode;
   footer?: React.ReactNode;
 }
 
-export const PageLayout: React.FC<PageLayoutProps> = ({ title, headerActions, children, footer }) => {
+export const PageLayout: React.FC<PageLayoutProps> = ({ title, subtitle, headerActions, children, footer }) => {
   return (
-    // Use full available height from parent container
     <div className="h-full flex flex-col">
-      <Card className="flex flex-col flex-grow w-full" padding="none">
+      <Card className="flex flex-col flex-grow w-full" padding="none" variant="default">
         {/* Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 flex-shrink-0">
-          <h1 className="text-xl font-bold text-gray-900 truncate pr-4">{title}</h1>
-          <div className="flex items-center space-x-2 flex-shrink-0">
+        <div className="flex justify-between items-center px-6 py-5 border-b border-slate-100 flex-shrink-0">
+          <div className="min-w-0 pr-4">
+            <h1 className="text-lg font-semibold text-slate-900 truncate">{title}</h1>
+            {subtitle && (
+              <p className="text-sm text-slate-500 mt-0.5 truncate">{subtitle}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-2.5 flex-shrink-0">
             {headerActions}
           </div>
         </div>
@@ -29,7 +34,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({ title, headerActions, ch
 
         {/* Footer */}
         {footer && (
-          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end space-x-3 flex-shrink-0">
+          <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-2.5 flex-shrink-0">
             {footer}
           </div>
         )}
