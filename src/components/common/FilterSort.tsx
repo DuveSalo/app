@@ -12,6 +12,7 @@ interface FilterSortProps {
   onFilterChange?: (value: string) => void;
   filterOptions?: { value: string; label: string }[];
   searchPlaceholder?: string;
+  additionalFilters?: React.ReactNode;
 }
 
 export const FilterSort: React.FC<FilterSortProps> = ({
@@ -23,7 +24,8 @@ export const FilterSort: React.FC<FilterSortProps> = ({
   filterValue,
   onFilterChange,
   filterOptions,
-  searchPlaceholder = 'Buscar...'
+  searchPlaceholder = 'Buscar...',
+  additionalFilters
 }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6 space-y-4 md:space-y-0 md:flex md:items-center md:gap-4">
@@ -58,6 +60,9 @@ export const FilterSort: React.FC<FilterSortProps> = ({
           </select>
         </div>
       )}
+
+      {/* Additional Filters */}
+      {additionalFilters}
 
       {/* Sort */}
       <div className="w-full md:w-56 relative">

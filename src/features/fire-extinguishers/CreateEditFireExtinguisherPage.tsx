@@ -4,7 +4,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { FireExtinguisherControl, ExtinguisherType, ExtinguisherCapacity } from '../../types/index';
 import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
 import * as api from '../../lib/api/supabaseApi';
-import { useAuth } from '../auth/AuthContext';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { Textarea } from '../../components/common/Textarea';
@@ -44,38 +43,37 @@ interface FormDataType {
 }
 
 const createInitialFormState = (): FormDataType => ({
-  controlDate: new Date().toISOString().split('T')[0],
+  controlDate: '',
   extinguisherNumber: '',
-  type: ExtinguisherType.DRY_CHEMICAL,
-  capacity: ExtinguisherCapacity.MEDIUM,
+  type: '' as ExtinguisherType,
+  capacity: '' as ExtinguisherCapacity,
   class: '',
   positionNumber: '',
   chargeExpirationDate: '',
   hydraulicPressureExpirationDate: '',
   manufacturingYear: '',
   tagColor: '',
-  labelsLegible: true,
-  pressureWithinRange: true,
-  hasSealAndSafety: true,
-  instructionsLegible: true,
+  labelsLegible: false,
+  pressureWithinRange: false,
+  hasSealAndSafety: false,
+  instructionsLegible: false,
   containerCondition: '',
   nozzleCondition: '',
-  visibilityObstructed: 'No',
-  accessObstructed: 'No',
+  visibilityObstructed: '' as 'Sí' | 'No',
+  accessObstructed: '' as 'Sí' | 'No',
   signageCondition: '',
-  signageFloor: 'N/A',
-  signageWall: 'N/A',
-  signageHeight: 'N/A',
-  glassCondition: 'N/A',
-  doorOpensEasily: 'N/A',
-  cabinetClean: 'N/A',
+  signageFloor: '' as 'Sí' | 'No' | 'N/A',
+  signageWall: '' as 'Sí' | 'No' | 'N/A',
+  signageHeight: '' as 'Sí' | 'No' | 'N/A',
+  glassCondition: '' as 'Sí' | 'No' | 'N/A',
+  doorOpensEasily: '' as 'Sí' | 'No' | 'N/A',
+  cabinetClean: '' as 'Sí' | 'No' | 'N/A',
   observations: '',
 });
 
 const CreateEditFireExtinguisherPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { currentCompany } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [formError, setFormError] = useState('');
@@ -109,6 +107,13 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
     [formData.containerCondition, formData.nozzleCondition]
   );
 
+  const isCabinetComplete = useMemo(() =>
+    !!formData.glassCondition &&
+    !!formData.doorOpensEasily &&
+    !!formData.cabinetClean,
+    [formData.glassCondition, formData.doorOpensEasily, formData.cabinetClean]
+  );
+
   const isAccessibilityComplete = useMemo(() =>
     !!formData.visibilityObstructed &&
     !!formData.accessObstructed,
@@ -123,37 +128,34 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
     [formData.signageCondition, formData.signageFloor, formData.signageWall, formData.signageHeight]
   );
 
-  const isObservationsComplete = useMemo(() =>
-    true, // Observations are optional
-    []
-  );
-
   const isFormComplete = useMemo(() =>
     isIdentificationComplete &&
     isLocationComplete &&
     isConditionsComplete &&
+    isCabinetComplete &&
     isAccessibilityComplete &&
-    isSignageComplete &&
-    isObservationsComplete,
-    [isIdentificationComplete, isLocationComplete, isConditionsComplete, isAccessibilityComplete, isSignageComplete, isObservationsComplete]
+    isSignageComplete,
+    [isIdentificationComplete, isLocationComplete, isConditionsComplete, isCabinetComplete, isAccessibilityComplete, isSignageComplete]
   );
 
   // Update max allowed step based on completion
   useEffect(() => {
-    if (isIdentificationComplete && isLocationComplete && isConditionsComplete && isAccessibilityComplete && isSignageComplete) {
+    if (isIdentificationComplete && isLocationComplete && isConditionsComplete && isCabinetComplete && isAccessibilityComplete && isSignageComplete) {
       setMaxAllowedStep(6);
-    } else if (isIdentificationComplete && isLocationComplete && isConditionsComplete && isAccessibilityComplete) {
+    } else if (isIdentificationComplete && isLocationComplete && isConditionsComplete && isCabinetComplete && isAccessibilityComplete) {
       setMaxAllowedStep(5);
-    } else if (isIdentificationComplete && isLocationComplete && isConditionsComplete) {
+    } else if (isIdentificationComplete && isLocationComplete && isConditionsComplete && isCabinetComplete) {
       setMaxAllowedStep(4);
-    } else if (isIdentificationComplete && isLocationComplete) {
+    } else if (isIdentificationComplete && isLocationComplete && isConditionsComplete) {
       setMaxAllowedStep(3);
+    } else if (isIdentificationComplete && isLocationComplete) {
+      setMaxAllowedStep(2);
     } else if (isIdentificationComplete) {
       setMaxAllowedStep(1);
     } else {
       setMaxAllowedStep(0);
     }
-  }, [isIdentificationComplete, isLocationComplete, isConditionsComplete, isAccessibilityComplete, isSignageComplete]);
+  }, [isIdentificationComplete, isLocationComplete, isConditionsComplete, isCabinetComplete, isAccessibilityComplete, isSignageComplete]);
 
   useEffect(() => {
     if (id) {
@@ -245,62 +247,18 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
     }
   }, [activeTab]);
 
-  // Footer actions based on current tab
-  useEffect(() => {
-    const updateFooter = () => {
-      const actions = (
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate(ROUTE_PATHS.FIRE_EXTINGUISHERS)}
-            disabled={isSubmitting}
-          >
-            Cancelar
-          </Button>
-          {activeTab > 0 && (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleBack}
-              disabled={isSubmitting}
-            >
-              Anterior
-            </Button>
-          )}
-          {activeTab < 6 ? (
-            <Button
-              type="button"
-              variant="primary"
-              onClick={handleNext}
-              disabled={
-                (activeTab === 0 && !isIdentificationComplete) ||
-                (activeTab === 1 && !isLocationComplete) ||
-                (activeTab === 2 && !isConditionsComplete) ||
-                (activeTab === 4 && !isAccessibilityComplete) ||
-                (activeTab === 5 && !isSignageComplete) ||
-                isSubmitting
-              }
-            >
-              Siguiente
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="primary"
-              onClick={handleSubmit}
-              loading={isSubmitting}
-              disabled={!isFormComplete}
-            >
-              {id ? "Actualizar" : "Guardar"}
-            </Button>
-          )}
-        </div>
-      );
-      return actions;
-    };
-    updateFooter();
-  }, [activeTab, isSubmitting, isIdentificationComplete, isLocationComplete, isFormComplete, id, navigate, handleNext, handleBack]);
+  const canAdvanceFromCurrentTab = useCallback(() => {
+    switch (activeTab) {
+      case 0: return isIdentificationComplete;
+      case 1: return isLocationComplete;
+      case 2: return isConditionsComplete;
+      case 3: return isCabinetComplete;
+      case 4: return isAccessibilityComplete;
+      case 5: return isSignageComplete;
+      case 6: return true;
+      default: return false;
+    }
+  }, [activeTab, isIdentificationComplete, isLocationComplete, isConditionsComplete, isCabinetComplete, isAccessibilityComplete, isSignageComplete]);
 
   if (isLoadingData) return <div className="flex-grow flex justify-center items-center h-full"><LoadingSpinner size="lg" /></div>;
   if (pageError) return <div className="flex-grow flex justify-center items-center h-full"><p className="text-red-500 text-center py-10">{pageError}</p></div>;
@@ -332,14 +290,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
           type="button"
           variant="primary"
           onClick={handleNext}
-          disabled={
-            (activeTab === 0 && !isIdentificationComplete) ||
-            (activeTab === 1 && !isLocationComplete) ||
-            (activeTab === 2 && !isConditionsComplete) ||
-            (activeTab === 4 && !isAccessibilityComplete) ||
-            (activeTab === 5 && !isSignageComplete) ||
-            isSubmitting
-          }
+          disabled={!canAdvanceFromCurrentTab() || isSubmitting}
         >
           Siguiente
         </Button>
@@ -390,6 +341,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
             onChange={handleChange}
             required
           >
+            <option value="">Seleccione...</option>
             {Object.values(ExtinguisherType).map(type => (
               <option key={type} value={type}>{type}</option>
             ))}
@@ -402,6 +354,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
             onChange={handleChange}
             required
           >
+            <option value="">Seleccione...</option>
             {Object.values(ExtinguisherCapacity).map(cap => (
               <option key={cap} value={cap}>{cap} kg</option>
             ))}
@@ -435,7 +388,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
             required
           />
           <Input
-            label="Vencimiento Vigencia de la Carga"
+            label="Vencimiento de Vigencia de la Carga"
             id="chargeExpirationDate"
             type="date"
             name="chargeExpirationDate"
@@ -444,7 +397,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
             required
           />
           <Input
-            label="Vencimiento Vigencia Presión Hidráulica"
+            label="Vencimiento de Vigencia de la Presión Hidráulica"
             id="hydraulicPressureExpirationDate"
             type="date"
             name="hydraulicPressureExpirationDate"
@@ -481,7 +434,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
       content: (
         <div className="space-y-6">
           <div>
-            <h4 className="text-md font-semibold text-gray-900 mb-3">Condiciones Controladas</h4>
+            <h4 className="text-md font-semibold text-gray-900 mb-3">Verificaciones</h4>
             <div className="space-y-3 bg-blue-50 p-4 rounded-lg border border-blue-200">
               <Checkbox
                 label="¿Están legibles las etiquetas identificatorias?"
@@ -544,7 +497,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
       disabled: maxAllowedStep < 3,
       content: (
         <div className="space-y-4">
-          <h4 className="text-md font-semibold text-gray-900 mb-3">Gabinete</h4>
+          <p className="text-sm text-gray-600 mb-4">Indique el estado del gabinete donde se encuentra el extintor.</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Select
               label="¿El vidrio está en condiciones?"
@@ -554,18 +507,20 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
               onChange={handleChange}
               required
             >
+              <option value="">Seleccione...</option>
               <option value="Sí">Sí</option>
               <option value="No">No</option>
               <option value="N/A">N/A</option>
             </Select>
             <Select
-              label="¿La puerta se abre con dificultad?"
+              label="¿La puerta del gabinete se abre sin dificultad?"
               id="doorOpensEasily"
               name="doorOpensEasily"
               value={formData.doorOpensEasily}
               onChange={handleChange}
               required
             >
+              <option value="">Seleccione...</option>
               <option value="Sí">Sí</option>
               <option value="No">No</option>
               <option value="N/A">N/A</option>
@@ -578,6 +533,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
               onChange={handleChange}
               required
             >
+              <option value="">Seleccione...</option>
               <option value="Sí">Sí</option>
               <option value="No">No</option>
               <option value="N/A">N/A</option>
@@ -591,7 +547,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
       disabled: maxAllowedStep < 4,
       content: (
         <div className="space-y-4">
-          <h4 className="text-md font-semibold text-gray-900 mb-3">Accesibilidad</h4>
+          <p className="text-sm text-gray-600 mb-4">Verifique la accesibilidad del extintor.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Select
               label="¿Está obstruida su visibilidad?"
@@ -601,6 +557,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
               onChange={handleChange}
               required
             >
+              <option value="">Seleccione...</option>
               <option value="Sí">Sí</option>
               <option value="No">No</option>
             </Select>
@@ -612,6 +569,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
               onChange={handleChange}
               required
             >
+              <option value="">Seleccione...</option>
               <option value="Sí">Sí</option>
               <option value="No">No</option>
             </Select>
@@ -624,7 +582,6 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
       disabled: maxAllowedStep < 5,
       content: (
         <div className="space-y-4">
-          <h4 className="text-md font-semibold text-gray-900 mb-3">Señalización</h4>
           <Textarea
             label="Estado y Conservación"
             id="signageCondition"
@@ -644,6 +601,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
               onChange={handleChange}
               required
             >
+              <option value="">Seleccione...</option>
               <option value="Sí">Sí</option>
               <option value="No">No</option>
               <option value="N/A">N/A</option>
@@ -656,6 +614,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
               onChange={handleChange}
               required
             >
+              <option value="">Seleccione...</option>
               <option value="Sí">Sí</option>
               <option value="No">No</option>
               <option value="N/A">N/A</option>
@@ -668,6 +627,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
               onChange={handleChange}
               required
             >
+              <option value="">Seleccione...</option>
               <option value="Sí">Sí</option>
               <option value="No">No</option>
               <option value="N/A">N/A</option>
@@ -681,7 +641,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
       disabled: maxAllowedStep < 6,
       content: (
         <div className="space-y-4">
-          <h4 className="text-md font-semibold text-gray-900 mb-3">Observaciones</h4>
+          <p className="text-sm text-gray-600 mb-4">Agregue cualquier observación adicional sobre el control del extintor.</p>
           <Textarea
             label="Observaciones Generales"
             id="observations"
@@ -702,7 +662,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
       <Tabs
         tabs={formTabs}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabClick={setActiveTab}
       />
     </PageLayout>
   );

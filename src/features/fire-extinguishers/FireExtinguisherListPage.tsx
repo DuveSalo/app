@@ -7,7 +7,7 @@ import * as api from '../../lib/api/supabaseApi';
 import { useToast } from '../../components/common/Toast';
 import { useAuth } from '../auth/AuthContext';
 import { Button } from '../../components/common/Button';
-import { SkeletonTable } from '../../components/common/SkeletonLoader';
+import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { FilterSort } from '../../components/common/FilterSort';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
@@ -108,8 +108,8 @@ const FireExtinguisherListPage: React.FC = () => {
   return (
     <PageLayout title={MODULE_TITLES.FIRE_EXTINGUISHERS} headerActions={headerActions}>
       {isLoading ? (
-        <div className="flex items-center justify-center h-full">
-          <SkeletonTable columns={7} rows={5} />
+        <div className="flex items-center justify-center h-64">
+          <LoadingSpinner size="lg" />
         </div>
       ) : extinguishers.length === 0 ? (
         <div className="text-center py-16 flex flex-col items-center justify-center h-full">
@@ -124,9 +124,9 @@ const FireExtinguisherListPage: React.FC = () => {
       ) : (
         <>
           <FilterSort
-            searchQuery={searchQuery}
+            searchValue={searchQuery}
             onSearchChange={setSearchQuery}
-            sortBy={sortBy}
+            sortValue={sortBy}
             onSortChange={setSortBy}
             sortOptions={sortOptions}
             searchPlaceholder="Buscar por número de extintor, ubicación o tipo..."

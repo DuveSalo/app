@@ -6,18 +6,14 @@ import { AuthError, NotFoundError, handleSupabaseError } from '../../utils/error
 import { getCurrentUser } from './auth';
 import { getCompanyByUserId } from './company';
 
-export const getEvents = async (): Promise<EventInformation[]> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) {
-    throw new AuthError('Usuario no autenticado');
-  }
+// Note: getCurrentUser and getCompanyByUserId are still used by createEvent
 
-  const company = await getCompanyByUserId(currentUser.id);
-
+export const getEvents = async (companyId: string): Promise<EventInformation[]> => {
   const { data, error } = await supabase
     .from('events')
     .select('*')
-    .eq('company_id', company.id);
+    .eq('company_id', companyId)
+    .order('date', { ascending: false });
 
   if (error) {
     handleSupabaseError(error, 'Error al obtener eventos');

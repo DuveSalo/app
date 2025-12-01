@@ -82,7 +82,7 @@ const QRModuleListPage: React.FC<QRModulePageProps> = ({ qrType, title, uploadPa
     <PageLayout title={title} headerActions={headerActions}>
       {error && <p className="text-red-500 text-center py-2">{error}</p>}
       {isLoading ? (
-        <div className="flex items-center justify-center h-full">
+        <div className="flex items-center justify-center h-64">
           <LoadingSpinner size="lg" />
         </div>
       ) : documents.length === 0 ? (

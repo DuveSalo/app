@@ -4,10 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { EventInformation } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
 import * as api from '../../lib/api/supabaseApi';
+import { useAuth } from '../auth/AuthContext';
 import { Button } from '../../components/common/Button';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
-import { EditIcon, TrashIcon, PlusIcon, ExclamationTriangleIcon, EyeIcon } from '../../components/common/Icons';
+import { EditIcon, TrashIcon, PlusIcon, ExclamationTriangleIcon } from '../../components/common/Icons';
 import { FilterSort } from '../../components/common/FilterSort';
 import { useToast } from '../../components/common/Toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
@@ -22,18 +23,20 @@ const EventInformationListPage: React.FC = () => {
   const [sortBy, setSortBy] = useState('date-desc');
   const navigate = useNavigate();
   const { showSuccess, showError } = useToast();
-  
+  const { currentCompany } = useAuth();
+
   const loadEvents = useCallback(async () => {
+    if (!currentCompany) return;
     setIsLoading(true);
     try {
-      const data = await api.getEvents();
+      const data = await api.getEvents(currentCompany.id);
       setEvents(data);
     } catch (err: any) {
       showError(err.message || "Error al cargar información de eventos");
     } finally {
       setIsLoading(false);
     }
-  }, [showError]);
+  }, [currentCompany, showError]);
 
   useEffect(() => {
     loadEvents();
@@ -116,7 +119,7 @@ const EventInformationListPage: React.FC = () => {
   return (
     <PageLayout title={MODULE_TITLES.EVENT_INFORMATION} headerActions={headerActions}>
       {isLoading ? (
-        <div className="flex items-center justify-center h-full">
+        <div className="flex items-center justify-center h-64">
           <LoadingSpinner size="lg" />
         </div>
       ) : events.length === 0 ? (

@@ -6,95 +6,126 @@
   <title>Escuela Segura</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Manrope:wght@400;500;700;800&family=Noto+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
+    // CORPORATE PROFESSIONAL DESIGN SYSTEM
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'system-ui', 'sans-serif'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
           },
           colors: {
-            // Main App Theme
+            // === CORPORATE PROFESSIONAL PALETTE ===
+
+            // Content Colors (Text)
             content: {
-              DEFAULT: '#121416', 
-              muted: '#6a7581',   
+              DEFAULT: '#111827',   // gray-900 - primary text
+              muted: '#6b7280',     // gray-500 - secondary text
+              light: '#9ca3af',     // gray-400 - tertiary text
             },
+
+            // Surface Colors (Backgrounds)
             surface: {
-              DEFAULT: '#ffffff',
-              subtle: '#f1f2f4', 
-              light: '#f9fafb', 
+              DEFAULT: '#ffffff',   // white - main background
+              subtle: '#f9fafb',    // gray-50 - subtle background
+              muted: '#f3f4f6',     // gray-100 - muted sections
+              elevated: '#ffffff',  // white - elevated cards
             },
-            borderClr: { 
-              DEFAULT: '#dde0e3', 
-              subtle: '#f1f2f4',
+
+            // Border Colors
+            borderClr: {
+              DEFAULT: '#e5e7eb',   // gray-200 - default borders
+              subtle: '#f3f4f6',    // gray-100 - subtle borders
+              strong: '#d1d5db',    // gray-300 - strong borders
             },
-            primary: { 
-              light: '#3b82f6',    // blue-500
-              DEFAULT: '#2563eb',  // blue-600
-              dark: '#1d4ed8',     // blue-700
+
+            // Primary - Corporate Blue
+            primary: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              light: '#3b82f6',     // blue-500
+              DEFAULT: '#2563eb',   // blue-600
+              dark: '#1d4ed8',      // blue-700
+              800: '#1e40af',
+              900: '#1e3a8a',
             },
-            secondary: { 
-              light: '#a78bfa', 
-              DEFAULT: '#8b5cf6', 
-              dark: '#7c3aed', 
+
+            // Secondary - Slate (for sidebars, headers)
+            secondary: {
+              50: '#f8fafc',
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              light: '#64748b',     // slate-500
+              DEFAULT: '#475569',   // slate-600
+              dark: '#334155',      // slate-700
+              800: '#1e293b',
+              900: '#0f172a',
             },
-            danger: { DEFAULT: '#dc2626' },   // red-600
-            success: { DEFAULT: '#16a34a' },  // green-600
-            warning: { DEFAULT: '#ca8a04' },  // yellow-600
-            info: { DEFAULT: '#3b82f6' },     // blue-500
-            
-            // Enterprise UI Design System Palette
-            'purple-primary': '#6366f1',
-            'purple-dark': '#4338ca',
-            'purple-light': '#a5b4fc',
-            'purple-enterprise': '#663399',
-            'purple-deep': '#5b2c87',
-            'navy-dark': '#1e1b4b',
-            'blue-accent': '#3b82f6',
-            'gray-900': '#111827',
-            'gray-800': '#1f2937',
-            'gray-700': '#374151',
-            'gray-600': '#4b5563',
-            'gray-500': '#6b7280',
-            'gray-300': '#d1d5db',
-            'gray-200': '#e5e7eb',
-            'gray-100': '#f3f4f6',
-            'gray-50': '#f9fafb',
-            'semantic-success': '#10b981',
-            'semantic-error': '#ef4444',
+
+            // Semantic Colors
+            danger: {
+              light: '#fecaca',
+              DEFAULT: '#dc2626',   // red-600
+              dark: '#b91c1c',
+            },
+            success: {
+              light: '#bbf7d0',
+              DEFAULT: '#16a34a',   // green-600
+              dark: '#15803d',
+            },
+            warning: {
+              light: '#fef08a',
+              DEFAULT: '#ca8a04',   // yellow-600
+              dark: '#a16207',
+            },
+            info: {
+              light: '#bfdbfe',
+              DEFAULT: '#2563eb',   // blue-600
+              dark: '#1d4ed8',
+            },
+
+            // Legacy Support
+            'navy-dark': '#0f172a',
+            'blue-accent': '#2563eb',
+            'semantic-success': '#16a34a',
+            'semantic-error': '#dc2626',
           },
+
+          // Professional Box Shadows
+          boxShadow: {
+            'sm': '0 1px 2px 0 rgb(0 0 0 / 0.05)',
+            'DEFAULT': '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+            'md': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+            'lg': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+            'card': '0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.08)',
+            'dropdown': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+          },
+
+          // Subtle Animations
           keyframes: {
             'fade-in': {
               '0%': { opacity: '0' },
               '100%': { opacity: '1' },
             },
-            'slide-in-left': {
-              '0%': { transform: 'translateX(-100%)', opacity: '0' },
-              '100%': { transform: 'translateX(0)', opacity: '1' },
+            'slide-up': {
+              '0%': { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
             },
-            'slide-in-right': {
-              '0%': { transform: 'translateX(100%)', opacity: '0' },
-              '100%': { transform: 'translateX(0)', opacity: '1' },
-            },
-            'scale-in': {
-              '0%': { transform: 'scale(0.95)', opacity: '0' },
-              '100%': { transform: 'scale(1)', opacity: '1' },
-            },
-            'float': {
-              '0%': { transform: 'translateY(0px)' },
-              '50%': { transform: 'translateY(-10px)' },
-              '100%': { transform: 'translateY(0px)' },
+            'spin': {
+              '0%': { transform: 'rotate(0deg)' },
+              '100%': { transform: 'rotate(360deg)' },
             },
           },
           animation: {
-            'fade-in': 'fade-in 0.5s ease-out forwards',
-            'slide-in-left': 'slide-in-left 0.5s ease-out forwards',
-            'slide-in-right': 'slide-in-right 0.3s ease-out forwards',
-            'float': 'float 4s ease-in-out infinite',
-            'scale-in': 'scale-in 0.2s ease-out forwards',
-          }
+            'fade-in': 'fade-in 0.2s ease-out',
+            'slide-up': 'slide-up 0.3s ease-out',
+            'spin': 'spin 1s linear infinite',
+          },
         }
       }
     }

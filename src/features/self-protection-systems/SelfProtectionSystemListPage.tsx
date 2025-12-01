@@ -7,7 +7,7 @@ import * as api from '../../lib/api/supabaseApi';
 import { useToast } from '../../components/common/Toast';
 import { useAuth } from '../auth/AuthContext';
 import { Button } from '../../components/common/Button';
-import { SkeletonTable } from '../../components/common/SkeletonLoader';
+import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { FilterSort } from '../../components/common/FilterSort';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
@@ -157,7 +157,9 @@ const SelfProtectionSystemListPage: React.FC = () => {
   return (
     <PageLayout title={MODULE_TITLES.SELF_PROTECTION_SYSTEMS} headerActions={headerActions}>
       {isLoading ? (
-        <SkeletonTable rows={5} />
+        <div className="flex items-center justify-center h-64">
+          <LoadingSpinner size="lg" />
+        </div>
       ) : systems.length === 0 ? (
         <div className="text-center py-16 flex flex-col items-center justify-center h-full bg-white rounded-lg border border-gray-200">
           <ShieldCheckIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
