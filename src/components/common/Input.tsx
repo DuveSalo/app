@@ -4,15 +4,15 @@ import { cva } from 'class-variance-authority';
 import { clsx } from 'clsx';
 
 const inputVariants = cva(
-  'w-full px-3.5 py-2.5 text-sm bg-white border rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 placeholder:text-slate-400',
+  'w-full px-3.5 py-2.5 text-sm bg-white border rounded-lg transition-all duration-150 ease-out focus:outline-none focus:ring-2 focus:ring-offset-0 placeholder:text-zinc-400',
   {
     variants: {
       hasError: {
-        true: 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500/20 focus:border-red-500',
-        false: 'border-slate-200 text-slate-900 focus:ring-slate-900/10 focus:border-slate-400',
+        true: 'border-rose-300 text-rose-900 placeholder-rose-300 focus:ring-rose-500/20 focus:border-rose-500',
+        false: 'border-zinc-200 text-zinc-900 focus:ring-zinc-900/10 focus:border-zinc-400',
       },
       disabled: {
-        true: 'bg-slate-50 text-slate-500 cursor-not-allowed',
+        true: 'bg-zinc-50 text-zinc-500 cursor-not-allowed',
       },
     },
     defaultVariants: {
@@ -42,7 +42,7 @@ export const Input: React.FC<InputProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label htmlFor={id} className="block text-sm font-medium text-slate-700 mb-1.5">
+        <label htmlFor={id} className="block text-sm font-medium text-zinc-700 mb-1.5">
           {label}
         </label>
       )}
@@ -52,9 +52,9 @@ export const Input: React.FC<InputProps> = ({
         disabled={disabled}
         {...props}
       />
-      {error && <p className="mt-1.5 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1.5 text-sm text-rose-600">{error}</p>}
       {helperText && !error && (
-        <p className="mt-1.5 text-sm text-slate-500">{helperText}</p>
+        <p className="mt-1.5 text-sm text-zinc-500">{helperText}</p>
       )}
     </div>
   );

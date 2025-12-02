@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { clsx } from 'clsx';
 
 const cardVariants = cva(
-  'bg-white rounded-xl border border-slate-300 transition-all duration-200 overflow-hidden',
+  'bg-white rounded-xl border border-zinc-200/80 transition-all duration-200 ease-out overflow-hidden',
   {
     variants: {
       padding: {
@@ -17,11 +17,11 @@ const cardVariants = cva(
       variant: {
         default: 'shadow-card',
         elevated: 'shadow-md',
-        flat: 'shadow-none',
-        outline: 'shadow-none border-slate-200',
+        flat: 'shadow-none border-zinc-100',
+        outline: 'shadow-none border-zinc-200',
       },
       clickable: {
-        true: 'cursor-pointer hover:shadow-card-hover hover:border-slate-300/60 active:scale-[0.99]',
+        true: 'cursor-pointer hover:shadow-card-hover hover:border-zinc-300/60 active:scale-[0.995]',
       },
     },
     defaultVariants: {

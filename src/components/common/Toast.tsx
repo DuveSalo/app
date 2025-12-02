@@ -6,13 +6,13 @@ import { CheckCircle, X, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
-const toastItemVariants = cva('p-4 rounded-r-lg shadow-lg flex items-start gap-3 animate-slide-in-right min-w-[320px]', {
+const toastItemVariants = cva('p-4 rounded-xl shadow-lg flex items-start gap-3 animate-slide-in-right min-w-[320px] backdrop-blur-sm', {
   variants: {
     type: {
-      success: 'bg-green-50 border-l-4 border-green-500 text-green-800',
-      error: 'bg-red-50 border-l-4 border-red-500 text-red-800',
-      info: 'bg-blue-50 border-l-4 border-blue-500 text-blue-800',
-      warning: 'bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800',
+      success: 'bg-emerald-50/95 border border-emerald-200/60 text-emerald-800',
+      error: 'bg-rose-50/95 border border-rose-200/60 text-rose-800',
+      info: 'bg-sky-50/95 border border-sky-200/60 text-sky-800',
+      warning: 'bg-amber-50/95 border border-amber-200/60 text-amber-800',
     },
   },
 });
@@ -20,10 +20,10 @@ const toastItemVariants = cva('p-4 rounded-r-lg shadow-lg flex items-start gap-3
 const iconVariants = cva('w-5 h-5 flex-shrink-0 mt-0.5', {
   variants: {
     type: {
-      success: 'text-green-500',
-      error: 'text-red-500',
-      info: 'text-blue-500',
-      warning: 'text-yellow-500',
+      success: 'text-emerald-600',
+      error: 'text-rose-600',
+      info: 'text-sky-600',
+      warning: 'text-amber-600',
     },
   },
 });

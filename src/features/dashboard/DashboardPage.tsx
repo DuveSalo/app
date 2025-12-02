@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QRDocumentType } from '../../types/index';
@@ -12,7 +11,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { CalendarIcon, TrendingUpIcon, AlertCircleIcon, CheckCircleIcon } from '../../components/common/Icons';
 import PageLayout from '../../components/layout/PageLayout';
-import { calculateExpirationStatus, calculateDaysUntilExpiration } from '../../lib/utils/dateUtils';
+import { calculateExpirationStatus } from '../../lib/utils/dateUtils';
 import { ExpirationStatus } from '../../types/expirable';
 import { createLogger } from '../../lib/utils/logger';
 
@@ -37,13 +36,6 @@ const DashboardPage: React.FC = () => {
     const { currentCompany } = useAuth();
     const navigate = useNavigate();
 
-    const calculateStatus = (expirationDate: string): { status: ExpirationStatus; daysUntil: number } => {
-        return {
-            status: calculateExpirationStatus(expirationDate),
-            daysUntil: calculateDaysUntilExpiration(expirationDate)
-        };
-    };
-
     useEffect(() => {
         const fetchItems = async () => {
             if (!currentCompany) return;
@@ -65,7 +57,7 @@ const DashboardPage: React.FC = () => {
                     type: 'Certificado de Conservación',
                     expirationDate: c.expirationDate,
                     modulePath: ROUTE_PATHS.CONSERVATION_CERTIFICATES,
-                    status: calculateStatus(c.expirationDate).status
+                    status: calculateExpirationStatus(c.expirationDate)
                 }));
                 allItems.push(...certs);
 
@@ -75,7 +67,7 @@ const DashboardPage: React.FC = () => {
                     type: 'Sistema de Autoprotección',
                     expirationDate: s.expirationDate,
                     modulePath: ROUTE_PATHS.SELF_PROTECTION_SYSTEMS,
-                    status: calculateStatus(s.expirationDate).status
+                    status: calculateExpirationStatus(s.expirationDate)
                 }));
                 allItems.push(...systems);
 
@@ -98,7 +90,7 @@ const DashboardPage: React.FC = () => {
                         type: doc.type,
                         expirationDate: expirationDate,
                         modulePath: linkPath,
-                        status: calculateStatus(expirationDate).status
+                        status: calculateExpirationStatus(expirationDate)
                     };
                 });
                 allItems.push(...qrItems);
@@ -214,65 +206,73 @@ const DashboardPage: React.FC = () => {
     return (
         <PageLayout title={`Dashboard de ${currentCompany?.name}`}>
             <div className="space-y-6">
+                {/* Metric Cards - Unified Design System */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card padding="md" variant="flat">
-                        <div className="flex items-center gap-4">
-                            <div className="h-11 w-11 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0">
-                                <CalendarIcon className="w-5 h-5 text-slate-600" />
+                    {/* Total Card */}
+                    <div className="group bg-zinc-100 hover:bg-zinc-200/80 rounded-xl p-5 border border-zinc-200/60 shadow-card hover:shadow-card-hover transition-all duration-200">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p className="text-xs font-medium text-zinc-600 uppercase tracking-wider">Total</p>
+                                <p className="text-3xl font-bold text-zinc-900 mt-2 tracking-tight">{stats.total}</p>
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Total</p>
-                                <p className="text-2xl font-bold text-slate-900 mt-0.5">{stats.total}</p>
-                            </div>
-                        </div>
-                    </Card>
-                    <Card padding="md" variant="flat">
-                        <div className="flex items-center gap-4">
-                            <div className="h-11 w-11 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                                <CheckCircleIcon className="w-5 h-5 text-emerald-600" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Vigentes</p>
-                                <p className="text-2xl font-bold text-slate-900 mt-0.5">{stats.valid}</p>
+                            <div className="h-11 w-11 rounded-lg bg-zinc-200/80 flex items-center justify-center group-hover:bg-zinc-300 transition-colors">
+                                <CalendarIcon className="w-5 h-5 text-zinc-700" />
                             </div>
                         </div>
-                    </Card>
-                    <Card padding="md" variant="flat">
-                        <div className="flex items-center gap-4">
-                            <div className="h-11 w-11 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0">
-                                <TrendingUpIcon className="w-5 h-5 text-amber-600" />
+                    </div>
+
+                    {/* Vigentes Card */}
+                    <div className="group bg-emerald-50 hover:bg-emerald-100 rounded-xl p-5 border border-emerald-200/60 shadow-card hover:shadow-card-hover transition-all duration-200">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p className="text-xs font-medium text-emerald-700 uppercase tracking-wider">Vigentes</p>
+                                <p className="text-3xl font-bold text-emerald-700 mt-2 tracking-tight">{stats.valid}</p>
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Por vencer</p>
-                                <p className="text-2xl font-bold text-slate-900 mt-0.5">{stats.expiring}</p>
-                            </div>
-                        </div>
-                    </Card>
-                    <Card padding="md" variant="flat">
-                        <div className="flex items-center gap-4">
-                            <div className="h-11 w-11 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">
-                                <AlertCircleIcon className="w-5 h-5 text-red-500" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Vencidos</p>
-                                <p className="text-2xl font-bold text-slate-900 mt-0.5">{stats.expired}</p>
+                            <div className="h-11 w-11 rounded-lg bg-emerald-200/80 flex items-center justify-center group-hover:bg-emerald-300 transition-colors">
+                                <CheckCircleIcon className="w-5 h-5 text-emerald-700" />
                             </div>
                         </div>
-                    </Card>
+                    </div>
+
+                    {/* Por vencer Card */}
+                    <div className="group bg-amber-50 hover:bg-amber-100 rounded-xl p-5 border border-amber-200/60 shadow-card hover:shadow-card-hover transition-all duration-200">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p className="text-xs font-medium text-amber-700 uppercase tracking-wider">Por vencer</p>
+                                <p className="text-3xl font-bold text-amber-700 mt-2 tracking-tight">{stats.expiring}</p>
+                            </div>
+                            <div className="h-11 w-11 rounded-lg bg-amber-200/80 flex items-center justify-center group-hover:bg-amber-300 transition-colors">
+                                <TrendingUpIcon className="w-5 h-5 text-amber-700" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Vencidos Card */}
+                    <div className="group bg-rose-50 hover:bg-rose-100 rounded-xl p-5 border border-rose-200/60 shadow-card hover:shadow-card-hover transition-all duration-200">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p className="text-xs font-medium text-rose-700 uppercase tracking-wider">Vencidos</p>
+                                <p className="text-3xl font-bold text-rose-700 mt-2 tracking-tight">{stats.expired}</p>
+                            </div>
+                            <div className="h-11 w-11 rounded-lg bg-rose-200/80 flex items-center justify-center group-hover:bg-rose-300 transition-colors">
+                                <AlertCircleIcon className="w-5 h-5 text-rose-700" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <Card padding="none">
-                    <div className="px-6 py-4 border-b border-slate-100">
-                        <h2 className="text-base font-semibold text-slate-900">Control de Vencimientos</h2>
-                        <p className="text-sm text-slate-500 mt-0.5">Seguimiento de certificados y documentos</p>
+                    <div className="px-6 py-4 border-b border-zinc-100">
+                        <h2 className="text-base font-semibold text-zinc-900 tracking-tight">Control de Vencimientos</h2>
+                        <p className="text-sm text-zinc-500 mt-0.5">Seguimiento de certificados y documentos</p>
                     </div>
                     {items.length === 0 ? (
                         <div className="text-center py-16">
-                            <div className="h-14 w-14 rounded-xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                                <CalendarIcon className="w-7 h-7 text-slate-400" />
+                            <div className="h-14 w-14 rounded-xl bg-zinc-100 flex items-center justify-center mx-auto mb-4">
+                                <CalendarIcon className="w-7 h-7 text-zinc-400" />
                             </div>
-                            <h3 className="text-base font-semibold text-slate-900">Todo en orden</h3>
-                            <p className="text-sm text-slate-500 mt-1">No hay elementos con vencimiento para mostrar.</p>
+                            <h3 className="text-base font-semibold text-zinc-900">Todo en orden</h3>
+                            <p className="text-sm text-zinc-500 mt-1">No hay elementos con vencimiento para mostrar.</p>
                         </div>
                     ) : (
                         <>
@@ -292,17 +292,17 @@ const DashboardPage: React.FC = () => {
                                             <div className="relative w-full md:w-48">
                                                 <select
                                                     value={filterType}
-                                                    onChange={(e) => setFilterType(e.target.value)}
-                                                    className="w-full appearance-none px-3.5 py-2.5 pr-9 text-sm bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all duration-150 cursor-pointer"
+                                                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilterType(e.target.value)}
+                                                    className="w-full appearance-none px-3.5 py-2.5 pr-9 text-sm bg-white border border-zinc-200 rounded-lg text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400 transition-all duration-150 cursor-pointer"
                                                 >
                                                     <option value="">Todos los tipos</option>
-                                                    {typeFilterOptions.map(option => (
+                                                    {typeFilterOptions.map((option: { value: string; label: string }) => (
                                                         <option key={option.value} value={option.value}>
                                                             {option.label}
                                                         </option>
                                                     ))}
                                                 </select>
-                                                <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                                 </svg>
                                             </div>
@@ -320,15 +320,15 @@ const DashboardPage: React.FC = () => {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {filteredAndSortedItems.map((item) => (
+                                    {filteredAndSortedItems.map((item: DashboardItem) => (
                                         <TableRow
                                             key={item.id}
-                                            className="cursor-pointer hover:bg-slate-50 transition-colors"
+                                            className="cursor-pointer hover:bg-zinc-50 transition-colors"
                                             onClick={() => handleItemClick(item)}
                                         >
-                                            <TableCell className="font-medium">{item.name}</TableCell>
-                                            <TableCell>{item.type}</TableCell>
-                                            <TableCell>{new Date(item.expirationDate + 'T00:00:00').toLocaleDateString('es-AR')}</TableCell>
+                                            <TableCell className="font-medium text-zinc-900">{item.name}</TableCell>
+                                            <TableCell className="text-zinc-600">{item.type}</TableCell>
+                                            <TableCell className="text-zinc-600">{new Date(item.expirationDate + 'T00:00:00').toLocaleDateString('es-AR')}</TableCell>
                                             <TableCell>
                                                 <StatusBadge status={item.status} />
                                             </TableCell>
@@ -338,7 +338,7 @@ const DashboardPage: React.FC = () => {
                             </Table>
                             {filteredAndSortedItems.length === 0 && items.length > 0 && (
                                 <div className="text-center py-12">
-                                    <p className="text-sm text-slate-500">No se encontraron elementos con los filtros aplicados.</p>
+                                    <p className="text-sm text-zinc-500">No se encontraron elementos con los filtros aplicados.</p>
                                 </div>
                             )}
                         </>

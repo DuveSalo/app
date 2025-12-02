@@ -4,12 +4,12 @@ import { cva } from 'class-variance-authority';
 import { clsx } from 'clsx';
 
 const tabVariants = cva(
-  'whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm focus:outline-none transition-colors duration-200 disabled:text-gray-400 disabled:hover:border-transparent disabled:cursor-not-allowed',
+  'whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm focus:outline-none transition-colors duration-150 disabled:text-zinc-300 disabled:hover:border-transparent disabled:cursor-not-allowed',
   {
     variants: {
       active: {
-        true: 'border-blue-500 text-blue-600',
-        false: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+        true: 'border-zinc-900 text-zinc-900',
+        false: 'border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300',
       },
     },
   }
@@ -30,7 +30,7 @@ interface TabsProps {
 export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabClick }) => {
   return (
     <div>
-      <div className="border-b border-gray-200">
+      <div className="border-b border-zinc-200">
         <nav className="-mb-px flex space-x-6" aria-label="Tabs">
           {tabs.map((tab, index) => (
             <button
