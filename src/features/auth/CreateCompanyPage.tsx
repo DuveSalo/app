@@ -169,8 +169,8 @@ const CreateCompanyPage: React.FC = () => {
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="text-center">
-              <h2 className="text-lg font-bold text-gray-900">Datos de la Empresa</h2>
-              <p className="text-gray-500 mt-0.5 text-xs">Complete esta información para configurar su cuenta. Podrá editarla más tarde.</p>
+              <h2 className="text-xl font-semibold text-gray-900 tracking-tight">Datos de la Empresa</h2>
+              <p className="text-gray-500 mt-1 text-sm">Complete esta información para configurar su cuenta. Podrá editarla más tarde.</p>
             </div>
 
             <div className="space-y-3">

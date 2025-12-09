@@ -12,6 +12,7 @@ import { Modal } from '../../components/common/Modal';
 import { ChipGroup } from '../../components/common/ChipGroup';
 import { EditIcon, TrashIcon } from '../../components/common/Icons';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { useToast } from '../../components/common/Toast';
 import PageLayout from '../../components/layout/PageLayout';
 
 const serviceOptions = [
@@ -19,7 +20,6 @@ const serviceOptions = [
   { value: QRDocumentType.WaterHeaters, label: MODULE_TITLES.QR_WATER_HEATERS },
   { value: QRDocumentType.FireSafetySystem, label: MODULE_TITLES.QR_FIRE_SAFETY },
   { value: QRDocumentType.DetectionSystem, label: MODULE_TITLES.QR_DETECTION },
-  { value: QRDocumentType.ElectricalInstallations, label: MODULE_TITLES.ELECTRICAL_INSTALLATIONS },
 ];
 const serviceLabelToValueMap = new Map(serviceOptions.map(o => [o.label, o.value]));
 const serviceValueToLabelMap = new Map(serviceOptions.map(o => [o.value, o.label]));
@@ -44,6 +44,7 @@ export const SettingsPage: React.FC = () => {
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [billingAction, setBillingAction] = useState<'change' | 'cancel'>('change');
   const { currentUser, currentCompany, refreshCompany, updateUserDetails, logout, changePlan, cancelSubscription } = useAuth();
+  const { showSuccess, showError, showWarning } = useToast();
 
   const [companyForm, setCompanyForm] = useState<Partial<CompanyFormData>>({});
   const [companyFormErrors, setCompanyFormErrors] = useState({
@@ -120,8 +121,8 @@ export const SettingsPage: React.FC = () => {
     return Object.values(companyFormErrors).every(err => err === '');
   };
 
-  const handleCompanySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCompanySubmit = async (e?: React.FormEvent | React.MouseEvent) => {
+    e?.preventDefault();
     if (!currentCompany || !isCompanyFormValid()) {
         setError('Por favor, corrija los errores en el formulario.');
         return
@@ -133,10 +134,24 @@ export const SettingsPage: React.FC = () => {
         return acc;
       }, {} as CompanyServices);
 
-      await api.updateCompany({ ...currentCompany, ...companyForm, services });
+      const updatePayload: Partial<Company> = {
+        id: currentCompany.id,
+        services,
+      };
+
+      // Only include fields that have actual values
+      if (companyForm.name) updatePayload.name = companyForm.name;
+      if (companyForm.cuit) updatePayload.cuit = companyForm.cuit;
+      if (companyForm.address) updatePayload.address = companyForm.address;
+      if (companyForm.postalCode) updatePayload.postalCode = companyForm.postalCode;
+      if (companyForm.city) updatePayload.city = companyForm.city;
+      if (companyForm.province) updatePayload.province = companyForm.province;
+      if (companyForm.country) updatePayload.country = companyForm.country;
+
+      await api.updateCompany(updatePayload);
       await refreshCompany();
       setIsEditingCompany(false);
-      alert('Información de empresa actualizada');
+      showSuccess('Información de empresa actualizada');
     } catch (err) {
       setError((err as Error).message || 'Error al actualizar la empresa');
     } finally {
@@ -166,10 +181,10 @@ export const SettingsPage: React.FC = () => {
 
   const handleDeleteEmployee = async (employee: Employee) => {
     if (currentUser?.email === employee.email) {
-      alert('No puedes eliminar tu propia cuenta.'); return;
+      showWarning('No puedes eliminar tu propia cuenta.'); return;
     }
     if ((currentCompany?.employees?.length ?? 0) <= 1) {
-      alert("No se puede eliminar al único empleado."); return;
+      showWarning('No se puede eliminar al único empleado.'); return;
     }
     if (!window.confirm('¿Está seguro de que desea eliminar este empleado?')) return;
     setIsLoading(true); setError('');
@@ -190,7 +205,7 @@ export const SettingsPage: React.FC = () => {
     try {
       await updateUserDetails({ name: profileForm.name });
       setIsEditingProfile(false);
-      alert('Perfil actualizado.');
+      showSuccess('Perfil actualizado');
     } catch (err) {
       setError((err as Error).message || 'Error al actualizar el perfil.');
     } finally {
@@ -204,7 +219,7 @@ export const SettingsPage: React.FC = () => {
     setError('');
     try {
       await api.sendPasswordResetEmail(currentUser.email);
-      alert('Se ha enviado un enlace para restablecer la contraseña a su correo electrónico.');
+      showSuccess('Se ha enviado un enlace para restablecer la contraseña a su correo electrónico');
     } catch (err) {
       setError((err as Error).message || 'Error al enviar el correo electrónico.');
     } finally {
@@ -287,7 +302,7 @@ export const SettingsPage: React.FC = () => {
             return isEditingCompany ? (
                 <div className="w-full flex justify-end space-x-3">
                     <Button type="button" variant="outline" onClick={handleCancelCompanyEdit}>Cancelar</Button>
-                    <Button type="submit" form="company-form" loading={isLoading} disabled={!isCompanyFormValid()}>Guardar cambios</Button>
+                    <Button type="button" onClick={handleCompanySubmit} loading={isLoading} disabled={!isCompanyFormValid()}>Guardar cambios</Button>
                 </div>
             ) : null;
         case 'profile':
@@ -311,7 +326,7 @@ export const SettingsPage: React.FC = () => {
         default:
             return null;
     }
-  }, [activeTab, isLoading, companyFormErrors, isEditingCompany, isEditingProfile]);
+  }, [activeTab, isLoading, companyFormErrors, isEditingCompany, isEditingProfile, handleCancelCompanyEdit, handleCompanySubmit, handleCancelProfileEdit, logout]);
 
   if (!currentCompany || !currentUser) {
     return <div className="flex justify-center items-center h-full"><LoadingSpinner /></div>;
@@ -335,7 +350,7 @@ export const SettingsPage: React.FC = () => {
             <div className="flex-grow pt-6 min-h-0">
                 {activeTab === 'company' && (
                     isEditingCompany ? (
-                        <form id="company-form" onSubmit={handleCompanySubmit} className="space-y-6">
+                        <div className="space-y-6">
                             <div className="flex justify-between items-center mb-2">
                                 <h2 className="text-lg font-medium text-gray-900">Información de la empresa</h2>
                             </div>
@@ -352,7 +367,7 @@ export const SettingsPage: React.FC = () => {
                                     <Input id="companyCountry" label="País" name="country" value={companyForm.country || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.country} />
                                 </div>
                             </div>
-                            <div>
+                            <div className="pt-2">
                                 <ChipGroup
                                     label="Servicios Requeridos"
                                     options={serviceOptions.map(o => o.label)}
@@ -364,7 +379,7 @@ export const SettingsPage: React.FC = () => {
                                 />
                             </div>
                             {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
-                        </form>
+                        </div>
                     ) : (
                         <div className="space-y-6">
                             <div className="flex justify-between items-center">
@@ -377,42 +392,42 @@ export const SettingsPage: React.FC = () => {
                             <Card>
                                 <div className="space-y-4">
                                     <div>
-                                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Nombre de la empresa</p>
-                                        <p className="text-sm text-slate-900">{currentCompany.name}</p>
+                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Nombre de la empresa</p>
+                                        <p className="text-sm text-gray-900">{currentCompany.name}</p>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-200 pt-4">
                                         <div>
-                                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">CUIT</p>
-                                            <p className="text-sm text-slate-900">{currentCompany.cuit}</p>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">CUIT</p>
+                                            <p className="text-sm text-gray-900">{currentCompany.cuit}</p>
                                         </div>
                                         <div>
-                                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Código Postal</p>
-                                            <p className="text-sm text-slate-900">{currentCompany.postalCode}</p>
-                                        </div>
-                                    </div>
-                                    <div className="border-t border-slate-100 pt-4">
-                                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Dirección</p>
-                                        <p className="text-sm text-slate-900">{currentCompany.address}</p>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-100 pt-4">
-                                        <div>
-                                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Ciudad</p>
-                                            <p className="text-sm text-slate-900">{currentCompany.city}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Provincia</p>
-                                            <p className="text-sm text-slate-900">{currentCompany.province}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">País</p>
-                                            <p className="text-sm text-slate-900">{currentCompany.country}</p>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Código Postal</p>
+                                            <p className="text-sm text-gray-900">{currentCompany.postalCode}</p>
                                         </div>
                                     </div>
-                                    <div className="border-t border-slate-100 pt-4">
-                                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Servicios Contratados</p>
+                                    <div className="border-t border-gray-200 pt-4">
+                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Dirección</p>
+                                        <p className="text-sm text-gray-900">{currentCompany.address}</p>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-gray-200 pt-4">
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Ciudad</p>
+                                            <p className="text-sm text-gray-900">{currentCompany.city}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Provincia</p>
+                                            <p className="text-sm text-gray-900">{currentCompany.province}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">País</p>
+                                            <p className="text-sm text-gray-900">{currentCompany.country}</p>
+                                        </div>
+                                    </div>
+                                    <div className="border-t border-gray-200 pt-4">
+                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Servicios Contratados</p>
                                         <div className="flex flex-wrap gap-2">
                                             {currentCompany.services && Object.entries(currentCompany.services).filter(([_, enabled]) => enabled).map(([service]) => (
-                                                <span key={service} className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-700">
+                                                <span key={service} className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 border border-gray-200">
                                                     {serviceValueToLabelMap.get(service as QRDocumentType)}
                                                 </span>
                                             ))}

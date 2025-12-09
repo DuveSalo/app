@@ -1,6 +1,4 @@
-
 import React from 'react';
-import { Card } from '../common/Card';
 
 interface PageLayoutProps {
   title: string;
@@ -10,35 +8,43 @@ interface PageLayoutProps {
   footer?: React.ReactNode;
 }
 
-export const PageLayout: React.FC<PageLayoutProps> = ({ title, subtitle, headerActions, children, footer }) => {
+export const PageLayout: React.FC<PageLayoutProps> = ({
+  title,
+  subtitle,
+  headerActions,
+  children,
+  footer
+}) => {
   return (
-    <div className="h-full flex flex-col">
-      <Card className="flex flex-col flex-grow w-full" padding="none" variant="default">
-        {/* Header */}
-        <div className="flex justify-between items-center px-6 py-5 border-b border-zinc-100 flex-shrink-0">
-          <div className="min-w-0 pr-4">
-            <h1 className="text-lg font-semibold text-zinc-900 tracking-tight truncate">{title}</h1>
+    <div className="bg-white h-full rounded-[32px] border border-gray-200 shadow-sm flex flex-col overflow-hidden">
+      {/* Header */}
+      <div className="px-10 pt-10 pb-2 flex-shrink-0">
+        <div className="flex items-center justify-between mb-6">
+          <div className="min-w-0">
+            <h1 className="text-3xl font-medium tracking-tight text-gray-900">{title}</h1>
             {subtitle && (
-              <p className="text-sm text-zinc-500 mt-0.5 truncate">{subtitle}</p>
+              <p className="text-base text-gray-500 mt-1">{subtitle}</p>
             )}
           </div>
-          <div className="flex items-center gap-2.5 flex-shrink-0">
-            {headerActions}
-          </div>
+          {headerActions && (
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {headerActions}
+            </div>
+          )}
         </div>
+      </div>
 
-        {/* Body */}
-        <div className="flex-grow p-6 overflow-y-auto min-h-0">
-          {children}
+      {/* Body */}
+      <div className="flex-1 px-10 py-6 overflow-y-auto min-h-0">
+        {children}
+      </div>
+
+      {/* Footer */}
+      {footer && (
+        <div className="px-10 py-4 border-t border-gray-200 bg-gray-50/50 flex justify-end gap-3 flex-shrink-0">
+          {footer}
         </div>
-
-        {/* Footer */}
-        {footer && (
-          <div className="px-6 py-4 border-t border-zinc-100 bg-zinc-50/50 flex justify-end gap-2.5 flex-shrink-0">
-            {footer}
-          </div>
-        )}
-      </Card>
+      )}
     </div>
   );
 };

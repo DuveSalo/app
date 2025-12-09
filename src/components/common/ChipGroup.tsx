@@ -5,11 +5,11 @@ import { clsx } from 'clsx';
 import { Check } from 'lucide-react';
 
 const chipVariants = cva(
-  'flex items-center justify-center px-4 py-2 text-sm font-medium border rounded-md transition-all duration-200',
+  'flex items-center justify-center px-4 py-2 text-sm font-medium border rounded-lg transition-all duration-200',
   {
     variants: {
       isSelected: {
-        true: 'bg-blue-100 border-blue-500 text-blue-700',
+        true: 'bg-gray-900 border-gray-900 text-white',
         false: 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50',
       },
     },

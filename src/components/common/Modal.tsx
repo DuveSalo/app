@@ -1,25 +1,7 @@
 
-import React, { useEffect } from 'react';
-import { cva } from 'class-variance-authority';
-import { clsx } from 'clsx';
-import { X } from 'lucide-react';
-
-const modalVariants = cva(
-  'relative bg-white rounded-2xl text-left shadow-xl transform transition-all w-full animate-scale-in',
-  {
-    variants: {
-      size: {
-        sm: 'max-w-md',
-        md: 'max-w-lg',
-        lg: 'max-w-2xl',
-        xl: 'max-w-4xl',
-      },
-    },
-    defaultVariants: {
-      size: 'md',
-    },
-  }
-);
+import React from 'react';
+import { Modal as AntModal } from 'antd';
+import type { ModalProps as AntModalProps } from 'antd';
 
 interface ModalProps {
   isOpen: boolean;
@@ -27,56 +9,49 @@ interface ModalProps {
   title?: string;
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  footer?: React.ReactNode;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size }) => {
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto animate-fade-in">
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <div className="fixed inset-0 transition-opacity animate-fade-in" aria-hidden="true">
-          <div className="absolute inset-0 bg-zinc-900/60 backdrop-blur-sm" onClick={onClose}></div>
-        </div>
-
-        <div className={clsx(modalVariants({ size }))}>
-          {title && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100">
-              <h3 className="text-lg font-semibold text-zinc-900 tracking-tight">{title}</h3>
-              <button
-                onClick={onClose}
-                className="p-1.5 text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 rounded-lg transition-colors duration-150"
-                aria-label="Close modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          )}
-          <div className="p-6">{children}</div>
-        </div>
-      </div>
-    </div>
-  );
+const sizeMap: Record<string, number> = {
+  sm: 400,
+  md: 520,
+  lg: 720,
+  xl: 1000,
 };
 
-
+export const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  size = 'md',
+  footer,
+}) => {
+  return (
+    <AntModal
+      open={isOpen}
+      onCancel={onClose}
+      title={title}
+      width={sizeMap[size]}
+      footer={footer}
+      centered
+      destroyOnHidden
+      styles={{
+        header: {
+          borderBottom: '1px solid #e5e7eb',
+          paddingBottom: 16,
+          marginBottom: 0,
+        },
+        body: {
+          padding: 24,
+        },
+        footer: {
+          borderTop: '1px solid #e5e7eb',
+          paddingTop: 16,
+        },
+      }}
+    >
+      {children}
+    </AntModal>
+  );
+};

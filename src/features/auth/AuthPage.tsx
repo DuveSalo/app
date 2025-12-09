@@ -64,7 +64,7 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
   if (isLogin) {
     const pageTitle = 'Bienvenido a Escuela Segura';
     const pageSubtitle = 'Ingrese sus credenciales para acceder a la plataforma.';
-    
+
     return (
       <AuthLayout title={pageTitle} subtitle={pageSubtitle} variant="split">
         {registrationSuccess && (
@@ -79,32 +79,32 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input 
-            label="Dirección de Email" 
+          <Input
+            label="Dirección de Email"
             id="email"
-            type="email" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            placeholder="nombre@empresa.com" 
-            autoComplete="email" 
-            required 
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="nombre@empresa.com"
+            autoComplete="email"
+            required
             disabled={isLoading}
             error={error && error.includes("credenciales") ? "Email o contraseña incorrectos." : ""}
           />
-          <Input 
+          <Input
             label="Contraseña"
-            id="password" 
-            type="password" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            placeholder="••••••••" 
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
             autoComplete="current-password"
-            required 
+            required
             disabled={isLoading}
           />
           <div className="flex items-center justify-between">
             <Checkbox label="Recordarme" id="remember" disabled={isLoading}/>
-            <a href="#" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">¿Olvidó su contraseña?</a>
+            <a href="#" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">¿Olvidó su contraseña?</a>
           </div>
           {error && !error.includes("credenciales") && <p className="text-sm text-red-600 text-center py-2">{error}</p>}
           <div className="pt-2">
@@ -116,10 +116,10 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200"></div>
+            <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-3 bg-slate-50 text-slate-500">O continuar con</span>
+            <span className="px-3 bg-white text-gray-500">O continuar con</span>
           </div>
         </div>
 
@@ -140,9 +140,9 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
           Google
         </Button>
 
-        <p className="mt-6 text-center text-sm text-slate-600">
+        <p className="mt-6 text-center text-sm text-gray-600">
           ¿No tiene una cuenta?{' '}
-          <Link to={ROUTE_PATHS.REGISTER} className="font-medium text-slate-900 hover:underline">
+          <Link to={ROUTE_PATHS.REGISTER} className="font-medium text-gray-900 hover:underline">
             Regístrese
           </Link>
         </p>
@@ -156,8 +156,8 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
     <AuthLayout variant="wizard" wizardSteps={wizardSteps} currentStep={1}>
         <div className="w-full max-w-md mx-auto">
             <div className="text-center mb-6">
-                <h2 className="text-xl font-bold text-slate-900">Cree su Cuenta</h2>
-                <p className="text-slate-500 mt-1 text-sm">Comience gratis y centralice la gestión de su empresa.</p>
+                <h2 className="text-xl font-semibold text-gray-900 tracking-tight">Cree su Cuenta</h2>
+                <p className="text-gray-500 mt-1 text-sm">Comience gratis y centralice la gestión de su empresa.</p>
             </div>
 
             {showConfirmationMessage ? (
@@ -222,7 +222,7 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
                         required
                         disabled={isLoading}
                     />
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-gray-500">
                       La contraseña debe tener al menos 8 caracteres e incluir mayúsculas, minúsculas y números.
                     </p>
                     {error && <p className="text-sm text-red-600 text-center py-1">{error}</p>}
@@ -235,10 +235,10 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
 
                 <div className="relative my-5">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-slate-200"></div>
+                    <div className="w-full border-t border-gray-200"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-3 bg-slate-50 text-slate-500">O continuar con</span>
+                    <span className="px-3 bg-white text-gray-500">O continuar con</span>
                   </div>
                 </div>
 
@@ -259,14 +259,14 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
                   Google
                 </Button>
 
-                <p className="mt-5 text-center text-sm text-slate-600">
+                <p className="mt-5 text-center text-sm text-gray-600">
                     ¿Ya tiene una cuenta?{' '}
-                    <Link to={ROUTE_PATHS.LOGIN} className="font-medium text-slate-900 hover:underline">
+                    <Link to={ROUTE_PATHS.LOGIN} className="font-medium text-gray-900 hover:underline">
                         Inicie sesión
                     </Link>
                 </p>
-                <p className="text-slate-400 text-xs font-normal text-center mt-3 max-w-xs mx-auto leading-relaxed">
-                    Al registrarse, usted acepta nuestros <a href="#" className="text-slate-600 hover:text-slate-900 transition-colors">Términos de Servicio</a> y nuestra <a href="#" className="text-slate-600 hover:text-slate-900 transition-colors">Política de Privacidad</a>.
+                <p className="text-gray-400 text-xs font-normal text-center mt-3 max-w-xs mx-auto leading-relaxed">
+                    Al registrarse, usted acepta nuestros <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Términos de Servicio</a> y nuestra <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Política de Privacidad</a>.
                 </p>
               </>
             )}

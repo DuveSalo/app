@@ -1,16 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Search, Calendar, CheckCircle, TrendingUp, AlertCircle, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { QRDocumentType } from '../../types/index';
 import { ROUTE_PATHS } from '../../constants/index';
 import * as api from '../../lib/api/supabaseApi';
 import { useAuth } from '../auth/AuthContext';
-import { Card } from '../../components/common/Card';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
-import { FilterSort } from '../../components/common/FilterSort';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
-import { StatusBadge } from '../../components/common/StatusBadge';
-import { CalendarIcon, TrendingUpIcon, AlertCircleIcon, CheckCircleIcon } from '../../components/common/Icons';
 import PageLayout from '../../components/layout/PageLayout';
+import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { calculateExpirationStatus } from '../../lib/utils/dateUtils';
 import { ExpirationStatus } from '../../types/expirable';
 import { createLogger } from '../../lib/utils/logger';
@@ -26,327 +22,453 @@ interface DashboardItem {
   modulePath: string;
 }
 
+// Stat Card Component
+const StatCard: React.FC<{
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+  variant: 'gray' | 'green' | 'yellow' | 'red';
+}> = ({ label, value, icon, variant }) => {
+  const styles = {
+    gray: { bg: 'bg-gray-100', iconBg: 'bg-gray-200', text: 'text-gray-900', label: 'text-gray-500' },
+    green: { bg: 'bg-emerald-50', iconBg: 'bg-emerald-100', text: 'text-emerald-600', label: 'text-emerald-600' },
+    yellow: { bg: 'bg-amber-50', iconBg: 'bg-amber-100', text: 'text-amber-600', label: 'text-amber-600' },
+    red: { bg: 'bg-red-50', iconBg: 'bg-red-100', text: 'text-red-600', label: 'text-red-600' },
+  }[variant];
+
+  return (
+    <div className={`${styles.bg} rounded-xl p-4 border border-gray-200`}>
+      <p className={`text-xs font-medium uppercase tracking-wide ${styles.label} mb-2`}>{label}</p>
+      <div className="flex items-center gap-3">
+        <div className={`w-9 h-9 rounded-lg ${styles.iconBg} flex items-center justify-center`}>
+          {icon}
+        </div>
+        <span className={`text-2xl font-bold ${styles.text}`}>{value}</span>
+      </div>
+    </div>
+  );
+};
+
 const DashboardPage: React.FC = () => {
-    const [items, setItems] = useState<DashboardItem[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [sortBy, setSortBy] = useState('expiration-asc');
-    const [filterStatus, setFilterStatus] = useState('');
-    const [filterType, setFilterType] = useState('');
-    const { currentCompany } = useAuth();
-    const navigate = useNavigate();
+  const [items, setItems] = useState<DashboardItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('expiration-asc');
+  const [filterStatus, setFilterStatus] = useState<string | undefined>(undefined);
+  const [filterType, setFilterType] = useState<string | undefined>(undefined);
+  const { currentCompany } = useAuth();
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchItems = async () => {
-            if (!currentCompany) return;
-            setIsLoading(true);
+  useEffect(() => {
+    const fetchItems = async () => {
+      if (!currentCompany) return;
+      setIsLoading(true);
 
-            try {
-                const allItems: DashboardItem[] = [];
+      try {
+        const allItems: DashboardItem[] = [];
 
-                // Fetch all data in parallel for better performance
-                const [certsData, systemsData, qrDocs] = await Promise.all([
-                    api.getCertificates(currentCompany.id),
-                    api.getSelfProtectionSystems(currentCompany.id),
-                    api.getAllQRDocuments(currentCompany.id)
-                ]);
+        const [certsData, systemsData, qrDocs] = await Promise.all([
+          api.getCertificates(currentCompany.id),
+          api.getSelfProtectionSystems(currentCompany.id),
+          api.getAllQRDocuments(currentCompany.id)
+        ]);
 
-                const certs = certsData.map(c => ({
-                    id: c.id,
-                    name: `Cert. ${c.intervener}`,
-                    type: 'Certificado de Conservación',
-                    expirationDate: c.expirationDate,
-                    modulePath: ROUTE_PATHS.CONSERVATION_CERTIFICATES,
-                    status: calculateExpirationStatus(c.expirationDate)
-                }));
-                allItems.push(...certs);
+        const certs = certsData.map(c => ({
+          id: c.id,
+          name: `Cert. ${c.intervener}`,
+          type: 'Certificado de Conservacion',
+          expirationDate: c.expirationDate,
+          modulePath: ROUTE_PATHS.CONSERVATION_CERTIFICATES,
+          status: calculateExpirationStatus(c.expirationDate)
+        }));
+        allItems.push(...certs);
 
-                const systems = systemsData.map(s => ({
-                    id: s.id,
-                    name: `SPA - ${s.registrationNumber || s.intervener || 'Sin matrícula'}`,
-                    type: 'Sistema de Autoprotección',
-                    expirationDate: s.expirationDate,
-                    modulePath: ROUTE_PATHS.SELF_PROTECTION_SYSTEMS,
-                    status: calculateExpirationStatus(s.expirationDate)
-                }));
-                allItems.push(...systems);
+        const systems = systemsData.map(s => ({
+          id: s.id,
+          name: `SPA - ${s.registrationNumber || s.intervener || 'Sin matricula'}`,
+          type: 'Sistema de Autoproteccion',
+          expirationDate: s.expirationDate,
+          modulePath: ROUTE_PATHS.SELF_PROTECTION_SYSTEMS,
+          status: calculateExpirationStatus(s.expirationDate)
+        }));
+        allItems.push(...systems);
 
-                const qrItems = qrDocs.map(doc => {
-                    const expiry = new Date(doc.uploadDate);
-                    expiry.setFullYear(expiry.getFullYear() + 1);
-                    const expirationDate = expiry.toISOString().split('T')[0];
-                    let linkPath = '';
-                    switch (doc.type) {
-                        case QRDocumentType.Elevators: linkPath = ROUTE_PATHS.QR_ELEVATORS; break;
-                        case QRDocumentType.WaterHeaters: linkPath = ROUTE_PATHS.QR_WATER_HEATERS; break;
-                        case QRDocumentType.FireSafetySystem: linkPath = ROUTE_PATHS.QR_FIRE_SAFETY; break;
-                        case QRDocumentType.DetectionSystem: linkPath = ROUTE_PATHS.QR_DETECTION; break;
-                        case QRDocumentType.ElectricalInstallations: linkPath = ROUTE_PATHS.ELECTRICAL_INSTALLATIONS; break;
-                    }
+        const qrItems = qrDocs.map(doc => {
+          const expiry = new Date(doc.uploadDate);
+          expiry.setFullYear(expiry.getFullYear() + 1);
+          const expirationDate = expiry.toISOString().split('T')[0];
+          let linkPath = '';
+          switch (doc.type) {
+            case QRDocumentType.Elevators: linkPath = ROUTE_PATHS.QR_ELEVATORS; break;
+            case QRDocumentType.WaterHeaters: linkPath = ROUTE_PATHS.QR_WATER_HEATERS; break;
+            case QRDocumentType.FireSafetySystem: linkPath = ROUTE_PATHS.QR_FIRE_SAFETY; break;
+            case QRDocumentType.DetectionSystem: linkPath = ROUTE_PATHS.QR_DETECTION; break;
+            case QRDocumentType.ElectricalInstallations: linkPath = ROUTE_PATHS.ELECTRICAL_INSTALLATIONS; break;
+          }
 
-                    return {
-                        id: doc.id,
-                        name: `Doc. ${doc.type}`,
-                        type: doc.type,
-                        expirationDate: expirationDate,
-                        modulePath: linkPath,
-                        status: calculateExpirationStatus(expirationDate)
-                    };
-                });
-                allItems.push(...qrItems);
-
-                // Sort by expiration status: expired, then expiring, then valid
-                const statusOrder = { expired: 1, expiring: 2, valid: 3 };
-                setItems(allItems.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]));
-
-            } catch (err: any) {
-                logger.error("Error fetching dashboard data", err, { companyId: currentCompany?.id });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchItems();
-    }, [currentCompany]);
-
-    // Filter and sort items
-    const filteredAndSortedItems = useMemo(() => {
-        let result = [...items];
-
-        // Filter by search
-        if (searchQuery) {
-            result = result.filter(item =>
-                item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                item.type.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
-
-        // Filter by status
-        if (filterStatus) {
-            result = result.filter(item => item.status === filterStatus);
-        }
-
-        // Filter by type
-        if (filterType) {
-            result = result.filter(item => item.type === filterType);
-        }
-
-        // Sort
-        const [sortField, sortOrder] = sortBy.split('-');
-        result.sort((a, b) => {
-            let aValue: any, bValue: any;
-
-            if (sortField === 'name') {
-                aValue = a.name;
-                bValue = b.name;
-            } else if (sortField === 'type') {
-                aValue = a.type;
-                bValue = b.type;
-            } else if (sortField === 'expiration') {
-                aValue = new Date(a.expirationDate).getTime();
-                bValue = new Date(b.expirationDate).getTime();
-            } else if (sortField === 'status') {
-                const statusOrder = { expired: 1, expiring: 2, valid: 3 };
-                aValue = statusOrder[a.status];
-                bValue = statusOrder[b.status];
-            }
-
-            if (sortOrder === 'asc') {
-                return aValue > bValue ? 1 : -1;
-            } else {
-                return aValue < bValue ? 1 : -1;
-            }
+          return {
+            id: doc.id,
+            name: `Doc. ${doc.type}`,
+            type: doc.type,
+            expirationDate: expirationDate,
+            modulePath: linkPath,
+            status: calculateExpirationStatus(expirationDate)
+          };
         });
+        allItems.push(...qrItems);
 
-        return result;
-    }, [items, searchQuery, sortBy, filterStatus, filterType]);
+        const statusOrder = { expired: 1, expiring: 2, valid: 3 };
+        setItems(allItems.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]));
 
-    const stats = {
-        total: items.length,
-        valid: items.filter(item => item.status === 'valid').length,
-        expiring: items.filter(item => item.status === 'expiring').length,
-        expired: items.filter(item => item.status === 'expired').length
+      } catch (err: any) {
+        logger.error("Error fetching dashboard data", err, { companyId: currentCompany?.id });
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    const sortOptions = [
-        { value: 'status-asc', label: 'Estado: Crítico primero' },
-        { value: 'expiration-asc', label: 'Vencimiento: Más próximo' },
-        { value: 'expiration-desc', label: 'Vencimiento: Más lejano' },
-        { value: 'name-asc', label: 'Nombre: A-Z' },
-        { value: 'name-desc', label: 'Nombre: Z-A' },
-        { value: 'type-asc', label: 'Tipo: A-Z' },
-        { value: 'type-desc', label: 'Tipo: Z-A' },
-    ];
+    fetchItems();
+  }, [currentCompany]);
 
-    const statusFilterOptions = [
-        { value: 'valid', label: 'Vigente' },
-        { value: 'expiring', label: 'Próximo a vencer' },
-        { value: 'expired', label: 'Vencido' },
-    ];
+  const filteredAndSortedItems = useMemo(() => {
+    let result = [...items];
 
-    // Get unique types for filter
-    const typeFilterOptions = Array.from(new Set(items.map(item => item.type)))
-        .sort()
-        .map(type => ({ value: type, label: type }));
-
-    const handleItemClick = (item: DashboardItem) => {
-        navigate(item.modulePath);
-    };
-
-    if (isLoading) {
-        return (
-            <PageLayout title="Dashboard">
-                <div className="flex items-center justify-center h-64">
-                    <LoadingSpinner size="lg" />
-                </div>
-            </PageLayout>
-        );
+    if (searchQuery) {
+      result = result.filter(item =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.type.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
 
+    if (filterStatus) {
+      result = result.filter(item => item.status === filterStatus);
+    }
+
+    if (filterType) {
+      result = result.filter(item => item.type === filterType);
+    }
+
+    const [sortField, sortOrder] = sortBy.split('-');
+    result.sort((a, b) => {
+      let aValue: any, bValue: any;
+
+      if (sortField === 'name') {
+        aValue = a.name;
+        bValue = b.name;
+      } else if (sortField === 'type') {
+        aValue = a.type;
+        bValue = b.type;
+      } else if (sortField === 'expiration') {
+        aValue = new Date(a.expirationDate).getTime();
+        bValue = new Date(b.expirationDate).getTime();
+      } else if (sortField === 'status') {
+        const statusOrder = { expired: 1, expiring: 2, valid: 3 };
+        aValue = statusOrder[a.status];
+        bValue = statusOrder[b.status];
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    return result;
+  }, [items, searchQuery, sortBy, filterStatus, filterType]);
+
+  const stats = {
+    total: items.length,
+    valid: items.filter(item => item.status === 'valid').length,
+    expiring: items.filter(item => item.status === 'expiring').length,
+    expired: items.filter(item => item.status === 'expired').length
+  };
+
+  const typeOptions = Array.from(new Set(items.map((item: DashboardItem) => item.type))).sort();
+
+  const handleItemClick = (item: DashboardItem) => {
+    navigate(item.modulePath);
+  };
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+  const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
+
+  const totalPages = Math.ceil(filteredAndSortedItems.length / pageSize);
+  const paginatedItems = filteredAndSortedItems.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const sortOptions = [
+    { value: 'status-asc', label: 'Estado: Critico primero' },
+    { value: 'expiration-asc', label: 'Vencimiento: Mas proximo' },
+    { value: 'expiration-desc', label: 'Vencimiento: Mas lejano' },
+    { value: 'name-asc', label: 'Nombre: A-Z' },
+    { value: 'name-desc', label: 'Nombre: Z-A' },
+  ];
+
+  const statusOptions = [
+    { value: '', label: 'Todos los estados' },
+    { value: 'valid', label: 'Vigente' },
+    { value: 'expiring', label: 'Proximo a vencer' },
+    { value: 'expired', label: 'Vencido' },
+  ];
+
+  const getStatusBadge = (status: ExpirationStatus) => {
+    const config = {
+      valid: { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200/50', label: 'Vigente' },
+      expiring: { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200/50', label: 'Por vencer' },
+      expired: { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-200/50', label: 'Vencido' },
+    }[status];
+
     return (
-        <PageLayout title={`Dashboard de ${currentCompany?.name}`}>
-            <div className="space-y-6">
-                {/* Metric Cards - Unified Design System */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {/* Total Card */}
-                    <div className="group bg-zinc-100 hover:bg-zinc-200/80 rounded-xl p-5 border border-zinc-200/60 shadow-card hover:shadow-card-hover transition-all duration-200">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-xs font-medium text-zinc-600 uppercase tracking-wider">Total</p>
-                                <p className="text-3xl font-bold text-zinc-900 mt-2 tracking-tight">{stats.total}</p>
-                            </div>
-                            <div className="h-11 w-11 rounded-lg bg-zinc-200/80 flex items-center justify-center group-hover:bg-zinc-300 transition-colors">
-                                <CalendarIcon className="w-5 h-5 text-zinc-700" />
-                            </div>
-                        </div>
-                    </div>
+      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text} border ${config.border}`}>
+        <CheckCircle className="w-3.5 h-3.5" />
+        {config.label}
+      </span>
+    );
+  };
 
-                    {/* Vigentes Card */}
-                    <div className="group bg-emerald-50 hover:bg-emerald-100 rounded-xl p-5 border border-emerald-200/60 shadow-card hover:shadow-card-hover transition-all duration-200">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-xs font-medium text-emerald-700 uppercase tracking-wider">Vigentes</p>
-                                <p className="text-3xl font-bold text-emerald-700 mt-2 tracking-tight">{stats.valid}</p>
-                            </div>
-                            <div className="h-11 w-11 rounded-lg bg-emerald-200/80 flex items-center justify-center group-hover:bg-emerald-300 transition-colors">
-                                <CheckCircleIcon className="w-5 h-5 text-emerald-700" />
-                            </div>
-                        </div>
-                    </div>
+  if (isLoading) {
+    return (
+      <PageLayout title={`Dashboard de ${currentCompany?.name || ''}`}>
+        <div className="flex justify-center items-center h-64">
+          <LoadingSpinner size="lg" />
+        </div>
+      </PageLayout>
+    );
+  }
 
-                    {/* Por vencer Card */}
-                    <div className="group bg-amber-50 hover:bg-amber-100 rounded-xl p-5 border border-amber-200/60 shadow-card hover:shadow-card-hover transition-all duration-200">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-xs font-medium text-amber-700 uppercase tracking-wider">Por vencer</p>
-                                <p className="text-3xl font-bold text-amber-700 mt-2 tracking-tight">{stats.expiring}</p>
-                            </div>
-                            <div className="h-11 w-11 rounded-lg bg-amber-200/80 flex items-center justify-center group-hover:bg-amber-300 transition-colors">
-                                <TrendingUpIcon className="w-5 h-5 text-amber-700" />
-                            </div>
-                        </div>
-                    </div>
+  return (
+    <PageLayout title={`Dashboard de ${currentCompany?.name}`}>
+      <div className="flex flex-col h-full gap-4">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-4 gap-3">
+          <StatCard
+            label="Total"
+            value={stats.total}
+            icon={<Calendar className="w-5 h-5 text-gray-600" />}
+            variant="gray"
+          />
+          <StatCard
+            label="Vigentes"
+            value={stats.valid}
+            icon={<CheckCircle className="w-5 h-5 text-emerald-600" />}
+            variant="green"
+          />
+          <StatCard
+            label="Por vencer"
+            value={stats.expiring}
+            icon={<TrendingUp className="w-5 h-5 text-amber-600" />}
+            variant="yellow"
+          />
+          <StatCard
+            label="Vencidos"
+            value={stats.expired}
+            icon={<AlertCircle className="w-5 h-5 text-red-600" />}
+            variant="red"
+          />
+        </div>
 
-                    {/* Vencidos Card */}
-                    <div className="group bg-rose-50 hover:bg-rose-100 rounded-xl p-5 border border-rose-200/60 shadow-card hover:shadow-card-hover transition-all duration-200">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-xs font-medium text-rose-700 uppercase tracking-wider">Vencidos</p>
-                                <p className="text-3xl font-bold text-rose-700 mt-2 tracking-tight">{stats.expired}</p>
-                            </div>
-                            <div className="h-11 w-11 rounded-lg bg-rose-200/80 flex items-center justify-center group-hover:bg-rose-300 transition-colors">
-                                <AlertCircleIcon className="w-5 h-5 text-rose-700" />
-                            </div>
-                        </div>
-                    </div>
+        {/* Main Content - Table Section */}
+        <div className="flex-1 border border-gray-200 rounded-2xl shadow-sm bg-white flex flex-col min-h-0 overflow-hidden">
+          {/* Table Header & Title */}
+          <div className="border-gray-100 border-b px-6 py-6">
+            <h2 className="text-lg font-semibold text-gray-900">Control de Vencimientos</h2>
+            <p className="text-gray-500 text-sm mt-1">Seguimiento de certificados y documentos</p>
+          </div>
+
+          {items.length === 0 ? (
+            <div className="flex-1 flex items-center justify-center py-16">
+              <div className="text-center">
+                <h3 className="text-base font-medium text-gray-900 mb-1">Todo en orden</h3>
+                <p className="text-sm text-gray-500">No hay elementos con vencimiento para mostrar.</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Filters */}
+              <div className="p-4 border-b border-gray-100 bg-white flex flex-col lg:flex-row gap-3 items-center">
+                <div className="relative flex-1 w-full">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre o tipo..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-100 placeholder-gray-400 text-gray-700"
+                  />
                 </div>
 
-                <Card padding="none">
-                    <div className="px-6 py-4 border-b border-zinc-100">
-                        <h2 className="text-base font-semibold text-zinc-900 tracking-tight">Control de Vencimientos</h2>
-                        <p className="text-sm text-zinc-500 mt-0.5">Seguimiento de certificados y documentos</p>
+                {/* Sort Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowSortDropdown(!showSortDropdown)}
+                    className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2 min-w-max"
+                  >
+                    {sortOptions.find(o => o.value === sortBy)?.label || 'Ordenar por'}
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  </button>
+                  {showSortDropdown && (
+                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[200px]">
+                      {sortOptions.map(option => (
+                        <button
+                          key={option.value}
+                          onClick={() => { setSortBy(option.value); setShowSortDropdown(false); }}
+                          className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${sortBy === option.value ? 'bg-gray-50 text-gray-900' : 'text-gray-600'}`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
                     </div>
-                    {items.length === 0 ? (
-                        <div className="text-center py-16">
-                            <div className="h-14 w-14 rounded-xl bg-zinc-100 flex items-center justify-center mx-auto mb-4">
-                                <CalendarIcon className="w-7 h-7 text-zinc-400" />
-                            </div>
-                            <h3 className="text-base font-semibold text-zinc-900">Todo en orden</h3>
-                            <p className="text-sm text-zinc-500 mt-1">No hay elementos con vencimiento para mostrar.</p>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="px-6 py-4">
-                                <FilterSort
-                                    searchValue={searchQuery}
-                                    onSearchChange={setSearchQuery}
-                                    sortValue={sortBy}
-                                    onSortChange={setSortBy}
-                                    sortOptions={sortOptions}
-                                    filterValue={filterStatus}
-                                    onFilterChange={setFilterStatus}
-                                    filterOptions={statusFilterOptions}
-                                    searchPlaceholder="Buscar por nombre o tipo..."
-                                    additionalFilters={
-                                        typeFilterOptions.length > 0 ? (
-                                            <div className="relative w-full md:w-48">
-                                                <select
-                                                    value={filterType}
-                                                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFilterType(e.target.value)}
-                                                    className="w-full appearance-none px-3.5 py-2.5 pr-9 text-sm bg-white border border-zinc-200 rounded-lg text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400 transition-all duration-150 cursor-pointer"
-                                                >
-                                                    <option value="">Todos los tipos</option>
-                                                    {typeFilterOptions.map((option: { value: string; label: string }) => (
-                                                        <option key={option.value} value={option.value}>
-                                                            {option.label}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </div>
-                                        ) : undefined
-                                    }
-                                />
-                            </div>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Nombre</TableHead>
-                                        <TableHead>Tipo</TableHead>
-                                        <TableHead>Fecha de vencimiento</TableHead>
-                                        <TableHead>Estado</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredAndSortedItems.map((item: DashboardItem) => (
-                                        <TableRow
-                                            key={item.id}
-                                            className="cursor-pointer hover:bg-zinc-50 transition-colors"
-                                            onClick={() => handleItemClick(item)}
-                                        >
-                                            <TableCell className="font-medium text-zinc-900">{item.name}</TableCell>
-                                            <TableCell className="text-zinc-600">{item.type}</TableCell>
-                                            <TableCell className="text-zinc-600">{new Date(item.expirationDate + 'T00:00:00').toLocaleDateString('es-AR')}</TableCell>
-                                            <TableCell>
-                                                <StatusBadge status={item.status} />
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                            {filteredAndSortedItems.length === 0 && items.length > 0 && (
-                                <div className="text-center py-12">
-                                    <p className="text-sm text-zinc-500">No se encontraron elementos con los filtros aplicados.</p>
-                                </div>
-                            )}
-                        </>
+                  )}
+                </div>
+
+                {/* Status Filter Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                    className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2 min-w-max"
+                  >
+                    {filterStatus ? statusOptions.find(o => o.value === filterStatus)?.label : 'Filtrar estado'}
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  </button>
+                  {showStatusDropdown && (
+                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[180px]">
+                      {statusOptions.map(option => (
+                        <button
+                          key={option.value}
+                          onClick={() => { setFilterStatus(option.value || undefined); setShowStatusDropdown(false); }}
+                          className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${filterStatus === option.value ? 'bg-gray-50 text-gray-900' : 'text-gray-600'}`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Type Filter Dropdown */}
+                {typeOptions.length > 0 && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowTypeDropdown(!showTypeDropdown)}
+                      className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2 min-w-max"
+                    >
+                      {filterType || 'Todos los tipos'}
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                    </button>
+                    {showTypeDropdown && (
+                      <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[200px]">
+                        <button
+                          onClick={() => { setFilterType(undefined); setShowTypeDropdown(false); }}
+                          className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${!filterType ? 'bg-gray-50 text-gray-900' : 'text-gray-600'}`}
+                        >
+                          Todos los tipos
+                        </button>
+                        {typeOptions.map(type => (
+                          <button
+                            key={type}
+                            onClick={() => { setFilterType(type); setShowTypeDropdown(false); }}
+                            className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${filterType === type ? 'bg-gray-50 text-gray-900' : 'text-gray-600'}`}
+                          >
+                            {type}
+                          </button>
+                        ))}
+                      </div>
                     )}
-                </Card>
-            </div>
-        </PageLayout>
-    );
+                  </div>
+                )}
+              </div>
+
+              {/* Data Table */}
+              <div className="flex-1 overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-100">
+                      <th className="uppercase text-xs font-medium text-gray-400 tracking-wider px-6 py-4">Nombre</th>
+                      <th className="uppercase text-xs font-medium text-gray-400 tracking-wider px-6 py-4">Tipo</th>
+                      <th className="uppercase text-xs font-medium text-gray-400 tracking-wider px-6 py-4">Vencimiento</th>
+                      <th className="uppercase text-xs font-medium text-gray-400 tracking-wider px-6 py-4">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-base text-gray-700">
+                    {paginatedItems.map((item) => (
+                      <tr
+                        key={item.id}
+                        onClick={() => handleItemClick(item)}
+                        className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors cursor-pointer"
+                      >
+                        <td className="font-medium text-gray-900 px-6 py-4">{item.name}</td>
+                        <td className="px-6 py-4 text-gray-600">{item.type}</td>
+                        <td className="px-6 py-4 text-gray-600">
+                          {new Date(item.expirationDate + 'T00:00:00').toLocaleDateString('es-AR')}
+                        </td>
+                        <td className="px-6 py-4">{getStatusBadge(item.status)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              <div className="p-4 flex items-center justify-end gap-6 border-t border-gray-100">
+                <span className="text-sm text-gray-500 font-medium">
+                  {((currentPage - 1) * pageSize) + 1}–{Math.min(currentPage * pageSize, filteredAndSortedItems.length)} de {filteredAndSortedItems.length} elementos
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 disabled:opacity-50"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-300 text-sm font-semibold text-gray-900 bg-white">
+                    {currentPage}
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 disabled:opacity-50"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Page Size Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowPageSizeDropdown(!showPageSizeDropdown)}
+                    className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 bg-white hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    {pageSize} / página
+                    <ChevronDown className="w-3 h-3 text-gray-400" />
+                  </button>
+                  {showPageSizeDropdown && (
+                    <div className="absolute bottom-full left-0 mb-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                      {[10, 20, 50].map(size => (
+                        <button
+                          key={size}
+                          onClick={() => { setPageSize(size); setCurrentPage(1); setShowPageSizeDropdown(false); }}
+                          className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${pageSize === size ? 'bg-gray-50 text-gray-900' : 'text-gray-600'}`}
+                        >
+                          {size} / página
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </PageLayout>
+  );
 };
 
 export default DashboardPage;

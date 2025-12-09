@@ -93,7 +93,9 @@ export const updateCompany = async (companyData: Partial<Company>): Promise<Comp
   if (companyData.selectedPlan) updateData.selected_plan = companyData.selectedPlan;
   if (companyData.subscriptionStatus) updateData.subscription_status = companyData.subscriptionStatus;
   if (companyData.subscriptionRenewalDate) updateData.subscription_renewal_date = companyData.subscriptionRenewalDate;
-  if (companyData.services) updateData.services = companyData.services;
+  if (companyData.services !== undefined) {
+    updateData.services = companyData.services;
+  }
   if (companyData.paymentMethods) updateData.payment_methods = companyData.paymentMethods;
 
   const { data, error } = await supabase

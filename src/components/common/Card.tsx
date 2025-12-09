@@ -1,55 +1,59 @@
 
 import React from 'react';
-import { cva, type VariantProps } from 'class-variance-authority';
-import { clsx } from 'clsx';
+import { Card as AntCard } from 'antd';
+import type { CardProps as AntCardProps } from 'antd';
 
-const cardVariants = cva(
-  'bg-white rounded-xl border border-zinc-200/80 transition-all duration-200 ease-out overflow-hidden',
-  {
-    variants: {
-      padding: {
-        sm: 'p-4',
-        md: 'p-5',
-        lg: 'p-6',
-        xl: 'p-8',
-        none: 'p-0',
-      },
-      variant: {
-        default: 'shadow-card',
-        elevated: 'shadow-md',
-        flat: 'shadow-none border-zinc-100',
-        outline: 'shadow-none border-zinc-200',
-      },
-      clickable: {
-        true: 'cursor-pointer hover:shadow-card-hover hover:border-zinc-300/60 active:scale-[0.995]',
-      },
-    },
-    defaultVariants: {
-      padding: 'md',
-      variant: 'default',
-    },
-  }
-);
+export interface CardProps extends Omit<AntCardProps, 'size'> {
+  padding?: 'sm' | 'md' | 'lg' | 'xl' | 'none';
+  variant?: 'default' | 'elevated' | 'flat' | 'outline';
+  clickable?: boolean;
+}
 
-export interface CardProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof cardVariants> {}
+const paddingMap: Record<string, number | undefined> = {
+  sm: 16,
+  md: 20,
+  lg: 24,
+  xl: 32,
+  none: 0,
+};
 
 export const Card: React.FC<CardProps> = ({
   children,
   className,
-  padding,
-  variant,
+  padding = 'md',
+  variant = 'default',
+  style,
+  onClick,
   ...props
 }) => {
-  const isClickable = !!props.onClick;
+  const isClickable = !!onClick;
+  const paddingValue = paddingMap[padding];
+
+  const variantStyles: React.CSSProperties = {
+    default: { borderColor: '#e5e7eb' },
+    elevated: { boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.06), 0 8px 20px -4px rgb(0 0 0 / 0.04)', borderColor: '#e5e7eb' },
+    flat: { boxShadow: 'none', borderColor: '#e5e7eb' },
+    outline: { boxShadow: 'none', borderColor: '#e5e7eb' },
+  }[variant];
 
   return (
-    <div
-      className={clsx(cardVariants({ padding, variant, clickable: isClickable, className }))}
+    <AntCard
+      className={className}
+      style={{
+        borderRadius: 12,
+        cursor: isClickable ? 'pointer' : undefined,
+        transition: 'all 0.2s ease',
+        ...variantStyles,
+        ...style,
+      }}
+      styles={{
+        body: { padding: paddingValue },
+      }}
+      onClick={onClick}
+      hoverable={isClickable}
       {...props}
     >
       {children}
-    </div>
+    </AntCard>
   );
 };

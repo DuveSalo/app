@@ -1,210 +1,212 @@
-
-
-
-import React, { useMemo, useState, useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../../features/auth/AuthContext';
-import { NavItem, QRDocumentType } from '../../types/index';
-import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
+import React, { useMemo, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
-    HomeIcon, DocumentTextIcon, ShieldCheckIcon, QrCodeIcon,
-    ExclamationTriangleIcon, FireIcon, Cog6ToothIcon, ChevronDoubleLeftIcon, ChevronDoubleRightIcon,
-} from '../common/Icons';
+  Home,
+  FileText,
+  ShieldCheck,
+  Flame,
+  AlertTriangle,
+  QrCode,
+  Settings,
+  ChevronsUpDown,
+  LogOut,
+  Zap,
+} from 'lucide-react';
+import { useAuth } from '../../features/auth/AuthContext';
+import { QRDocumentType } from '../../types/index';
+import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
 import { ConfirmDialog } from '../common/ConfirmDialog';
-import { LogOut, Settings } from 'lucide-react';
 
-interface SidebarProps {
-    isCollapsed: boolean;
-    onToggle: () => void;
+interface NavItem {
+  path: string;
+  label: string;
+  icon: React.ReactNode;
 }
 
-const MainNavLink: React.FC<{ item: NavItem; isCollapsed: boolean }> = ({ item, isCollapsed }) => {
-    const location = useLocation();
-    const isActive = location.pathname.startsWith(item.path);
-    return (
-        <Link
-            to={item.path}
-            title={item.label}
-            className={`flex items-center gap-3 rounded-lg transition-all duration-150 ease-out text-sm font-medium ${
-                isCollapsed ? 'p-2.5 justify-center' : 'px-3 py-2.5'
-            } ${
-            isActive
-                ? 'bg-zinc-900 text-white shadow-sm'
-                : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
-            }`}
-        >
-            {React.cloneElement(item.icon, { className: `w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : ''}` })}
-            <span className={isCollapsed ? 'hidden' : ''}>{item.label}</span>
-        </Link>
-    );
-};
+const Sidebar: React.FC = () => {
+  const { currentUser, currentCompany, logout } = useAuth();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-const ModuleLink: React.FC<{ item: NavItem; isCollapsed: boolean }> = ({ item, isCollapsed }) => {
-    const location = useLocation();
-    const isActive = location.pathname.startsWith(item.path);
-     return (
-        <Link
-            to={item.path}
-            title={item.label}
-            className={`flex items-center gap-3 rounded-lg text-sm font-medium transition-all duration-150 ease-out ${
-                isCollapsed ? 'p-2.5 justify-center' : 'px-3 py-2'
-            } ${
-            isActive
-                ? 'bg-zinc-900 text-white shadow-sm'
-                : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
-            }`}
-        >
-            {React.cloneElement(item.icon, { className: `w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : ''}` })}
-            <span className={`${isCollapsed ? 'hidden' : ''} leading-tight`}>{item.label}</span>
-        </Link>
-    );
-};
+  const userInitials = useMemo(() => {
+    if (currentUser?.name) {
+      return currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+    }
+    return 'U';
+  }, [currentUser]);
 
+  // Main navigation items
+  const mainNavItems: NavItem[] = [
+    { path: ROUTE_PATHS.DASHBOARD, label: 'Dashboard', icon: <Home className="w-5 h-5" /> },
+    { path: ROUTE_PATHS.CONSERVATION_CERTIFICATES, label: MODULE_TITLES.CONSERVATION_CERTIFICATES, icon: <FileText className="w-5 h-5" /> },
+    { path: ROUTE_PATHS.SELF_PROTECTION_SYSTEMS, label: MODULE_TITLES.SELF_PROTECTION_SYSTEMS, icon: <ShieldCheck className="w-5 h-5" /> },
+    { path: ROUTE_PATHS.FIRE_EXTINGUISHERS, label: MODULE_TITLES.FIRE_EXTINGUISHERS, icon: <Flame className="w-5 h-5" /> },
+    { path: ROUTE_PATHS.EVENT_INFORMATION, label: MODULE_TITLES.EVENT_INFORMATION, icon: <AlertTriangle className="w-5 h-5" /> },
+    { path: ROUTE_PATHS.ELECTRICAL_INSTALLATIONS, label: MODULE_TITLES.ELECTRICAL_INSTALLATIONS, icon: <Zap className="w-5 h-5" /> },
+  ];
 
-const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
-    const { currentUser, currentCompany, logout } = useAuth();
-    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-    const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setIsUserMenuOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const userInitials = useMemo(() => {
-        if (currentUser?.name) {
-          return currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
-        }
-        return 'U';
-    }, [currentUser]);
-
-    const mainNavItems: NavItem[] = [
-        { path: ROUTE_PATHS.DASHBOARD, label: 'Dashboard', icon: <HomeIcon /> },
-        { path: ROUTE_PATHS.CONSERVATION_CERTIFICATES, label: MODULE_TITLES.CONSERVATION_CERTIFICATES, icon: <DocumentTextIcon /> },
-        { path: ROUTE_PATHS.SELF_PROTECTION_SYSTEMS, label: MODULE_TITLES.SELF_PROTECTION_SYSTEMS, icon: <ShieldCheckIcon /> },
-        { path: ROUTE_PATHS.FIRE_EXTINGUISHERS, label: MODULE_TITLES.FIRE_EXTINGUISHERS, icon: <FireIcon /> },
-        { path: ROUTE_PATHS.EVENT_INFORMATION, label: MODULE_TITLES.EVENT_INFORMATION, icon: <ExclamationTriangleIcon/> },
-    ];
-    
-    const serviceNavItems: NavItem[] = [
-        { path: ROUTE_PATHS.QR_ELEVATORS, label: MODULE_TITLES.QR_ELEVATORS, icon: <QrCodeIcon />, service: QRDocumentType.Elevators },
-        { path: ROUTE_PATHS.QR_WATER_HEATERS, label: MODULE_TITLES.QR_WATER_HEATERS, icon: <QrCodeIcon />, service: QRDocumentType.WaterHeaters },
-        { path: ROUTE_PATHS.QR_FIRE_SAFETY, label: MODULE_TITLES.QR_FIRE_SAFETY, icon: <QrCodeIcon />, service: QRDocumentType.FireSafetySystem },
-        { path: ROUTE_PATHS.QR_DETECTION, label: MODULE_TITLES.QR_DETECTION, icon: <QrCodeIcon />, service: QRDocumentType.DetectionSystem },
-        { path: ROUTE_PATHS.ELECTRICAL_INSTALLATIONS, label: MODULE_TITLES.ELECTRICAL_INSTALLATIONS, icon: <QrCodeIcon />, service: QRDocumentType.ElectricalInstallations },
+  // Service navigation items (QR modules)
+  const serviceNavItems: NavItem[] = useMemo(() => {
+    const services = [
+      { path: ROUTE_PATHS.QR_ELEVATORS, label: MODULE_TITLES.QR_ELEVATORS, service: QRDocumentType.Elevators },
+      { path: ROUTE_PATHS.QR_WATER_HEATERS, label: MODULE_TITLES.QR_WATER_HEATERS, service: QRDocumentType.WaterHeaters },
+      { path: ROUTE_PATHS.QR_FIRE_SAFETY, label: MODULE_TITLES.QR_FIRE_SAFETY, service: QRDocumentType.FireSafetySystem },
+      { path: ROUTE_PATHS.QR_DETECTION, label: MODULE_TITLES.QR_DETECTION, service: QRDocumentType.DetectionSystem },
     ];
 
-    const enabledServiceItems = serviceNavItems.filter(item => item.service && currentCompany?.services?.[item.service]);
+    return services
+      .filter(item => currentCompany?.services?.[item.service])
+      .map(item => ({
+        path: item.path,
+        label: item.label,
+        icon: <QrCode className="w-5 h-5" />,
+      }));
+  }, [currentCompany?.services]);
 
-    return (
-        <aside className={`bg-white border-r border-zinc-200/60 flex flex-col flex-shrink-0 transition-all duration-300 ease-out ${isCollapsed ? 'w-[72px]' : 'w-64'}`}>
-            {/* Logo area */}
-            <div className={`h-16 flex items-center border-b border-zinc-100 ${isCollapsed ? 'justify-center px-3' : 'px-5'}`}>
-                <div className="flex items-center gap-2.5">
-                    <div className="h-8 w-8 rounded-lg bg-zinc-900 flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <span className="text-white font-bold text-sm tracking-tight">ES</span>
-                    </div>
-                    <span className={`font-semibold text-zinc-900 tracking-tight ${isCollapsed ? 'hidden' : ''}`}>Escuela Segura</span>
-                </div>
+  const isActive = (path: string) => location.pathname.startsWith(path);
+
+  const handleLogout = () => {
+    setIsLogoutModalOpen(false);
+    setIsUserMenuOpen(false);
+    logout();
+  };
+
+  return (
+    <>
+      <aside className="w-64 hidden md:flex flex-col justify-between p-6 overflow-y-auto bg-[#F3F4F6]">
+        <div>
+          {/* Logo */}
+          <div className="flex items-center gap-3 mb-10 px-2">
+            <div className="relative flex items-center justify-center">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-900">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
+            <span className="text-lg font-semibold tracking-tight text-gray-900">Escuela Segura</span>
+          </div>
 
-            {/* Navigation */}
-            <div className="flex-1 flex flex-col gap-y-6 overflow-hidden p-3">
-                <nav className="flex flex-col gap-y-1">
-                    {mainNavItems.map(item => <MainNavLink key={item.path} item={item} isCollapsed={isCollapsed} />)}
-                </nav>
+          {/* Main Navigation */}
+          <nav className="space-y-1">
+            {mainNavItems.map((item) => (
+              <button
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors text-left ${
+                  isActive(item.path)
+                    ? 'text-gray-900 bg-white shadow-sm'
+                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'
+                }`}
+              >
+                <span className={`flex-shrink-0 ${isActive(item.path) ? 'text-gray-700' : 'text-gray-400'}`}>
+                  {item.icon}
+                </span>
+                <span className="text-left">{item.label}</span>
+              </button>
+            ))}
+          </nav>
 
-                {enabledServiceItems.length > 0 && (
-                    <div className="space-y-2">
-                        {!isCollapsed && (
-                            <p className="px-3 text-xs font-medium text-zinc-400 uppercase tracking-wider">Servicios</p>
-                        )}
-                        <div className="space-y-0.5">
-                            {enabledServiceItems.map(item => <ModuleLink key={item.path} item={item} isCollapsed={isCollapsed} />)}
-                        </div>
-                    </div>
-                )}
+          {/* Services Section */}
+          {serviceNavItems.length > 0 && (
+            <div className="mt-8">
+              <p className="px-3 mb-2 text-xs font-medium text-gray-400 uppercase tracking-wider text-left">
+                Servicios
+              </p>
+              <nav className="space-y-1">
+                {serviceNavItems.map((item) => (
+                  <button
+                    key={item.path}
+                    onClick={() => navigate(item.path)}
+                    className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors text-left ${
+                      isActive(item.path)
+                        ? 'text-gray-900 bg-white shadow-sm'
+                        : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'
+                    }`}
+                  >
+                    <span className={`flex-shrink-0 ${isActive(item.path) ? 'text-gray-700' : 'text-gray-400'}`}>
+                      {item.icon}
+                    </span>
+                    <span className="text-left">{item.label}</span>
+                  </button>
+                ))}
+              </nav>
             </div>
+          )}
+        </div>
 
-            {/* User area */}
-            <div className="mt-auto border-t border-zinc-100" ref={menuRef}>
-                <div className="p-3">
-                    <div className="relative">
-                        <div
-                            className={`flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-50 cursor-pointer transition-colors duration-150 ${isCollapsed ? 'justify-center' : ''}`}
-                            onClick={() => setIsUserMenuOpen(prev => !prev)}
-                        >
-                            <div className="h-9 w-9 flex-shrink-0 rounded-full bg-gradient-to-br from-zinc-600 to-zinc-800 flex items-center justify-center ring-2 ring-white shadow-sm">
-                                <span className="text-xs font-semibold text-white">{userInitials}</span>
-                            </div>
-                            <div className={`flex-1 min-w-0 ${isCollapsed ? 'hidden' : ''}`}>
-                                <p className="text-sm font-semibold text-zinc-900 truncate">{currentUser?.name}</p>
-                                <p className="text-xs text-zinc-500 truncate">{currentCompany?.name}</p>
-                            </div>
-                            <Cog6ToothIcon className={`w-4.5 h-4.5 text-zinc-400 ${isCollapsed ? 'hidden' : ''}`}/>
-                        </div>
-                        {isUserMenuOpen && (
-                            <div
-                                className={`absolute bottom-full mb-2 w-52 bg-white rounded-xl shadow-dropdown border border-zinc-200/60 py-1.5 z-20 animate-fade-in-up ${
-                                    isCollapsed ? 'left-0' : 'right-0'
-                                }`}
-                            >
-                                <Link
-                                    to={ROUTE_PATHS.SETTINGS}
-                                    className="flex items-center gap-2.5 px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
-                                    onClick={() => setIsUserMenuOpen(false)}
-                                >
-                                    <Settings className="w-4 h-4 text-zinc-500" />
-                                    Configuración
-                                </Link>
-                                <button
-                                    onClick={() => {
-                                        setIsUserMenuOpen(false);
-                                        setIsLogoutDialogOpen(true);
-                                    }}
-                                    className="flex items-center gap-2.5 w-full text-left px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
-                                >
-                                    <LogOut className="w-4 h-4 text-zinc-500" />
-                                    Cerrar sesión
-                                </button>
-                            </div>
-                        )}
-                    </div>
+        <div>
+          {/* User Profile */}
+          <div className="relative">
+            <button
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              className="w-full flex items-center justify-between p-2 bg-white rounded-xl shadow-sm border border-gray-200 cursor-pointer hover:border-gray-300 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center text-white text-xs font-medium">
+                  {userInitials}
                 </div>
+                <span className="text-sm font-medium text-gray-700 truncate max-w-[120px]">
+                  {currentUser?.name}
+                </span>
+              </div>
+              <ChevronsUpDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            </button>
 
-                {/* Collapse toggle */}
-                <div className="px-3 pb-3">
-                    <button
-                        onClick={onToggle}
-                        className="w-full flex items-center justify-center p-2 rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition-colors duration-150"
-                        title={isCollapsed ? 'Expandir menú' : 'Reducir menú'}
-                    >
-                        {isCollapsed ? <ChevronDoubleRightIcon className="h-4 w-4"/> : <ChevronDoubleLeftIcon className="h-4 w-4"/>}
-                    </button>
+            {/* User Dropdown */}
+            {isUserMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setIsUserMenuOpen(false)}
+                />
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-20 text-left">
+                  <div className="px-3 py-2 border-b border-gray-100">
+                    <p className="text-xs text-gray-400">Empresa</p>
+                    <p className="text-sm font-medium text-gray-700 truncate">{currentCompany?.name}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      navigate(ROUTE_PATHS.SETTINGS);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Configuracion
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      setIsLogoutModalOpen(true);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Cerrar sesion
+                  </button>
                 </div>
-            </div>
+              </>
+            )}
+          </div>
+        </div>
+      </aside>
 
-            <ConfirmDialog
-                isOpen={isLogoutDialogOpen}
-                onClose={() => setIsLogoutDialogOpen(false)}
-                onConfirm={() => {
-                    setIsLogoutDialogOpen(false);
-                    logout();
-                }}
-                title="¿Cerrar sesión?"
-                message="Se cerrará tu sesión actual y tendrás que volver a iniciar sesión para acceder."
-                confirmText="Cerrar sesión"
-                cancelText="Cancelar"
-                variant="danger"
-            />
-        </aside>
-    );
+      {/* Logout confirmation modal */}
+      <ConfirmDialog
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        title="¿Deseas cerrar sesión?"
+        message="Se cerrará tu sesión actual y tendrás que volver a iniciar sesión para acceder."
+        confirmText="Cerrar sesión"
+        cancelText="Cancelar"
+        variant="danger"
+      />
+    </>
+  );
 };
 
 export default Sidebar;

@@ -1,33 +1,25 @@
 
 import React from 'react';
-import { cva } from 'class-variance-authority';
-import { clsx } from 'clsx';
-import { Loader2 } from 'lucide-react';
-
-const spinnerVariants = cva('animate-spin text-zinc-900', {
-  variants: {
-    size: {
-      sm: 'w-4 h-4',
-      md: 'w-6 h-6',
-      lg: 'w-8 h-8',
-    },
-  },
-  defaultVariants: {
-    size: 'md',
-  },
-});
+import { Spin } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size, className }) => {
+const sizeMap = {
+  sm: 16,
+  md: 24,
+  lg: 32,
+};
+
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'md', className }) => {
+  const iconSize = sizeMap[size];
+
   return (
-    <div className={clsx('flex items-center justify-center', className)}>
-      <Loader2 className={clsx(spinnerVariants({ size }))} />
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} className={className}>
+      <Spin indicator={<LoadingOutlined style={{ fontSize: iconSize }} spin />} />
     </div>
   );
 };
-
-

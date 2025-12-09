@@ -1,24 +1,13 @@
-
-
-import React, { useState } from 'react';
+import React from 'react';
 import Sidebar from './Sidebar';
-// import GlobalSearch from '../common/GlobalSearch';
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
-
   return (
-    <div className="flex h-screen bg-slate-100 text-slate-900 font-sans">
-      <Sidebar 
-        isCollapsed={isSidebarCollapsed} 
-        onToggle={() => setSidebarCollapsed(prev => !prev)} 
-      />
-      <div className="flex-1 flex flex-col overflow-hidden p-2">
-        {/* El encabezado ha sido eliminado según la solicitud del usuario */}
-        <main className="flex-1 overflow-y-auto">
-            {children}
-        </main>
-      </div>
+    <div className="bg-[#F3F4F6] text-gray-900 antialiased h-screen flex overflow-hidden selection:bg-gray-200">
+      <Sidebar />
+      <main className="flex-1 p-2 md:p-3 h-full overflow-hidden">
+        {children}
+      </main>
     </div>
   );
 };
