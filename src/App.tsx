@@ -30,6 +30,7 @@ import CreateEditEventInformationPage from './features/event-information/CreateE
 import FireExtinguisherListPage from './features/fire-extinguishers/FireExtinguisherListPage';
 import CreateEditFireExtinguisherPage from './features/fire-extinguishers/CreateEditFireExtinguisherPage';
 import SettingsPage from './features/settings/SettingsPage';
+import NotificationsPage from './features/notifications/NotificationsPage';
 import PlaceholderPage from './features/placeholders/PlaceholderPage';
 
 const App: React.FC = () => {
@@ -96,6 +97,7 @@ const App: React.FC = () => {
                   <Route path={ROUTE_PATHS.EDIT_FIRE_EXTINGUISHER.substring(1)} element={<CreateEditFireExtinguisherPage />} />
 
                   <Route path={ROUTE_PATHS.SETTINGS.substring(1)} element={<SettingsPage />} />
+                  <Route path={ROUTE_PATHS.NOTIFICATIONS.substring(1)} element={<NotificationsPage />} />
 
                   <Route path={ROUTE_PATHS.WATER_TANKS.substring(1)} element={<PlaceholderPage title={MODULE_TITLES.WATER_TANKS} />} />
                   <Route path={ROUTE_PATHS.PLANT_SPECIES.substring(1)} element={<PlaceholderPage title={MODULE_TITLES.PLANT_SPECIES} />} />

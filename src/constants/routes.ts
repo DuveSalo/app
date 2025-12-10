@@ -39,6 +39,7 @@ export const ROUTE_PATHS = {
   EDIT_FIRE_EXTINGUISHER: "/fire-extinguishers/:id/edit",
 
   SETTINGS: "/settings",
+  NOTIFICATIONS: "/notifications",
 
   // New Modules
   WATER_TANKS: "/water-tanks",

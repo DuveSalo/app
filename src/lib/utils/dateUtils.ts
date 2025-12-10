@@ -3,6 +3,8 @@
  * Funciones centralizadas para manejo de fechas y cálculos de vencimiento
  */
 
+import { EXPIRATION_CONFIG } from '../constants/expirationThresholds';
+
 /**
  * Calcula los días restantes hasta una fecha de vencimiento
  * @param expirationDate Fecha de vencimiento en formato ISO string
@@ -24,12 +26,12 @@ export const calculateDaysUntilExpiration = (expirationDate: string): number => 
 /**
  * Determina el estado de vencimiento de un servicio
  * @param expirationDate Fecha de vencimiento
- * @param thresholdDays Umbral de días para considerar "próximo a vencer" (default: 30)
+ * @param thresholdDays Umbral de días para considerar "próximo a vencer" (default: 31)
  * @returns Estado del servicio
  */
 export const calculateExpirationStatus = (
   expirationDate: string,
-  thresholdDays: number = 30
+  thresholdDays: number = EXPIRATION_CONFIG.EXPIRING_THRESHOLD_DAYS
 ): 'valid' | 'expiring' | 'expired' => {
   const daysUntil = calculateDaysUntilExpiration(expirationDate);
   if (daysUntil < 1) return 'expired';
@@ -53,11 +55,11 @@ export const formatDateForEmail = (date: string, locale: string = 'es-AR'): stri
 
 /**
  * Calcula el rango de fechas para buscar servicios próximos a vencer
- * @param windowDays Ventana de días a futuro (default: 30)
+ * @param windowDays Ventana de días a futuro (default: 31)
  * @returns Objeto con fechas desde/hasta
  */
 export const getDateRangeForNotifications = (
-  windowDays: number = 30
+  windowDays: number = EXPIRATION_CONFIG.NOTIFICATION_WINDOW_DAYS
 ): { from: Date; to: Date } => {
   const from = new Date();
   from.setHours(0, 0, 0, 0);
@@ -72,12 +74,12 @@ export const getDateRangeForNotifications = (
 /**
  * Verifica si un servicio está dentro de la ventana de notificación
  * @param expirationDate Fecha de vencimiento
- * @param windowDays Ventana de notificación en días (default: 30)
+ * @param windowDays Ventana de notificación en días (default: 31)
  * @returns true si el servicio debe ser notificado
  */
 export const isWithinNotificationWindow = (
   expirationDate: string,
-  windowDays: number = 30
+  windowDays: number = EXPIRATION_CONFIG.NOTIFICATION_WINDOW_DAYS
 ): boolean => {
   const daysUntil = calculateDaysUntilExpiration(expirationDate);
   return daysUntil > 0 && daysUntil <= windowDays;

@@ -8,7 +8,7 @@ export const EXPIRATION_CONFIG = {
    * Ventana de días para enviar notificaciones de vencimiento
    * Servicios que vencen dentro de este período recibirán notificación
    */
-  NOTIFICATION_WINDOW_DAYS: 30,
+  NOTIFICATION_WINDOW_DAYS: 31,
 
   /**
    * Umbral de días para considerar una situación urgente
@@ -19,7 +19,7 @@ export const EXPIRATION_CONFIG = {
   /**
    * Umbral de días para mostrar estado "expiring" en el frontend
    */
-  EXPIRING_THRESHOLD_DAYS: 30,
+  EXPIRING_THRESHOLD_DAYS: 31,
 
   /**
    * Años de validez para códigos QR
