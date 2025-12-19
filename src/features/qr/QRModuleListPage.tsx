@@ -8,7 +8,9 @@ import { Button } from '../../components/common/Button';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { TrashIcon, PlusIcon, QrCodeIcon, EyeIcon, EditIcon } from '../../components/common/Icons';
+import { Empty } from '../../components/common/Empty';
+import { TrashIcon, PlusIcon, EyeIcon, EditIcon } from '../../components/common/Icons';
+import { QrCode } from 'lucide-react';
 import PageLayout from '../../components/layout/PageLayout';
 
 interface QRModulePageProps {
@@ -86,15 +88,16 @@ const QRModuleListPage: React.FC<QRModulePageProps> = ({ qrType, title, uploadPa
           <LoadingSpinner size="lg" />
         </div>
       ) : documents.length === 0 ? (
-        <div className="text-center py-16 flex flex-col items-center justify-center h-full">
-          <QrCodeIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900">No hay documentos</h3>
-          <p className="text-gray-500 mb-4">Comience subiendo su primer documento QR.</p>
-          <Button onClick={() => navigate(uploadPath)}>
-            <PlusIcon className="w-4 h-4 mr-2" />
-            Subir primer documento
-          </Button>
-        </div>
+          <Empty
+            icon={QrCode}
+            title="No hay documentos"
+            description="Comience subiendo su primer documento QR."
+            size="lg"
+            action={{
+              label: "Subir primer documento",
+              onClick: () => navigate(uploadPath),
+            }}
+          />
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <Table>

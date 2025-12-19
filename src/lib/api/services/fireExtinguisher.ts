@@ -1,6 +1,42 @@
 import { supabase } from '../../supabase/client';
-import { FireExtinguisherControl } from '../../../types/index';
+import { FireExtinguisherControl, ExtinguisherType, ExtinguisherCapacity } from '../../../types/index';
 import { handleSupabaseError } from '../../utils/errors';
+
+type YesNo = 'Sí' | 'No';
+type YesNoNA = 'Sí' | 'No' | 'N/A';
+
+const mapDbToFireExtinguisher = (item: any): FireExtinguisherControl => ({
+  id: item.id,
+  companyId: item.company_id,
+  controlDate: item.control_date,
+  extinguisherNumber: item.extinguisher_number,
+  type: item.type as ExtinguisherType,
+  capacity: item.capacity as ExtinguisherCapacity,
+  class: item.class,
+  positionNumber: item.position_number,
+  chargeExpirationDate: item.charge_expiration_date,
+  hydraulicPressureExpirationDate: item.hydraulic_pressure_expiration_date,
+  manufacturingYear: item.manufacturing_year,
+  tagColor: item.tag_color,
+  labelsLegible: item.labels_legible,
+  pressureWithinRange: item.pressure_within_range,
+  hasSealAndSafety: item.has_seal_and_safety,
+  instructionsLegible: item.instructions_legible,
+  containerCondition: item.container_condition,
+  nozzleCondition: item.nozzle_condition,
+  visibilityObstructed: item.visibility_obstructed as YesNo,
+  accessObstructed: item.access_obstructed as YesNo,
+  signageCondition: item.signage_condition,
+  signageFloor: item.signage_floor as YesNoNA,
+  signageWall: item.signage_wall as YesNoNA,
+  signageHeight: item.signage_height as YesNoNA,
+  glassCondition: item.glass_condition as YesNoNA,
+  doorOpensEasily: item.door_opens_easily as YesNoNA,
+  cabinetClean: item.cabinet_clean as YesNoNA,
+  observations: item.observations,
+  createdAt: item.created_at,
+  updatedAt: item.updated_at,
+});
 
 export const getFireExtinguishers = async (companyId: string): Promise<FireExtinguisherControl[]> => {
   const { data, error } = await supabase
@@ -13,38 +49,7 @@ export const getFireExtinguishers = async (companyId: string): Promise<FireExtin
     handleSupabaseError(error);
   }
 
-  return (data || []).map(item => ({
-    id: item.id,
-    companyId: item.company_id,
-    controlDate: item.control_date,
-    extinguisherNumber: item.extinguisher_number,
-    type: item.type,
-    capacity: item.capacity,
-    class: item.class,
-    positionNumber: item.position_number,
-    chargeExpirationDate: item.charge_expiration_date,
-    hydraulicPressureExpirationDate: item.hydraulic_pressure_expiration_date,
-    manufacturingYear: item.manufacturing_year,
-    tagColor: item.tag_color,
-    labelsLegible: item.labels_legible,
-    pressureWithinRange: item.pressure_within_range,
-    hasSealAndSafety: item.has_seal_and_safety,
-    instructionsLegible: item.instructions_legible,
-    containerCondition: item.container_condition,
-    nozzleCondition: item.nozzle_condition,
-    visibilityObstructed: item.visibility_obstructed,
-    accessObstructed: item.access_obstructed,
-    signageCondition: item.signage_condition,
-    signageFloor: item.signage_floor,
-    signageWall: item.signage_wall,
-    signageHeight: item.signage_height,
-    glassCondition: item.glass_condition,
-    doorOpensEasily: item.door_opens_easily,
-    cabinetClean: item.cabinet_clean,
-    observations: item.observations,
-    createdAt: item.created_at,
-    updatedAt: item.updated_at,
-  }));
+  return (data || []).map(mapDbToFireExtinguisher);
 };
 
 export const getFireExtinguisherById = async (id: string): Promise<FireExtinguisherControl> => {
@@ -58,38 +63,7 @@ export const getFireExtinguisherById = async (id: string): Promise<FireExtinguis
     handleSupabaseError(error);
   }
 
-  return {
-    id: data.id,
-    companyId: data.company_id,
-    controlDate: data.control_date,
-    extinguisherNumber: data.extinguisher_number,
-    type: data.type,
-    capacity: data.capacity,
-    class: data.class,
-    positionNumber: data.position_number,
-    chargeExpirationDate: data.charge_expiration_date,
-    hydraulicPressureExpirationDate: data.hydraulic_pressure_expiration_date,
-    manufacturingYear: data.manufacturing_year,
-    tagColor: data.tag_color,
-    labelsLegible: data.labels_legible,
-    pressureWithinRange: data.pressure_within_range,
-    hasSealAndSafety: data.has_seal_and_safety,
-    instructionsLegible: data.instructions_legible,
-    containerCondition: data.container_condition,
-    nozzleCondition: data.nozzle_condition,
-    visibilityObstructed: data.visibility_obstructed,
-    accessObstructed: data.access_obstructed,
-    signageCondition: data.signage_condition,
-    signageFloor: data.signage_floor,
-    signageWall: data.signage_wall,
-    signageHeight: data.signage_height,
-    glassCondition: data.glass_condition,
-    doorOpensEasily: data.door_opens_easily,
-    cabinetClean: data.cabinet_clean,
-    observations: data.observations,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
-  };
+  return mapDbToFireExtinguisher(data);
 };
 
 export const createFireExtinguisher = async (

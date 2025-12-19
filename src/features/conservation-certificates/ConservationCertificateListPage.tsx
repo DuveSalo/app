@@ -12,9 +12,11 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { FilterSort } from '../../components/common/FilterSort';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { EditIcon, TrashIcon, PlusIcon, DocumentTextIcon, EyeIcon } from '../../components/common/Icons';
+import { Empty, EmptySearch } from '../../components/common/Empty';
+import { EditIcon, TrashIcon, PlusIcon, EyeIcon } from '../../components/common/Icons';
+import { FileText } from 'lucide-react';
 import PageLayout from '../../components/layout/PageLayout';
-import { calculateExpirationStatus } from '../../lib/utils/dateUtils';
+import { calculateExpirationStatus, formatDateLocal } from '../../lib/utils/dateUtils';
 import { ExpirationStatus } from '../../types/expirable';
 
 const ConservationCertificateListPage: React.FC = () => {
@@ -148,21 +150,16 @@ const ConservationCertificateListPage: React.FC = () => {
           <LoadingSpinner size="lg" />
         </div>
       ) : certificates.length === 0 ? (
-        <div className="text-center py-16 flex flex-col items-center justify-center h-full bg-white rounded-xl border border-slate-300">
-          <div className="h-16 w-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-5">
-            <DocumentTextIcon className="w-8 h-8 text-slate-400" />
-          </div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-1.5">No hay certificados</h3>
-          <p className="text-sm text-slate-500 mb-6 max-w-sm">
-            Comience registrando su primer certificado de conservación para mantener el control de vencimientos.
-          </p>
-          <Button
-            onClick={() => navigate(ROUTE_PATHS.NEW_CONSERVATION_CERTIFICATE)}
-          >
-            <PlusIcon className="w-4 h-4 mr-2" />
-            Crear primer certificado
-          </Button>
-        </div>
+          <Empty
+            icon={FileText}
+            title="No hay certificados"
+            description="Comience registrando su primer certificado de conservación para mantener el control de vencimientos."
+            size="lg"
+            action={{
+              label: "Crear primer certificado",
+              onClick: () => navigate(ROUTE_PATHS.NEW_CONSERVATION_CERTIFICATE),
+            }}
+          />
       ) : (
         <>
           <FilterSort
@@ -198,8 +195,8 @@ const ConservationCertificateListPage: React.FC = () => {
                   >
                     <TableCell className="font-medium max-w-0 truncate">{cert.intervener}</TableCell>
                     <TableCell className="text-xs">{cert.registrationNumber}</TableCell>
-                    <TableCell className="text-xs whitespace-nowrap">{new Date(cert.presentationDate).toLocaleDateString('es-AR')}</TableCell>
-                    <TableCell className="text-xs whitespace-nowrap">{new Date(cert.expirationDate).toLocaleDateString('es-AR')}</TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">{formatDateLocal(cert.presentationDate)}</TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">{formatDateLocal(cert.expirationDate)}</TableCell>
                     <TableCell className="max-w-0 truncate text-xs text-slate-500" title={cert.pdfFileName || 'N/A'}>
                       {cert.pdfFileName || 'N/A'}
                     </TableCell>
@@ -248,9 +245,10 @@ const ConservationCertificateListPage: React.FC = () => {
           </div>
 
           {filteredAndSortedCertificates.length === 0 && certificates.length > 0 && (
-            <div className="text-center py-12 bg-white rounded-xl border border-slate-300">
-              <p className="text-sm text-slate-500">No se encontraron certificados con los filtros aplicados.</p>
-            </div>
+              <EmptySearch
+                query={searchQuery}
+                description="Intenta con otros términos de búsqueda o filtros."
+              />
           )}
         </>
       )}

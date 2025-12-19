@@ -1,59 +1,72 @@
-
 import React from 'react';
-import { Button as AntButton } from 'antd';
-import type { ButtonProps as AntButtonProps } from 'antd';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { Slot } from '@radix-ui/react-slot';
+import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-export interface ButtonProps extends Omit<AntButtonProps, 'type' | 'size'> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success' | 'soft';
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  type?: 'submit' | 'button' | 'reset';
+const buttonVariants = cva(
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  {
+    variants: {
+      variant: {
+        primary:
+          'bg-zinc-900 text-white shadow-sm hover:bg-zinc-800 active:bg-zinc-950',
+        secondary:
+          'bg-zinc-100 text-zinc-900 hover:bg-zinc-200 active:bg-zinc-300',
+        outline:
+          'border border-zinc-200 bg-white text-zinc-900 shadow-sm hover:bg-zinc-50 active:bg-zinc-100',
+        ghost:
+          'text-zinc-900 hover:bg-zinc-100 active:bg-zinc-200',
+        danger:
+          'bg-red-600 text-white shadow-sm hover:bg-red-700 active:bg-red-800',
+        success:
+          'bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 active:bg-emerald-800',
+        soft:
+          'bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 active:bg-indigo-200',
+        link:
+          'text-zinc-900 underline-offset-4 hover:underline',
+      },
+      size: {
+        xs: 'h-7 px-2.5 text-xs rounded-md',
+        sm: 'h-8 px-3 text-xs',
+        md: 'h-9 px-4',
+        lg: 'h-10 px-5',
+        xl: 'h-11 px-6 text-base',
+        icon: 'h-9 w-9',
+      },
+    },
+    defaultVariants: {
+      variant: 'primary',
+      size: 'md',
+    },
+  }
+);
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+  loading?: boolean;
 }
 
-const variantMap: Record<string, { type: AntButtonProps['type']; danger?: boolean; style?: React.CSSProperties }> = {
-  primary: { type: 'primary' },
-  secondary: { type: 'default', style: { background: '#f4f4f5', borderColor: '#e4e4e7' } },
-  outline: { type: 'default' },
-  ghost: { type: 'text' },
-  danger: { type: 'primary', danger: true },
-  success: { type: 'primary', style: { background: '#059669', borderColor: '#059669' } },
-  soft: { type: 'default', style: { background: '#eef2ff', borderColor: '#c7d2fe', color: '#4f46e5' } },
-};
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, loading = false, disabled, children, ...props }, ref) => {
+    const Comp = asChild ? Slot : 'button';
 
-const sizeMap: Record<string, AntButtonProps['size']> = {
-  xs: 'small',
-  sm: 'small',
-  md: 'middle',
-  lg: 'large',
-  xl: 'large',
-};
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        disabled={disabled || loading}
+        {...props}
+      >
+        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+        {children}
+      </Comp>
+    );
+  }
+);
 
-export const Button: React.FC<ButtonProps> = ({
-  children,
-  variant = 'primary',
-  size = 'md',
-  type = 'button',
-  loading = false,
-  disabled,
-  className,
-  style,
-  ...props
-}) => {
-  const variantProps = variantMap[variant] || variantMap.primary;
-  const antSize = sizeMap[size] || 'middle';
+Button.displayName = 'Button';
 
-  return (
-    <AntButton
-      type={variantProps.type}
-      danger={variantProps.danger}
-      size={antSize}
-      loading={loading}
-      disabled={disabled}
-      className={className}
-      style={{ ...variantProps.style, ...style }}
-      htmlType={type}
-      {...props}
-    >
-      {children}
-    </AntButton>
-  );
-};
+export { buttonVariants };

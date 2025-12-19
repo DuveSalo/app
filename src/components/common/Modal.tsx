@@ -1,7 +1,12 @@
-
 import React from 'react';
-import { Modal as AntModal } from 'antd';
-import type { ModalProps as AntModalProps } from 'antd';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 interface ModalProps {
   isOpen: boolean;
@@ -10,13 +15,14 @@ interface ModalProps {
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   footer?: React.ReactNode;
+  className?: string;
 }
 
-const sizeMap: Record<string, number> = {
-  sm: 400,
-  md: 520,
-  lg: 720,
-  xl: 1000,
+const sizeClasses: Record<string, string> = {
+  sm: 'max-w-sm',
+  md: 'max-w-lg',
+  lg: 'max-w-2xl',
+  xl: 'max-w-4xl',
 };
 
 export const Modal: React.FC<ModalProps> = ({
@@ -26,32 +32,25 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   size = 'md',
   footer,
+  className,
 }) => {
   return (
-    <AntModal
-      open={isOpen}
-      onCancel={onClose}
-      title={title}
-      width={sizeMap[size]}
-      footer={footer}
-      centered
-      destroyOnHidden
-      styles={{
-        header: {
-          borderBottom: '1px solid #e5e7eb',
-          paddingBottom: 16,
-          marginBottom: 0,
-        },
-        body: {
-          padding: 24,
-        },
-        footer: {
-          borderTop: '1px solid #e5e7eb',
-          paddingTop: 16,
-        },
-      }}
-    >
-      {children}
-    </AntModal>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className={cn(sizeClasses[size], 'p-0 gap-0', className)}>
+        {title && (
+          <DialogHeader className="px-6 py-4 border-b border-zinc-200">
+            <DialogTitle className="text-lg font-semibold text-zinc-900">
+              {title}
+            </DialogTitle>
+          </DialogHeader>
+        )}
+        <div className="px-6 py-4">{children}</div>
+        {footer && (
+          <DialogFooter className="px-6 py-4 border-t border-zinc-200 bg-zinc-50 rounded-b-lg">
+            {footer}
+          </DialogFooter>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 };

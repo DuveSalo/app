@@ -91,12 +91,12 @@ const SubscriptionPage: React.FC = () => {
 
         if (!isPaymentFormValid()) {
             setError('Por favor, complete todos los campos de pago correctamente.');
-            const newErrors = Object.keys(paymentForm).reduce((acc, key) => {
+            const newErrors: Partial<typeof paymentErrors> = {};
+            for (const key of Object.keys(paymentForm)) {
                 const fieldKey = key as keyof typeof paymentForm;
-                const error = validatePaymentField(fieldKey, paymentForm[fieldKey]);
-                if(error) acc[fieldKey] = error;
-                return acc;
-            }, {} as typeof paymentErrors);
+                const error = validatePaymentField(key, paymentForm[fieldKey]);
+                if (error) newErrors[fieldKey] = error;
+            }
             setPaymentErrors(prev => ({...prev, ...newErrors}));
             return;
         }

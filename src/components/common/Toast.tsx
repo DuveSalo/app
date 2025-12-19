@@ -1,6 +1,6 @@
-
 import React, { createContext, useContext, useCallback } from 'react';
-import { message } from 'antd';
+import { toast, Toaster } from 'sonner';
+import { CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -22,37 +22,35 @@ export const useToast = () => {
   return context;
 };
 
+const toastConfig = {
+  success: {
+    icon: <CheckCircle className="h-5 w-5 text-emerald-600" />,
+    className: 'border-emerald-200 bg-emerald-50',
+  },
+  error: {
+    icon: <XCircle className="h-5 w-5 text-red-600" />,
+    className: 'border-red-200 bg-red-50',
+  },
+  warning: {
+    icon: <AlertTriangle className="h-5 w-5 text-amber-600" />,
+    className: 'border-amber-200 bg-amber-50',
+  },
+  info: {
+    icon: <Info className="h-5 w-5 text-blue-600" />,
+    className: 'border-blue-200 bg-blue-50',
+  },
+};
+
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [messageApi, contextHolder] = message.useMessage();
+  const showToast = useCallback((msg: string, type: ToastType = 'info') => {
+    const config = toastConfig[type];
 
-  const showToast = useCallback(
-    (msg: string, type: ToastType = 'info') => {
-      const config = {
-        content: msg,
-        duration: 5,
-        style: {
-          borderRadius: 12,
-        },
-      };
-
-      switch (type) {
-        case 'success':
-          messageApi.success(config);
-          break;
-        case 'error':
-          messageApi.error(config);
-          break;
-        case 'warning':
-          messageApi.warning(config);
-          break;
-        case 'info':
-        default:
-          messageApi.info(config);
-          break;
-      }
-    },
-    [messageApi]
-  );
+    toast(msg, {
+      icon: config.icon,
+      duration: 5000,
+      className: `${config.className} border rounded-lg shadow-lg`,
+    });
+  }, []);
 
   const showSuccess = useCallback((msg: string) => showToast(msg, 'success'), [showToast]);
   const showError = useCallback((msg: string) => showToast(msg, 'error'), [showToast]);
@@ -61,7 +59,15 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   return (
     <ToastContext.Provider value={{ showToast, showSuccess, showError, showInfo, showWarning }}>
-      {contextHolder}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            padding: '12px 16px',
+            fontSize: '14px',
+          },
+        }}
+      />
       {children}
     </ToastContext.Provider>
   );

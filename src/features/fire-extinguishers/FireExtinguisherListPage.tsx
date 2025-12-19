@@ -11,8 +11,11 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { FilterSort } from '../../components/common/FilterSort';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
-import { EditIcon, TrashIcon, PlusIcon, FireIcon } from '../../components/common/Icons';
+import { Empty, EmptySearch } from '../../components/common/Empty';
+import { EditIcon, TrashIcon, PlusIcon } from '../../components/common/Icons';
+import { Flame } from 'lucide-react';
 import PageLayout from '../../components/layout/PageLayout';
+import { formatDateLocal } from '../../lib/utils/dateUtils';
 
 const FireExtinguisherListPage: React.FC = () => {
   const [extinguishers, setExtinguishers] = useState<FireExtinguisherControl[]>([]);
@@ -112,17 +115,16 @@ const FireExtinguisherListPage: React.FC = () => {
           <LoadingSpinner size="lg" />
         </div>
       ) : extinguishers.length === 0 ? (
-        <div className="text-center py-16 flex flex-col items-center justify-center h-full bg-white rounded-xl border border-slate-300">
-          <div className="h-16 w-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-5">
-            <FireIcon className="w-8 h-8 text-slate-400" />
-          </div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-1.5">No hay controles registrados</h3>
-          <p className="text-sm text-slate-500 mb-6 max-w-sm">Comience registrando su primer control de extintor.</p>
-          <Button onClick={() => navigate(ROUTE_PATHS.NEW_FIRE_EXTINGUISHER)}>
-            <PlusIcon className="w-4 h-4 mr-2" />
-            Registrar primer control
-          </Button>
-        </div>
+          <Empty
+            icon={Flame}
+            title="No hay controles registrados"
+            description="Comience registrando su primer control de extintor."
+            size="lg"
+            action={{
+              label: "Registrar primer control",
+              onClick: () => navigate(ROUTE_PATHS.NEW_FIRE_EXTINGUISHER),
+            }}
+          />
       ) : (
         <>
           <FilterSort
@@ -135,9 +137,10 @@ const FireExtinguisherListPage: React.FC = () => {
           />
 
           {filteredAndSortedExtinguishers.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-300 p-12 text-center">
-              <p className="text-sm text-slate-500">No se encontraron extintores que coincidan con la búsqueda.</p>
-            </div>
+              <EmptySearch
+                query={searchQuery}
+                description="Intenta con otros términos de búsqueda."
+              />
           ) : (
         <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
           <Table>
@@ -159,8 +162,8 @@ const FireExtinguisherListPage: React.FC = () => {
                   <TableCell>{ext.type}</TableCell>
                   <TableCell>{ext.capacity} kg</TableCell>
                   <TableCell>Puesto {ext.positionNumber}</TableCell>
-                  <TableCell>{new Date(ext.controlDate).toLocaleDateString('es-AR')}</TableCell>
-                  <TableCell>{new Date(ext.chargeExpirationDate).toLocaleDateString('es-AR')}</TableCell>
+                  <TableCell>{formatDateLocal(ext.controlDate)}</TableCell>
+                  <TableCell>{formatDateLocal(ext.chargeExpirationDate)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-0.5">
                       <Button

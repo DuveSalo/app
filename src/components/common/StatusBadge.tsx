@@ -1,42 +1,59 @@
-
 import React from 'react';
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
+
+const badgeVariants = cva(
+  'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border',
+  {
+    variants: {
+      status: {
+        valid: 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
+        expiring: 'bg-amber-50 text-amber-700 border-amber-200/50',
+        expired: 'bg-red-50 text-red-700 border-red-200/50',
+      },
+    },
+    defaultVariants: {
+      status: 'valid',
+    },
+  }
+);
 
 const statusConfig = {
   valid: {
     label: 'Vigente',
-    bgColor: '#dcfce7',
-    textColor: '#15803d',
-    icon: <CheckCircle className="w-3.5 h-3.5" />,
+    icon: CheckCircle,
   },
   expiring: {
     label: 'Por vencer',
-    bgColor: '#fef3c7',
-    textColor: '#b45309',
-    icon: <Clock className="w-3.5 h-3.5" />,
+    icon: Clock,
   },
   expired: {
     label: 'Vencido',
-    bgColor: '#fee2e2',
-    textColor: '#dc2626',
-    icon: <AlertCircle className="w-3.5 h-3.5" />,
+    icon: AlertCircle,
   },
 };
 
-interface StatusBadgeProps {
+interface StatusBadgeProps extends VariantProps<typeof badgeVariants> {
   status: 'valid' | 'expiring' | 'expired';
+  className?: string;
+  showIcon?: boolean;
+  customLabel?: string;
 }
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
+export const StatusBadge: React.FC<StatusBadgeProps> = ({
+  status,
+  className,
+  showIcon = true,
+  customLabel,
+}) => {
   const config = statusConfig[status];
+  const Icon = config.icon;
 
   return (
-    <span
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
-      style={{ backgroundColor: config.bgColor, color: config.textColor }}
-    >
-      {config.icon}
-      {config.label}
+    <span className={cn(badgeVariants({ status }), className)}>
+      {showIcon && <Icon className="w-3.5 h-3.5" />}
+      {customLabel || config.label}
     </span>
   );
 };

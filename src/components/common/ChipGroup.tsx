@@ -1,30 +1,36 @@
-
 import React from 'react';
 import { cva } from 'class-variance-authority';
-import { clsx } from 'clsx';
 import { Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const chipVariants = cva(
-  'flex items-center justify-center px-4 py-2 text-sm font-medium border rounded-lg transition-all duration-200',
+  'flex items-center justify-center px-4 py-2 text-sm font-medium border rounded-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20 focus-visible:ring-offset-2',
   {
     variants: {
       isSelected: {
-        true: 'bg-gray-900 border-gray-900 text-white',
-        false: 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50',
+        true: 'bg-zinc-900 border-zinc-900 text-white',
+        false: 'bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50 hover:border-zinc-300',
       },
     },
   }
 );
 
-const Chip: React.FC<{
+interface ChipProps {
   label: string;
   isSelected: boolean;
   onSelect: () => void;
-}> = ({ label, isSelected, onSelect }) => (
+  disabled?: boolean;
+}
+
+const Chip: React.FC<ChipProps> = ({ label, isSelected, onSelect, disabled }) => (
   <button
     type="button"
     onClick={onSelect}
-    className={clsx(chipVariants({ isSelected }))}
+    disabled={disabled}
+    className={cn(
+      chipVariants({ isSelected }),
+      disabled && 'opacity-50 cursor-not-allowed'
+    )}
   >
     {isSelected && <Check className="w-4 h-4 mr-2" />}
     {label}
@@ -36,26 +42,31 @@ interface ChipGroupProps {
   selectedOptions: string[];
   onChange: (selected: string[]) => void;
   label?: string;
+  disabled?: boolean;
+  className?: string;
 }
 
-export const ChipGroup: React.FC<ChipGroupProps> = ({ 
-  options, 
-  selectedOptions, 
-  onChange, 
-  label 
+export const ChipGroup: React.FC<ChipGroupProps> = ({
+  options,
+  selectedOptions,
+  onChange,
+  label,
+  disabled,
+  className,
 }) => {
   const toggleOption = (option: string) => {
+    if (disabled) return;
     if (selectedOptions.includes(option)) {
-      onChange(selectedOptions.filter(item => item !== option));
+      onChange(selectedOptions.filter((item) => item !== option));
     } else {
       onChange([...selectedOptions, option]);
     }
   };
 
   return (
-    <div className="w-full">
+    <div className={cn('w-full', className)}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-zinc-700 mb-2">
           {label}
         </label>
       )}
@@ -66,11 +77,10 @@ export const ChipGroup: React.FC<ChipGroupProps> = ({
             label={option}
             isSelected={selectedOptions.includes(option)}
             onSelect={() => toggleOption(option)}
+            disabled={disabled}
           />
         ))}
       </div>
     </div>
   );
 };
-
-

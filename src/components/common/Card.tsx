@@ -1,59 +1,114 @@
-
 import React from 'react';
-import { Card as AntCard } from 'antd';
-import type { CardProps as AntCardProps } from 'antd';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
-export interface CardProps extends Omit<AntCardProps, 'size'> {
-  padding?: 'sm' | 'md' | 'lg' | 'xl' | 'none';
-  variant?: 'default' | 'elevated' | 'flat' | 'outline';
-  clickable?: boolean;
+const cardVariants = cva(
+  'bg-white rounded-xl border transition-all duration-200',
+  {
+    variants: {
+      variant: {
+        default: 'border-zinc-200 shadow-sm',
+        elevated: 'border-zinc-200 shadow-md hover:shadow-lg',
+        flat: 'border-zinc-200 shadow-none',
+        outline: 'border-zinc-200 shadow-none',
+      },
+      padding: {
+        none: 'p-0',
+        sm: 'p-4',
+        md: 'p-5',
+        lg: 'p-6',
+        xl: 'p-8',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      padding: 'md',
+    },
+  }
+);
+
+export interface CardProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof cardVariants> {
+  asChild?: boolean;
 }
 
-const paddingMap: Record<string, number | undefined> = {
-  sm: 16,
-  md: 20,
-  lg: 24,
-  xl: 32,
-  none: 0,
-};
+export const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, variant, padding, onClick, children, ...props }, ref) => {
+    const isClickable = !!onClick;
 
-export const Card: React.FC<CardProps> = ({
-  children,
-  className,
-  padding = 'md',
-  variant = 'default',
-  style,
-  onClick,
-  ...props
-}) => {
-  const isClickable = !!onClick;
-  const paddingValue = paddingMap[padding];
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          cardVariants({ variant, padding }),
+          isClickable && 'cursor-pointer hover:border-zinc-300',
+          className
+        )}
+        onClick={onClick}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
+);
 
-  const variantStyles: React.CSSProperties = {
-    default: { borderColor: '#e5e7eb' },
-    elevated: { boxShadow: '0 4px 12px -2px rgb(0 0 0 / 0.06), 0 8px 20px -4px rgb(0 0 0 / 0.04)', borderColor: '#e5e7eb' },
-    flat: { boxShadow: 'none', borderColor: '#e5e7eb' },
-    outline: { boxShadow: 'none', borderColor: '#e5e7eb' },
-  }[variant];
+Card.displayName = 'Card';
 
-  return (
-    <AntCard
-      className={className}
-      style={{
-        borderRadius: 12,
-        cursor: isClickable ? 'pointer' : undefined,
-        transition: 'all 0.2s ease',
-        ...variantStyles,
-        ...style,
-      }}
-      styles={{
-        body: { padding: paddingValue },
-      }}
-      onClick={onClick}
-      hoverable={isClickable}
-      {...props}
-    >
-      {children}
-    </AntCard>
-  );
-};
+// Additional card sub-components for more complex layouts
+export const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn('flex flex-col space-y-1.5 pb-4', className)}
+    {...props}
+  />
+));
+CardHeader.displayName = 'CardHeader';
+
+export const CardTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h3
+    ref={ref}
+    className={cn('text-lg font-semibold leading-none text-zinc-900', className)}
+    {...props}
+  />
+));
+CardTitle.displayName = 'CardTitle';
+
+export const CardDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={cn('text-sm text-zinc-500', className)}
+    {...props}
+  />
+));
+CardDescription.displayName = 'CardDescription';
+
+export const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn('', className)} {...props} />
+));
+CardContent.displayName = 'CardContent';
+
+export const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn('flex items-center pt-4', className)}
+    {...props}
+  />
+));
+CardFooter.displayName = 'CardFooter';

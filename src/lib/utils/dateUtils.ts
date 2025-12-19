@@ -40,13 +40,33 @@ export const calculateExpirationStatus = (
 };
 
 /**
+ * Formatea una fecha en formato YYYY-MM-DD para mostrar en la UI
+ * Evita problemas de timezone parseando la fecha como hora local
+ * @param dateString Fecha en formato ISO string (YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss)
+ * @param locale Locale para formato (default: 'es-AR')
+ * @returns Fecha formateada en formato local (ej: "12/12/2025")
+ */
+export const formatDateLocal = (dateString: string | null | undefined, locale: string = 'es-AR'): string => {
+  if (!dateString) return '-';
+
+  // Parse date as local time to avoid timezone issues
+  // If date is in YYYY-MM-DD format, add T00:00:00 to parse as local time
+  const dateStr = dateString.includes('T') ? dateString : `${dateString}T00:00:00`;
+  const date = new Date(dateStr);
+
+  return date.toLocaleDateString(locale);
+};
+
+/**
  * Formatea una fecha para mostrar en emails
  * @param date Fecha en formato ISO string
  * @param locale Locale para formato (default: 'es-AR')
  * @returns Fecha formateada
  */
 export const formatDateForEmail = (date: string, locale: string = 'es-AR'): string => {
-  return new Date(date).toLocaleDateString(locale, {
+  // Parse date as local time to avoid timezone issues
+  const dateStr = date.includes('T') ? date : `${date}T00:00:00`;
+  return new Date(dateStr).toLocaleDateString(locale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric'

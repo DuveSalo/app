@@ -5,7 +5,7 @@ import type {
   AuditFilters,
   AuditStats,
 } from '../../types/audit';
-import { Tables } from '../supabase/database.types';
+import { Tables } from '../../types/database.types';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('AuditAPI');
@@ -19,11 +19,11 @@ const mapAuditLogFromDb = (data: Tables<'audit_logs'>): AuditLog => {
     userId: data.user_id || '',
     companyId: data.company_id,
     action: data.action as AuditLog['action'],
-    tableName: data.entity_type,
-    recordId: data.entity_id || '',
-    oldData: data.old_values,
-    newData: data.new_values,
-    ipAddress: data.ip_address || '',
+    tableName: data.table_name as AuditLog['tableName'],
+    recordId: data.record_id || '',
+    oldData: data.old_data as Record<string, any> | null,
+    newData: data.new_data as Record<string, any> | null,
+    ipAddress: typeof data.ip_address === 'string' ? data.ip_address : '',
     userAgent: data.user_agent || '',
     createdAt: data.created_at,
   };
@@ -47,7 +47,7 @@ export const getAuditLogs = async (
       .range(offset, offset + limit - 1);
 
     if (filters?.tableName) {
-      query = query.eq('entity_type', filters.tableName);
+      query = query.eq('table_name', filters.tableName);
     }
     if (filters?.action) {
       query = query.eq('action', filters.action);
@@ -56,7 +56,7 @@ export const getAuditLogs = async (
       query = query.eq('user_id', filters.userId);
     }
     if (filters?.recordId) {
-      query = query.eq('entity_id', filters.recordId);
+      query = query.eq('record_id', filters.recordId);
     }
     if (filters?.dateFrom) {
       query = query.gte('created_at', filters.dateFrom);
@@ -87,8 +87,8 @@ export const getRecordHistory = async (
     const { data, error } = await supabase
       .from('audit_logs')
       .select('*')
-      .eq('entity_id', recordId)
-      .eq('entity_type', tableName)
+      .eq('record_id', recordId)
+      .eq('table_name', tableName)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -199,8 +199,9 @@ export const formatAuditValue = (value: any): string => {
   if (typeof value === 'boolean') return value ? 'Sí' : 'No';
   if (typeof value === 'object') return JSON.stringify(value);
   if (typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}/)) {
-    // Format date
-    return new Date(value).toLocaleDateString('es-AR');
+    // Format date - parse as local time to avoid timezone issues
+    const dateStr = value.includes('T') ? value : `${value}T00:00:00`;
+    return new Date(dateStr).toLocaleDateString('es-AR');
   }
   return String(value);
 };

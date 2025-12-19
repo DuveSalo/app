@@ -1,6 +1,6 @@
 
 // Type guards and safe type converters for database JSON types
-import type { Json } from '../supabase/database.types';
+import type { Json } from '../../types/database.types';
 import type { CompanyServices, PaymentMethod } from '../../types/company';
 
 /**
@@ -24,7 +24,7 @@ export const toPaymentMethods = (json: Json | null | undefined): PaymentMethod[]
     if (typeof item !== 'object' || !item) {
       throw new Error('Invalid payment method data');
     }
-    return item as PaymentMethod;
+    return item as unknown as PaymentMethod;
   });
 };
 

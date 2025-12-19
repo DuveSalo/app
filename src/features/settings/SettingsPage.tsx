@@ -14,6 +14,7 @@ import { EditIcon, TrashIcon } from '../../components/common/Icons';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { useToast } from '../../components/common/Toast';
 import PageLayout from '../../components/layout/PageLayout';
+import { formatDateLocal } from '../../lib/utils/dateUtils';
 
 const serviceOptions = [
   { value: QRDocumentType.Elevators, label: MODULE_TITLES.QR_ELEVATORS },
@@ -492,7 +493,7 @@ export const SettingsPage: React.FC = () => {
                             <p className="text-sm text-slate-500 mt-1">
                                 {currentCompany.subscriptionStatus === 'canceled'
                                     ? <span className="text-red-600 font-semibold">Cancelado</span>
-                                    : `Próxima facturación: ${currentCompany.subscriptionRenewalDate ? new Date(currentCompany.subscriptionRenewalDate).toLocaleDateString() : 'N/A'}`
+                                    : `Próxima facturación: ${formatDateLocal(currentCompany.subscriptionRenewalDate)}`
                                 }
                             </p>
                         </Card>

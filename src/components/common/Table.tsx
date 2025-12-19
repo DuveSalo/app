@@ -1,41 +1,106 @@
-
 import React from 'react';
-import { Table as AntTable } from 'antd';
-import type { TableProps as AntTableProps } from 'antd';
+import { cn } from '@/lib/utils';
 
-// Re-export Ant Design Table directly for advanced usage
-export { Table as AntTable } from 'antd';
-export type { TableProps as AntTableProps, ColumnsType } from 'antd/es/table';
-
-// Simple wrapper components for backward compatibility
-export const Table: React.FC<React.HTMLAttributes<HTMLTableElement>> = ({ className, children, ...props }) => (
-  <div className="overflow-x-auto">
-    <table className={`min-w-full divide-y divide-gray-200 ${className || ''}`} {...props}>
-      {children}
-    </table>
+// Simple HTML table components (no antd dependency)
+export const Table = React.forwardRef<
+  HTMLTableElement,
+  React.HTMLAttributes<HTMLTableElement>
+>(({ className, ...props }, ref) => (
+  <div className="relative w-full overflow-auto">
+    <table
+      ref={ref}
+      className={cn('w-full caption-bottom text-sm', className)}
+      {...props}
+    />
   </div>
-);
+));
+Table.displayName = 'Table';
 
-export const TableHeader: React.FC<React.HTMLAttributes<HTMLTableSectionElement>> = ({ className, ...props }) => (
-  <thead className={`bg-gray-50/50 ${className || ''}`} {...props} />
-);
+export const TableHeader = React.forwardRef<
+  HTMLTableSectionElement,
+  React.HTMLAttributes<HTMLTableSectionElement>
+>(({ className, ...props }, ref) => (
+  <thead ref={ref} className={cn('[&_tr]:border-b', className)} {...props} />
+));
+TableHeader.displayName = 'TableHeader';
 
-export const TableBody: React.FC<React.HTMLAttributes<HTMLTableSectionElement>> = ({ className, ...props }) => (
-  <tbody className={`bg-white divide-y divide-gray-200 ${className || ''}`} {...props} />
-);
-
-export const TableRow: React.FC<React.HTMLAttributes<HTMLTableRowElement>> = ({ className, ...props }) => (
-  <tr className={`transition-colors duration-150 ${className || ''}`} {...props} />
-);
-
-export const TableHead: React.FC<React.HTMLAttributes<HTMLTableCellElement>> = ({ className, ...props }) => (
-  <th
-    scope="col"
-    className={`px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${className || ''}`}
+export const TableBody = React.forwardRef<
+  HTMLTableSectionElement,
+  React.HTMLAttributes<HTMLTableSectionElement>
+>(({ className, ...props }, ref) => (
+  <tbody
+    ref={ref}
+    className={cn('[&_tr:last-child]:border-0', className)}
     {...props}
   />
-);
+));
+TableBody.displayName = 'TableBody';
 
-export const TableCell: React.FC<React.HTMLAttributes<HTMLTableCellElement>> = ({ className, ...props }) => (
-  <td className={`px-4 py-3.5 text-sm text-gray-700 ${className || ''}`} {...props} />
-);
+export const TableFooter = React.forwardRef<
+  HTMLTableSectionElement,
+  React.HTMLAttributes<HTMLTableSectionElement>
+>(({ className, ...props }, ref) => (
+  <tfoot
+    ref={ref}
+    className={cn('border-t bg-zinc-50/50 font-medium [&>tr]:last:border-b-0', className)}
+    {...props}
+  />
+));
+TableFooter.displayName = 'TableFooter';
+
+export const TableRow = React.forwardRef<
+  HTMLTableRowElement,
+  React.HTMLAttributes<HTMLTableRowElement>
+>(({ className, ...props }, ref) => (
+  <tr
+    ref={ref}
+    className={cn(
+      'border-b border-zinc-200 transition-colors hover:bg-zinc-50/50 data-[state=selected]:bg-zinc-100',
+      className
+    )}
+    {...props}
+  />
+));
+TableRow.displayName = 'TableRow';
+
+export const TableHead = React.forwardRef<
+  HTMLTableCellElement,
+  React.ThHTMLAttributes<HTMLTableCellElement>
+>(({ className, ...props }, ref) => (
+  <th
+    ref={ref}
+    className={cn(
+      'h-11 px-4 text-left align-middle font-medium text-zinc-500 text-xs uppercase tracking-wider bg-zinc-50/50 [&:has([role=checkbox])]:pr-0',
+      className
+    )}
+    {...props}
+  />
+));
+TableHead.displayName = 'TableHead';
+
+export const TableCell = React.forwardRef<
+  HTMLTableCellElement,
+  React.TdHTMLAttributes<HTMLTableCellElement>
+>(({ className, ...props }, ref) => (
+  <td
+    ref={ref}
+    className={cn(
+      'px-4 py-3.5 align-middle text-sm text-zinc-700 [&:has([role=checkbox])]:pr-0',
+      className
+    )}
+    {...props}
+  />
+));
+TableCell.displayName = 'TableCell';
+
+export const TableCaption = React.forwardRef<
+  HTMLTableCaptionElement,
+  React.HTMLAttributes<HTMLTableCaptionElement>
+>(({ className, ...props }, ref) => (
+  <caption
+    ref={ref}
+    className={cn('mt-4 text-sm text-zinc-500', className)}
+    {...props}
+  />
+));
+TableCaption.displayName = 'TableCaption';

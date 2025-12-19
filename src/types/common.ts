@@ -1,11 +1,12 @@
 // Common/shared types
 
+import type { ReactElement } from 'react';
 import { QRDocumentType } from './qr';
 
 export interface NavItem {
   path: string;
   label: string;
-  icon: React.ReactElement<{ className?: string }>;
+  icon: ReactElement<{ className?: string }>;
   service?: QRDocumentType;
 }
 

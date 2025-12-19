@@ -4,40 +4,48 @@ import { AlertTriangle } from 'lucide-react';
 import { Button } from './Button';
 import { logger } from '../../lib/utils/logger';
 
-interface Props {
+interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
 }
 
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false,
-    error: null
-  };
+// Using a class component with explicit typing to work around React 19 type issues
+class ErrorBoundaryClass extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    (this as any).state = {
+      hasError: false,
+      error: null
+    };
+    this.handleReset = this.handleReset.bind(this);
+  }
 
-  public static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     logger.error('ErrorBoundary caught an error', error, {
       componentStack: errorInfo.componentStack,
     });
   }
 
-  private handleReset = () => {
-    this.setState({ hasError: false, error: null });
-  };
+  handleReset() {
+    (this as any).setState({ hasError: false, error: null });
+  }
 
-  public render() {
-    if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback;
+  render() {
+    const { hasError, error } = (this as any).state;
+    const { children, fallback } = (this as any).props;
+
+    if (hasError) {
+      if (fallback) {
+        return fallback;
       }
 
       return (
@@ -52,13 +60,13 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="text-gray-600 mb-6">
               Lo sentimos, ocurrió un error inesperado. Por favor intenta recargar la página.
             </p>
-            {this.state.error && (
+            {error && (
               <details className="text-left mb-6 p-4 bg-gray-50 rounded-md">
                 <summary className="cursor-pointer text-sm font-medium text-gray-700 mb-2">
                   Detalles del error
                 </summary>
                 <p className="text-xs text-gray-600 font-mono break-all">
-                  {this.state.error.message}
+                  {error.message}
                 </p>
               </details>
             )}
@@ -81,8 +89,10 @@ export class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return this.props.children;
+    return children;
   }
 }
+
+export { ErrorBoundaryClass as ErrorBoundary };
 
 

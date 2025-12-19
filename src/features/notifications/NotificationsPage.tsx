@@ -134,7 +134,9 @@ const NotificationsPage: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-AR', {
+    // Parse date as local time to avoid timezone issues
+    const dateStr = dateString.includes('T') ? dateString : `${dateString}T00:00:00`;
+    return new Date(dateStr).toLocaleDateString('es-AR', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',

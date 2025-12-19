@@ -8,11 +8,14 @@ import { useAuth } from '../auth/AuthContext';
 import { Button } from '../../components/common/Button';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
-import { EditIcon, TrashIcon, PlusIcon, ExclamationTriangleIcon } from '../../components/common/Icons';
+import { Empty, EmptySearch } from '../../components/common/Empty';
+import { EditIcon, TrashIcon, PlusIcon } from '../../components/common/Icons';
+import { AlertTriangle } from 'lucide-react';
 import { FilterSort } from '../../components/common/FilterSort';
 import { useToast } from '../../components/common/Toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import PageLayout from '../../components/layout/PageLayout';
+import { formatDateLocal } from '../../lib/utils/dateUtils';
 
 const EventInformationListPage: React.FC = () => {
   const [events, setEvents] = useState<EventInformation[]>([]);
@@ -123,17 +126,16 @@ const EventInformationListPage: React.FC = () => {
           <LoadingSpinner size="lg" />
         </div>
       ) : events.length === 0 ? (
-        <div className="text-center py-16 flex flex-col items-center justify-center h-full bg-white rounded-xl border border-slate-300">
-          <div className="h-16 w-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-5">
-            <ExclamationTriangleIcon className="w-8 h-8 text-slate-400" />
-          </div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-1.5">No hay eventos registrados</h3>
-          <p className="text-sm text-slate-500 mb-6 max-w-sm">Comience registrando su primer evento o incidente.</p>
-          <Button onClick={() => navigate(ROUTE_PATHS.NEW_EVENT_INFORMATION)}>
-            <PlusIcon className="w-4 h-4 mr-2" />
-            Registrar primer evento
-          </Button>
-        </div>
+          <Empty
+            icon={AlertTriangle}
+            title="No hay eventos registrados"
+            description="Comience registrando su primer evento o incidente."
+            size="lg"
+            action={{
+              label: "Registrar primer evento",
+              onClick: () => navigate(ROUTE_PATHS.NEW_EVENT_INFORMATION),
+            }}
+          />
       ) : (
         <>
           <FilterSort
@@ -162,7 +164,7 @@ const EventInformationListPage: React.FC = () => {
                     className="hover:bg-slate-50 transition-colors"
                   >
                     <TableCell className="font-medium">{event.description}</TableCell>
-                    <TableCell className="text-center">{new Date(event.date).toLocaleDateString('es-AR')}</TableCell>
+                    <TableCell className="text-center">{formatDateLocal(event.date)}</TableCell>
                     <TableCell className="text-center">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200">
                         Registrado
@@ -196,9 +198,10 @@ const EventInformationListPage: React.FC = () => {
           </div>
 
           {filteredAndSortedEvents.length === 0 && events.length > 0 && (
-            <div className="text-center py-12 bg-white rounded-xl border border-slate-300">
-              <p className="text-sm text-slate-500">No se encontraron eventos con los filtros aplicados.</p>
-            </div>
+              <EmptySearch
+                query={searchQuery}
+                description="Intenta con otros términos de búsqueda."
+              />
           )}
         </>
       )}

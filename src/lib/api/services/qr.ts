@@ -2,7 +2,7 @@
 import { supabase } from '../../supabase/client';
 import { QRDocument, QRDocumentType } from '../../../types/index';
 import { mapQRDocumentFromDb } from '../mappers';
-import { AuthError, handleSupabaseError } from '../../utils/errors';
+import { AuthError, NotFoundError, handleSupabaseError } from '../../utils/errors';
 import { getCurrentUser } from './auth';
 import { getCompanyByUserId } from './company';
 

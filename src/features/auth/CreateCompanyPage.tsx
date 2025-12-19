@@ -59,8 +59,8 @@ const CreateCompanyPage: React.FC = () => {
     { value: QRDocumentType.DetectionSystem, label: MODULE_TITLES.QR_DETECTION },
     { value: QRDocumentType.ElectricalInstallations, label: MODULE_TITLES.ELECTRICAL_INSTALLATIONS },
   ];
-  const serviceLabelToValueMap = new Map(serviceOptions.map(o => [o.label, o.value]));
-  const serviceValueToLabelMap = new Map(serviceOptions.map(o => [o.value, o.label]));
+  const serviceLabelToValueMap = new Map<string, QRDocumentType>(serviceOptions.map(o => [o.label, o.value]));
+  const serviceValueToLabelMap = new Map<QRDocumentType, string>(serviceOptions.map(o => [o.value, o.label]));
 
   const validateField = (name: string, value: string): string => {
     switch (name) {
@@ -102,7 +102,9 @@ const CreateCompanyPage: React.FC = () => {
   };
   
   const handleServiceChange = (selectedLabels: string[]) => {
-    const newSelectedServices = selectedLabels.map(label => serviceLabelToValueMap.get(label)!);
+    const newSelectedServices = selectedLabels
+      .map(label => serviceLabelToValueMap.get(label))
+      .filter((v): v is QRDocumentType => v !== undefined);
     setSelectedServices(newSelectedServices);
   };
 
@@ -119,12 +121,12 @@ const CreateCompanyPage: React.FC = () => {
     if (!isFormValid()) {
         setError("Por favor, complete todos los campos requeridos correctamente.");
         // Trigger validation for all fields to show errors
-        const newErrors = Object.keys(formData).reduce((acc, key) => {
+        const newErrors: Partial<typeof formErrors> = {};
+        for (const key of Object.keys(formData)) {
             const fieldKey = key as keyof typeof formData;
-            const error = validateField(fieldKey, formData[fieldKey]);
-            if(error) acc[fieldKey] = error;
-            return acc;
-        }, {} as typeof formErrors);
+            const error = validateField(key, formData[fieldKey]);
+            if (error) newErrors[fieldKey] = error;
+        }
         setFormErrors(prev => ({...prev, ...newErrors}));
         return;
     }

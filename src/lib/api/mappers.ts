@@ -1,6 +1,6 @@
 // Database to domain type mappers
 import type { Company, Employee, ConservationCertificate, SelfProtectionSystem, QRDocument, QRDocumentType, EventInformation } from '../../types';
-import type { Tables } from '../supabase/database.types';
+import type { Tables } from '../../types/database.types';
 import { toCompanyServices, toPaymentMethods, toStringArray, toBooleanRecord } from '../utils/typeGuards';
 
 /**

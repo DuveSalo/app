@@ -24,9 +24,12 @@
       "Bash(npm run build:*)",
       "Bash(find:*)",
       "Bash(npx tsc:*)",
-      "mcp__supabase__apply_migration"
+      "mcp__supabase__apply_migration",
+      "Bash(dir /s \"c:\\Users\\david\\OneDrive\\Escritorio\\app\\supabase\\functions\")",
+      "Bash(npx shadcn@latest add:*)"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "supabase"
   ]

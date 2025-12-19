@@ -38,7 +38,9 @@ export const downloadEventPDF = async (event: EventInformation, companyName: str
   doc.text(`Empresa: ${companyName}`, margin, y);
   y += 8;
 
-  const eventDate = new Date(event.date).toLocaleDateString('es-AR', { timeZone: 'UTC' });
+  // Parse date as local time to avoid timezone issues
+  const dateStr = event.date.includes('T') ? event.date : `${event.date}T00:00:00`;
+  const eventDate = new Date(dateStr).toLocaleDateString('es-AR');
   doc.text(`Fecha y Hora: ${eventDate} - ${event.time}`, margin, y);
   y += 8;
 

@@ -12,8 +12,11 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { FilterSort } from '../../components/common/FilterSort';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/common/Table';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { EditIcon, TrashIcon, PlusIcon, ShieldCheckIcon, EyeIcon, ChevronDownIcon } from '../../components/common/Icons';
+import { Empty, EmptySearch } from '../../components/common/Empty';
+import { EditIcon, TrashIcon, PlusIcon, EyeIcon, ChevronDownIcon } from '../../components/common/Icons';
+import { ShieldCheck } from 'lucide-react';
 import PageLayout from '../../components/layout/PageLayout';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../components/ui/accordion';
 import { calculateExpirationStatus } from '../../lib/utils/dateUtils';
 import { ExpirationStatus } from '../../types/expirable';
 
@@ -161,19 +164,16 @@ const SelfProtectionSystemListPage: React.FC = () => {
           <LoadingSpinner size="lg" />
         </div>
       ) : systems.length === 0 ? (
-        <div className="text-center py-16 flex flex-col items-center justify-center h-full bg-white rounded-xl border border-slate-300">
-          <div className="h-16 w-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-5">
-            <ShieldCheckIcon className="w-8 h-8 text-slate-400" />
-          </div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-1.5">No hay sistemas registrados</h3>
-          <p className="text-sm text-slate-500 mb-6 max-w-sm">
-            Comience registrando su primer sistema de autoprotección para mantener el control de vencimientos.
-          </p>
-          <Button onClick={() => navigate(ROUTE_PATHS.NEW_SELF_PROTECTION_SYSTEM)}>
-            <PlusIcon className="w-4 h-4 mr-2" />
-            Crear primer sistema
-          </Button>
-        </div>
+          <Empty
+            icon={ShieldCheck}
+            title="No hay sistemas registrados"
+            description="Comience registrando su primer sistema de autoprotección para mantener el control de vencimientos."
+            size="lg"
+            action={{
+              label: "Crear primer sistema",
+              onClick: () => navigate(ROUTE_PATHS.NEW_SELF_PROTECTION_SYSTEM),
+            }}
+          />
       ) : (
         <>
           <FilterSort
@@ -301,28 +301,38 @@ const SelfProtectionSystemListPage: React.FC = () => {
                               {/* Simulacros */}
                               {sys.drills && sys.drills.length > 0 && (
                                 <div className="pt-2">
-                                  <h4 className="text-sm font-medium text-slate-700 mb-3">Simulacros:</h4>
-                                  <div className="space-y-2">
-                                    {sys.drills.map((drill, idx) => (
-                                      <div key={idx} className="flex items-center justify-between py-2 pl-4 border-l-2 border-slate-300">
-                                        <div className="flex-1">
-                                          <span className="text-sm text-slate-600">Simulacro {idx + 1}:</span>
-                                          <span className="ml-2 text-sm text-slate-600">{new Date(drill.date + 'T00:00:00').toLocaleDateString('es-AR')}</span>
+                                  <Accordion type="single" collapsible className="w-full">
+                                    <AccordionItem value="drills" className="border-none">
+                                      <AccordionTrigger className="py-2 hover:no-underline">
+                                        <span className="text-sm font-medium text-slate-700">
+                                          Simulacros ({sys.drills.length})
+                                        </span>
+                                      </AccordionTrigger>
+                                      <AccordionContent>
+                                        <div className="space-y-2 pt-2">
+                                          {sys.drills.map((drill, idx) => (
+                                            <div key={idx} className="flex items-center justify-between py-2 pl-4 border-l-2 border-slate-300">
+                                              <div className="flex-1">
+                                                <span className="text-sm text-slate-600">Simulacro {idx + 1}:</span>
+                                                <span className="ml-2 text-sm text-slate-600">{new Date(drill.date + 'T00:00:00').toLocaleDateString('es-AR')}</span>
+                                              </div>
+                                              {drill.pdfUrl && (
+                                                <button
+                                                  type="button"
+                                                  className="inline-flex items-center justify-center px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                                  onClick={() => window.open(drill.pdfUrl, '_blank')}
+                                                  title="Ver PDF"
+                                                >
+                                                  <EyeIcon className="w-4 h-4 mr-1.5" />
+                                                  Ver PDF
+                                                </button>
+                                              )}
+                                            </div>
+                                          ))}
                                         </div>
-                                        {drill.pdfUrl && (
-                                          <button
-                                            type="button"
-                                            className="inline-flex items-center justify-center px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-                                            onClick={() => window.open(drill.pdfUrl, '_blank')}
-                                            title="Ver PDF"
-                                          >
-                                            <EyeIcon className="w-4 h-4 mr-1.5" />
-                                            Ver PDF
-                                          </button>
-                                        )}
-                                      </div>
-                                    ))}
-                                  </div>
+                                      </AccordionContent>
+                                    </AccordionItem>
+                                  </Accordion>
                                 </div>
                               )}
                             </div>
@@ -337,9 +347,10 @@ const SelfProtectionSystemListPage: React.FC = () => {
           </div>
 
           {filteredAndSortedSystems.length === 0 && systems.length > 0 && (
-            <div className="text-center py-12 bg-white rounded-xl border border-slate-300">
-              <p className="text-sm text-slate-500">No se encontraron sistemas con los filtros aplicados.</p>
-            </div>
+              <EmptySearch
+                query={searchQuery}
+                description="Intenta con otros términos de búsqueda o filtros."
+              />
           )}
         </>
       )}
