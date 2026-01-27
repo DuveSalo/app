@@ -72,16 +72,16 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               <Icon className={cn('h-6 w-6', styles.iconColor)} />
             </div>
             <div className="flex-1 min-w-0">
-              <AlertDialogTitle className="text-base font-semibold text-zinc-900 mb-1">
+              <AlertDialogTitle className="text-base font-semibold text-gray-900 mb-1">
                 {title}
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-sm text-zinc-500 leading-relaxed">
+              <AlertDialogDescription className="text-sm text-gray-500 leading-relaxed">
                 {message}
               </AlertDialogDescription>
             </div>
           </div>
         </AlertDialogHeader>
-        <AlertDialogFooter className="px-6 py-4 border-t border-zinc-200 bg-zinc-50 rounded-b-lg flex gap-2">
+        <AlertDialogFooter className="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg flex gap-2">
           <Button
             variant="outline"
             onClick={onClose}

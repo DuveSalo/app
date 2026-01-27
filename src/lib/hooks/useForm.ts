@@ -7,7 +7,7 @@ interface UseFormOptions<T> {
   onSubmit: (values: T) => void;
 }
 
-export const useForm = <T extends Record<string, any>>({ initialValues, validate, onSubmit }: UseFormOptions<T>) => {
+export const useForm = <T extends Record<string, unknown>>({ initialValues, validate, onSubmit }: UseFormOptions<T>) => {
   const [values, setValues] = useState<T>(initialValues);
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});
   const [touched, setTouched] = useState<Partial<Record<keyof T, boolean>>>({});
@@ -46,7 +46,7 @@ export const useForm = <T extends Record<string, any>>({ initialValues, validate
     setIsSubmitting(false);
   }, [values, initialValues, validate, onSubmit]);
 
-  const setFieldValue = useCallback((field: keyof T, value: any) => {
+  const setFieldValue = useCallback((field: keyof T, value: T[keyof T]) => {
     setValues(prev => ({ ...prev, [field]: value }));
   }, []);
 

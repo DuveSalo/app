@@ -4,6 +4,7 @@ import { Company, Employee, PaymentDetails } from '../../../types/index';
 import { mapCompanyFromDb } from '../mappers';
 import { AuthError, NotFoundError, handleSupabaseError } from '../../utils/errors';
 import { getCurrentUser } from './auth';
+import { TablesUpdate } from '../../../types/database.types';
 
 export const createCompany = async (companyData: Omit<Company, 'id' | 'userId' | 'employees' | 'isSubscribed' | 'selectedPlan'>): Promise<Company> => {
   const currentUser = await getCurrentUser();
@@ -77,7 +78,7 @@ export const getCompanyByUserId = async (userId: string): Promise<Company> => {
 export const updateCompany = async (companyData: Partial<Company>): Promise<Company> => {
   if (!companyData.id) throw new Error("ID de empresa requerido");
 
-  const updateData: any = {};
+  const updateData: TablesUpdate<'companies'> = {};
   if (companyData.name) updateData.name = companyData.name;
   if (companyData.cuit) updateData.cuit = companyData.cuit;
   if (companyData.address) updateData.address = companyData.address;
@@ -96,7 +97,7 @@ export const updateCompany = async (companyData: Partial<Company>): Promise<Comp
   if (companyData.services !== undefined) {
     updateData.services = companyData.services;
   }
-  if (companyData.paymentMethods) updateData.payment_methods = companyData.paymentMethods;
+  if (companyData.paymentMethods) updateData.payment_methods = JSON.parse(JSON.stringify(companyData.paymentMethods));
 
   const { data, error } = await supabase
     .from('companies')

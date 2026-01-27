@@ -8,9 +8,9 @@ const itemVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-white border border-zinc-200 hover:bg-zinc-50',
-        ghost: 'hover:bg-zinc-100',
-        filled: 'bg-zinc-50 hover:bg-zinc-100',
+        default: 'bg-white border border-gray-200 hover:bg-gray-50',
+        ghost: 'hover:bg-gray-100',
+        filled: 'bg-gray-50 hover:bg-gray-100',
       },
       size: {
         sm: 'p-3',
@@ -72,22 +72,22 @@ export const Item = React.forwardRef<HTMLDivElement, ItemProps>(
       >
         {Icon && (
           <div className={cn(
-            'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-zinc-100',
+            'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100',
             iconClassName
           )}>
-            <Icon className="h-5 w-5 text-zinc-600" />
+            <Icon className="h-5 w-5 text-gray-600" />
           </div>
         )}
 
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-zinc-900 truncate">{title}</p>
+          <p className="text-sm font-medium text-gray-900 truncate">{title}</p>
           {description && (
-            <p className="text-sm text-zinc-500 truncate">{description}</p>
+            <p className="text-sm text-gray-500 truncate">{description}</p>
           )}
         </div>
 
         {meta && (
-          <div className="shrink-0 text-sm text-zinc-500">
+          <div className="shrink-0 text-sm text-gray-500">
             {meta}
           </div>
         )}
@@ -99,7 +99,7 @@ export const Item = React.forwardRef<HTMLDivElement, ItemProps>(
         )}
 
         {showArrow && isInteractive && (
-          <ChevronRight className="h-5 w-5 shrink-0 text-zinc-400" />
+          <ChevronRight className="h-5 w-5 shrink-0 text-gray-400" />
         )}
       </div>
     );
@@ -123,7 +123,7 @@ export const ItemList: React.FC<ItemListProps> = ({
   return (
     <div className={cn(
       'space-y-2',
-      divided && 'space-y-0 divide-y divide-zinc-200',
+      divided && 'space-y-0 divide-y divide-gray-200',
       className
     )}>
       {children}
@@ -148,18 +148,18 @@ export const SelectableItem: React.FC<SelectableItemProps> = ({
       {...props}
       onClick={onSelect}
       className={cn(
-        selected && 'ring-2 ring-zinc-900 ring-offset-2',
+        selected && 'ring-2 ring-gray-900 ring-offset-2',
         className
       )}
       action={
         selected ? (
-          <div className="h-5 w-5 rounded-full bg-zinc-900 flex items-center justify-center">
+          <div className="h-5 w-5 rounded-full bg-gray-900 flex items-center justify-center">
             <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
         ) : (
-          <div className="h-5 w-5 rounded-full border-2 border-zinc-300" />
+          <div className="h-5 w-5 rounded-full border-2 border-gray-300" />
         )
       }
     />

@@ -32,7 +32,7 @@ export const Field: React.FC<FieldProps> = ({
         <label
           htmlFor={htmlFor}
           className={cn(
-            'block text-sm font-medium text-zinc-700',
+            'block text-sm font-medium text-gray-700',
             !horizontal && 'mb-1.5',
             horizontal && 'sm:pt-2.5'
           )}
@@ -47,7 +47,7 @@ export const Field: React.FC<FieldProps> = ({
           <p className="mt-1.5 text-sm text-red-600">{error}</p>
         )}
         {helperText && !error && (
-          <p className="mt-1.5 text-sm text-zinc-500">{helperText}</p>
+          <p className="mt-1.5 text-sm text-gray-500">{helperText}</p>
         )}
       </div>
     </div>
@@ -71,12 +71,12 @@ export const FieldGroup: React.FC<FieldGroupProps> = ({
   return (
     <div className={cn('space-y-6', className)}>
       {(title || description) && (
-        <div className="border-b border-zinc-200 pb-4">
+        <div className="border-b border-gray-200 pb-4">
           {title && (
-            <h3 className="text-base font-semibold text-zinc-900">{title}</h3>
+            <h3 className="text-base font-semibold text-gray-900">{title}</h3>
           )}
           {description && (
-            <p className="mt-1 text-sm text-zinc-500">{description}</p>
+            <p className="mt-1 text-sm text-gray-500">{description}</p>
           )}
         </div>
       )}

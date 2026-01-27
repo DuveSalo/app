@@ -42,7 +42,7 @@ export const TableFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tfoot
     ref={ref}
-    className={cn('border-t bg-zinc-50/50 font-medium [&>tr]:last:border-b-0', className)}
+    className={cn('border-t bg-gray-50/50 font-medium [&>tr]:last:border-b-0', className)}
     {...props}
   />
 ));
@@ -55,7 +55,7 @@ export const TableRow = React.forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'border-b border-zinc-200 transition-colors hover:bg-zinc-50/50 data-[state=selected]:bg-zinc-100',
+      'border-b border-gray-200 transition-colors hover:bg-gray-50/50 data-[state=selected]:bg-gray-100',
       className
     )}
     {...props}
@@ -70,7 +70,7 @@ export const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      'h-11 px-4 text-left align-middle font-medium text-zinc-500 text-xs uppercase tracking-wider bg-zinc-50/50 [&:has([role=checkbox])]:pr-0',
+      'h-11 px-4 text-left align-middle font-medium text-gray-500 text-xs uppercase tracking-wider bg-gray-50/50 [&:has([role=checkbox])]:pr-0',
       className
     )}
     {...props}
@@ -85,7 +85,7 @@ export const TableCell = React.forwardRef<
   <td
     ref={ref}
     className={cn(
-      'px-4 py-3.5 align-middle text-sm text-zinc-700 [&:has([role=checkbox])]:pr-0',
+      'px-4 py-3.5 align-middle text-sm text-gray-700 [&:has([role=checkbox])]:pr-0',
       className
     )}
     {...props}
@@ -99,7 +99,7 @@ export const TableCaption = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <caption
     ref={ref}
-    className={cn('mt-4 text-sm text-zinc-500', className)}
+    className={cn('mt-4 text-sm text-gray-500', className)}
     {...props}
   />
 ));

@@ -5,6 +5,7 @@ import { mapCertificateFromDb } from '../mappers';
 import { AuthError, NotFoundError, handleSupabaseError } from '../../utils/errors';
 import { getCurrentUser } from './auth';
 import { getCompanyByUserId } from './company';
+import { TablesUpdate } from '../../../types/database.types';
 
 export const getCertificates = async (companyId?: string): Promise<ConservationCertificate[]> => {
   let finalCompanyId = companyId;
@@ -144,7 +145,7 @@ export const updateCertificate = async (certData: ConservationCertificate): Prom
     }
   }
 
-  const updateData: any = {
+  const updateData: TablesUpdate<'conservation_certificates'> = {
     presentation_date: certData.presentationDate,
     expiration_date: certData.expirationDate,
     intervener: certData.intervener,

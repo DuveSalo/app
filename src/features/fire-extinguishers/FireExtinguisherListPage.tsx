@@ -34,8 +34,9 @@ const FireExtinguisherListPage: React.FC = () => {
     try {
       const data = await api.getFireExtinguishers(currentCompany.id);
       setExtinguishers(data);
-    } catch (err: any) {
-      showError(err.message || "Error al cargar extintores");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error al cargar extintores";
+      showError(message);
     } finally {
       setIsLoading(false);
     }
@@ -53,8 +54,9 @@ const FireExtinguisherListPage: React.FC = () => {
       showSuccess("Extintor eliminado correctamente");
       setDeleteId(null);
       loadExtinguishers();
-    } catch (err: any) {
-      showError(err.message || "Error al eliminar extintor");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error al eliminar extintor";
+      showError(message);
     } finally {
       setIsDeleting(false);
     }
@@ -76,8 +78,11 @@ const FireExtinguisherListPage: React.FC = () => {
     // Sort
     const [field, direction] = sortBy.split('-');
     result.sort((a, b) => {
-      let aVal: any = a[field as keyof FireExtinguisherControl];
-      let bVal: any = b[field as keyof FireExtinguisherControl];
+      const aRaw = a[field as keyof FireExtinguisherControl];
+      const bRaw = b[field as keyof FireExtinguisherControl];
+
+      let aVal: string | number = typeof aRaw === 'string' ? aRaw : String(aRaw);
+      let bVal: string | number = typeof bRaw === 'string' ? bRaw : String(bRaw);
 
       if (field === 'controlDate' || field === 'chargeExpirationDate') {
         aVal = new Date(aVal).getTime();
@@ -142,54 +147,105 @@ const FireExtinguisherListPage: React.FC = () => {
                 description="Intenta con otros términos de búsqueda."
               />
           ) : (
-        <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>N° Extintor</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Capacidad</TableHead>
-                <TableHead>Ubicación</TableHead>
-                <TableHead>Fecha Control</TableHead>
-                <TableHead>Venc. Carga</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredAndSortedExtinguishers.map((ext) => (
-                <TableRow key={ext.id} className="hover:bg-slate-50 transition-colors">
-                  <TableCell className="font-medium">{ext.extinguisherNumber}</TableCell>
-                  <TableCell>{ext.type}</TableCell>
-                  <TableCell>{ext.capacity} kg</TableCell>
-                  <TableCell>Puesto {ext.positionNumber}</TableCell>
-                  <TableCell>{formatDateLocal(ext.controlDate)}</TableCell>
-                  <TableCell>{formatDateLocal(ext.chargeExpirationDate)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-0.5">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => navigate(`${ROUTE_PATHS.FIRE_EXTINGUISHERS}/${ext.id}/edit`)}
-                        title="Editar"
-                      >
-                        <EditIcon className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDeleteId(ext.id)}
-                        title="Eliminar"
-                        className="text-red-500 hover:bg-red-50 hover:text-red-600"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </Button>
+            <>
+              {/* Desktop Table */}
+              <div className="bg-white rounded-xl border border-slate-300 overflow-hidden hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>N° Extintor</TableHead>
+                      <TableHead className="hidden lg:table-cell">Tipo</TableHead>
+                      <TableHead className="hidden lg:table-cell">Capacidad</TableHead>
+                      <TableHead>Ubicación</TableHead>
+                      <TableHead className="hidden sm:table-cell">Fecha Control</TableHead>
+                      <TableHead className="hidden xl:table-cell">Venc. Carga</TableHead>
+                      <TableHead className="text-right">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredAndSortedExtinguishers.map((ext) => (
+                      <TableRow key={ext.id} className="hover:bg-slate-50 transition-colors">
+                        <TableCell className="font-medium">{ext.extinguisherNumber}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{ext.type}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{ext.capacity} kg</TableCell>
+                        <TableCell>Puesto {ext.positionNumber}</TableCell>
+                        <TableCell className="hidden sm:table-cell">{formatDateLocal(ext.controlDate)}</TableCell>
+                        <TableCell className="hidden xl:table-cell">{formatDateLocal(ext.chargeExpirationDate)}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-0.5">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(`${ROUTE_PATHS.FIRE_EXTINGUISHERS}/${ext.id}/edit`)}
+                              title="Editar"
+                            >
+                              <EditIcon className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setDeleteId(ext.id)}
+                              title="Eliminar"
+                              className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                            >
+                              <TrashIcon className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden space-y-3">
+                {filteredAndSortedExtinguishers.map((ext) => (
+                  <div
+                    key={ext.id}
+                    className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm"
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div>
+                        <p className="font-semibold text-gray-900">{ext.extinguisherNumber}</p>
+                        <p className="text-sm text-gray-500">{ext.type} - {ext.capacity} kg</p>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(`${ROUTE_PATHS.FIRE_EXTINGUISHERS}/${ext.id}/edit`)}
+                        >
+                          <EditIcon className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDeleteId(ext.id)}
+                          className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <p className="text-gray-400 text-xs">Ubicación</p>
+                        <p className="text-gray-700">Puesto {ext.positionNumber}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400 text-xs">Fecha Control</p>
+                        <p className="text-gray-700">{formatDateLocal(ext.controlDate)}</p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="text-gray-400 text-xs">Venc. Carga</p>
+                        <p className="text-gray-700">{formatDateLocal(ext.chargeExpirationDate)}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </>
       )}

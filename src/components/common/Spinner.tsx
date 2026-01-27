@@ -14,10 +14,10 @@ const spinnerVariants = cva(
         xl: 'h-12 w-12',
       },
       color: {
-        default: 'text-zinc-600',
-        primary: 'text-zinc-900',
+        default: 'text-gray-600',
+        primary: 'text-gray-900',
         white: 'text-white',
-        muted: 'text-zinc-400',
+        muted: 'text-gray-400',
       },
     },
     defaultVariants: {
@@ -49,7 +49,7 @@ export const Spinner: React.FC<SpinnerProps> = ({
     >
       <div className={cn(spinnerVariants({ size, color }))} />
       {label && (
-        <span className="ml-2 text-sm text-zinc-500">{label}</span>
+        <span className="ml-2 text-sm text-gray-500">{label}</span>
       )}
       <span className="sr-only">{label || 'Cargando...'}</span>
     </div>
@@ -62,7 +62,7 @@ export const PageSpinner: React.FC<{ message?: string }> = ({ message }) => {
     <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
       <Spinner size="lg" />
       {message && (
-        <p className="text-sm text-zinc-500 animate-pulse">{message}</p>
+        <p className="text-sm text-gray-500 animate-pulse">{message}</p>
       )}
     </div>
   );
@@ -74,7 +74,7 @@ export const InlineSpinner: React.FC<{ text?: string; className?: string }> = ({
   className,
 }) => {
   return (
-    <span className={cn('inline-flex items-center gap-2 text-sm text-zinc-500', className)}>
+    <span className={cn('inline-flex items-center gap-2 text-sm text-gray-500', className)}>
       <Spinner size="sm" />
       {text}
     </span>
@@ -93,7 +93,7 @@ export const OverlaySpinner: React.FC<{ message?: string }> = ({ message }) => {
       <div className="flex flex-col items-center gap-3">
         <Spinner size="lg" />
         {message && (
-          <p className="text-sm font-medium text-zinc-700">{message}</p>
+          <p className="text-sm font-medium text-gray-700">{message}</p>
         )}
       </div>
     </div>

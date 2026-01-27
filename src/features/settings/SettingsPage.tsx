@@ -336,13 +336,13 @@ export const SettingsPage: React.FC = () => {
   return (
     <PageLayout title="Configuración" footer={footerContent}>
         <div className="flex flex-col h-full">
-            <div className="border-b border-slate-200 flex-shrink-0">
-                <nav className="-mb-px flex space-x-6">
+            <div className="border-b border-slate-200 flex-shrink-0 overflow-x-auto">
+                <nav className="-mb-px flex space-x-2 sm:space-x-6 min-w-max">
                 {tabs.map((tab) => (
                     <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`py-2.5 px-1 border-b-2 font-medium text-sm transition-colors focus:outline-none ${activeTab === tab.id ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}
+                    className={`py-2 sm:py-2.5 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors focus:outline-none whitespace-nowrap ${activeTab === tab.id ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}
                     >{tab.label}</button>
                 ))}
                 </nav>
@@ -442,11 +442,13 @@ export const SettingsPage: React.FC = () => {
                 
                 {activeTab === 'employees' && (
                     <div className="h-full flex flex-col">
-                        <div className="flex justify-between items-center mb-6 flex-shrink-0">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4 sm:mb-6 flex-shrink-0">
                             <h2 className="text-base font-semibold text-slate-900">Empleados</h2>
-                            <Button onClick={() => openEmployeeModal()}>Agregar empleado</Button>
+                            <Button onClick={() => openEmployeeModal()} className="w-full sm:w-auto">Agregar empleado</Button>
                         </div>
-                        <div className="overflow-y-auto flex-grow min-h-0 border border-slate-200/60 rounded-xl bg-white">
+
+                        {/* Desktop Table */}
+                        <div className="overflow-y-auto flex-grow min-h-0 border border-gray-200 rounded-xl bg-white shadow-sm hidden md:block">
                             <table className="min-w-full divide-y divide-slate-100">
                                 <thead className="bg-slate-50/50 sticky top-0">
                                     <tr>
@@ -479,11 +481,34 @@ export const SettingsPage: React.FC = () => {
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* Mobile Cards */}
+                        <div className="md:hidden space-y-3 flex-grow overflow-y-auto">
+                            {currentCompany.employees.map((employee) => (
+                                <div key={employee.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                                    <div className="flex items-start justify-between gap-3 mb-2">
+                                        <div className="min-w-0 flex-1">
+                                            <p className="font-medium text-gray-900 truncate">{employee.name}</p>
+                                            <p className="text-sm text-gray-500 truncate">{employee.email}</p>
+                                        </div>
+                                        <div className="flex gap-1 flex-shrink-0">
+                                            <Button variant="ghost" size="sm" onClick={() => openEmployeeModal(employee)} disabled={isLoading}><EditIcon className="w-4 h-4" /></Button>
+                                            {currentUser.email !== employee.email && (
+                                                <Button variant="ghost" size="sm" onClick={() => handleDeleteEmployee(employee)} className="text-red-500 hover:bg-red-50 hover:text-red-600" disabled={isLoading}><TrashIcon className="w-4 h-4" /></Button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-md ${employee.role === 'Administrador' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                                        {employee.role}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
 
                 {activeTab === 'billing' && (
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                         <h2 className="text-base font-semibold text-slate-900">Facturación</h2>
                         <Card>
                             <h3 className="text-sm font-semibold text-slate-900">Plan actual</h3>
@@ -497,10 +522,10 @@ export const SettingsPage: React.FC = () => {
                                 }
                             </p>
                         </Card>
-                        <div className="flex gap-3">
-                            <Button variant="outline" onClick={() => { setBillingAction('change'); setShowBillingModal(true); }}>Cambiar plan</Button>
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                            <Button variant="outline" onClick={() => { setBillingAction('change'); setShowBillingModal(true); }} className="w-full sm:w-auto">Cambiar plan</Button>
                             {currentCompany.subscriptionStatus !== 'canceled' &&
-                            <Button variant="danger" onClick={() => { setBillingAction('cancel'); setShowBillingModal(true); }}>Cancelar suscripción</Button>
+                            <Button variant="danger" onClick={() => { setBillingAction('cancel'); setShowBillingModal(true); }} className="w-full sm:w-auto">Cancelar suscripción</Button>
                             }
                         </div>
                     </div>

@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 // Heading component
-const headingVariants = cva('font-semibold text-zinc-900 tracking-tight', {
+const headingVariants = cva('font-semibold text-gray-900 tracking-tight', {
   variants: {
     level: {
       1: 'text-3xl lg:text-4xl',
@@ -61,10 +61,10 @@ const textVariants = cva('', {
       bold: 'font-bold',
     },
     color: {
-      default: 'text-zinc-900',
-      secondary: 'text-zinc-600',
-      muted: 'text-zinc-500',
-      light: 'text-zinc-400',
+      default: 'text-gray-900',
+      secondary: 'text-gray-600',
+      muted: 'text-gray-500',
+      light: 'text-gray-400',
       success: 'text-emerald-600',
       warning: 'text-amber-600',
       danger: 'text-red-600',
@@ -144,7 +144,7 @@ export const Label: React.FC<LabelProps> = ({
 }) => {
   return (
     <label
-      className={cn('block text-sm font-medium text-zinc-700', className)}
+      className={cn('block text-sm font-medium text-gray-700', className)}
       {...props}
     >
       {children}
@@ -160,7 +160,7 @@ export const Caption: React.FC<React.HTMLAttributes<HTMLParagraphElement>> = ({
   ...props
 }) => {
   return (
-    <p className={cn('text-sm text-zinc-500', className)} {...props}>
+    <p className={cn('text-sm text-gray-500', className)} {...props}>
       {children}
     </p>
   );
@@ -188,7 +188,7 @@ export const Code: React.FC<React.HTMLAttributes<HTMLElement>> = ({
   return (
     <code
       className={cn(
-        'px-1.5 py-0.5 rounded bg-zinc-100 font-mono text-sm text-zinc-800',
+        'px-1.5 py-0.5 rounded bg-gray-100 font-mono text-sm text-gray-800',
         className
       )}
       {...props}
@@ -207,7 +207,7 @@ export const LinkText: React.FC<React.HTMLAttributes<HTMLSpanElement>> = ({
   return (
     <span
       className={cn(
-        'text-zinc-900 font-medium underline underline-offset-4 hover:text-zinc-700 cursor-pointer',
+        'text-gray-900 font-medium underline underline-offset-4 hover:text-gray-700 cursor-pointer',
         className
       )}
       {...props}

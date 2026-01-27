@@ -7,17 +7,17 @@ const cardVariants = cva(
   {
     variants: {
       variant: {
-        default: 'border-zinc-200 shadow-sm',
-        elevated: 'border-zinc-200 shadow-md hover:shadow-lg',
-        flat: 'border-zinc-200 shadow-none',
-        outline: 'border-zinc-200 shadow-none',
+        default: 'border-gray-200 shadow-sm',
+        elevated: 'border-gray-200 shadow-md hover:shadow-lg',
+        flat: 'border-gray-200 shadow-none',
+        outline: 'border-gray-200 shadow-none',
       },
       padding: {
         none: 'p-0',
-        sm: 'p-4',
-        md: 'p-5',
-        lg: 'p-6',
-        xl: 'p-8',
+        sm: 'p-3 sm:p-4',
+        md: 'p-4 sm:p-5',
+        lg: 'p-4 sm:p-6',
+        xl: 'p-5 sm:p-8',
       },
     },
     defaultVariants: {
@@ -42,7 +42,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
         ref={ref}
         className={cn(
           cardVariants({ variant, padding }),
-          isClickable && 'cursor-pointer hover:border-zinc-300',
+          isClickable && 'cursor-pointer hover:border-gray-300',
           className
         )}
         onClick={onClick}
@@ -75,7 +75,7 @@ export const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn('text-lg font-semibold leading-none text-zinc-900', className)}
+    className={cn('text-lg font-semibold leading-none text-gray-900', className)}
     {...props}
   />
 ));
@@ -87,7 +87,7 @@ export const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn('text-sm text-zinc-500', className)}
+    className={cn('text-sm text-gray-500', className)}
     {...props}
   />
 ));

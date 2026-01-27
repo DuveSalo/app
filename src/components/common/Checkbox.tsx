@@ -9,6 +9,7 @@ interface CheckboxProps {
   checked?: boolean;
   defaultChecked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
   className?: string;
   name?: string;
@@ -17,7 +18,23 @@ interface CheckboxProps {
 export const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
   CheckboxProps
->(({ id, label, checked, defaultChecked, onCheckedChange, disabled, className, name }, ref) => {
+>(({ id, label, checked, defaultChecked, onCheckedChange, onChange, disabled, className, name }, ref) => {
+  const handleCheckedChange = (newChecked: boolean) => {
+    if (onCheckedChange) {
+      onCheckedChange(newChecked);
+    }
+    if (onChange) {
+      const syntheticEvent = {
+        target: {
+          name: name || id || '',
+          checked: newChecked,
+          type: 'checkbox',
+        },
+      } as React.ChangeEvent<HTMLInputElement>;
+      onChange(syntheticEvent);
+    }
+  };
+
   return (
     <div className={cn('flex items-center gap-2', className)}>
       <CheckboxPrimitive.Root
@@ -26,13 +43,13 @@ export const Checkbox = React.forwardRef<
         name={name}
         checked={checked}
         defaultChecked={defaultChecked}
-        onCheckedChange={onCheckedChange}
+        onCheckedChange={handleCheckedChange}
         disabled={disabled}
         className={cn(
-          'peer h-4 w-4 shrink-0 rounded border border-zinc-300 bg-white',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20 focus-visible:ring-offset-2',
+          'peer h-4 w-4 shrink-0 rounded border border-gray-300 bg-white',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20 focus-visible:ring-offset-2',
           'disabled:cursor-not-allowed disabled:opacity-50',
-          'data-[state=checked]:bg-zinc-900 data-[state=checked]:border-zinc-900 data-[state=checked]:text-white',
+          'data-[state=checked]:bg-gray-900 data-[state=checked]:border-gray-900 data-[state=checked]:text-white',
           'transition-colors duration-150'
         )}
       >
@@ -44,7 +61,7 @@ export const Checkbox = React.forwardRef<
         <label
           htmlFor={id}
           className={cn(
-            'text-sm text-zinc-700 cursor-pointer select-none',
+            'text-sm text-gray-700 cursor-pointer select-none',
             'peer-disabled:cursor-not-allowed peer-disabled:opacity-50'
           )}
         >

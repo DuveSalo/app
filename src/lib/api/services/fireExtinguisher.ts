@@ -1,11 +1,13 @@
 import { supabase } from '../../supabase/client';
 import { FireExtinguisherControl, ExtinguisherType, ExtinguisherCapacity } from '../../../types/index';
 import { handleSupabaseError } from '../../utils/errors';
+import { Tables } from '../../../types/database.types';
 
 type YesNo = 'Sí' | 'No';
 type YesNoNA = 'Sí' | 'No' | 'N/A';
+type FireExtinguisherRow = Tables<'fire_extinguishers'>;
 
-const mapDbToFireExtinguisher = (item: any): FireExtinguisherControl => ({
+const mapDbToFireExtinguisher = (item: FireExtinguisherRow): FireExtinguisherControl => ({
   id: item.id,
   companyId: item.company_id,
   controlDate: item.control_date,

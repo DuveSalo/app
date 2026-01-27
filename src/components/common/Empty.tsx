@@ -70,13 +70,13 @@ export const Empty: React.FC<EmptyProps> = ({
 
   return (
     <div className={cn(emptyVariants({ size: currentSize }), className)} {...props}>
-      <div className="rounded-full bg-zinc-100 p-4">
-        <IconComponent className={cn(iconSize, 'text-zinc-400')} strokeWidth={1.5} />
+      <div className="rounded-full bg-gray-100 p-4">
+        <IconComponent className={cn(iconSize, 'text-gray-400')} strokeWidth={1.5} />
       </div>
 
       <div className="space-y-1.5">
         <h3 className={cn(
-          'font-medium text-zinc-900',
+          'font-medium text-gray-900',
           currentSize === 'sm' && 'text-sm',
           currentSize === 'md' && 'text-base',
           currentSize === 'lg' && 'text-lg'
@@ -85,7 +85,7 @@ export const Empty: React.FC<EmptyProps> = ({
         </h3>
         {description && (
           <p className={cn(
-            'text-zinc-500 max-w-sm mx-auto',
+            'text-gray-500 max-w-sm mx-auto',
             currentSize === 'sm' && 'text-xs',
             currentSize === 'md' && 'text-sm',
             currentSize === 'lg' && 'text-base'

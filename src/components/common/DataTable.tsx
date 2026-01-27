@@ -145,9 +145,9 @@ export function DataTable<T extends Record<string, unknown>>({
   };
 
   const getSortIcon = (key: string) => {
-    if (sortKey !== key) return <ArrowUpDown className="h-4 w-4 text-zinc-400" />;
-    if (sortDirection === 'asc') return <ArrowUp className="h-4 w-4 text-zinc-700" />;
-    return <ArrowDown className="h-4 w-4 text-zinc-700" />;
+    if (sortKey !== key) return <ArrowUpDown className="h-4 w-4 text-gray-400" />;
+    if (sortDirection === 'asc') return <ArrowUp className="h-4 w-4 text-gray-700" />;
+    return <ArrowDown className="h-4 w-4 text-gray-700" />;
   };
 
   if (loading) {
@@ -164,7 +164,7 @@ export function DataTable<T extends Record<string, unknown>>({
       {searchable && (
         <div className="flex items-center gap-4">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               placeholder={searchPlaceholder}
               value={search}
@@ -173,7 +173,7 @@ export function DataTable<T extends Record<string, unknown>>({
             />
           </div>
           {search && (
-            <span className="text-sm text-zinc-500">
+            <span className="text-sm text-gray-500">
               {sortedData.length} resultado{sortedData.length !== 1 ? 's' : ''}
             </span>
           )}
@@ -189,15 +189,15 @@ export function DataTable<T extends Record<string, unknown>>({
           action={!search ? emptyAction : undefined}
         />
       ) : (
-        <div className={cn('rounded-lg border border-zinc-200 overflow-hidden', stickyHeader && 'max-h-[600px] overflow-auto')}>
+        <div className={cn('rounded-lg border border-gray-200 overflow-hidden', stickyHeader && 'max-h-[600px] overflow-auto')}>
           <Table>
             <TableHeader className={cn(stickyHeader && 'sticky top-0 z-10')}>
-              <TableRow className="bg-zinc-50 hover:bg-zinc-50">
+              <TableRow className="bg-gray-50 hover:bg-gray-50">
                 {columns.map((column) => (
                   <TableHead
                     key={column.key}
                     className={cn(
-                      column.sortable && 'cursor-pointer select-none hover:bg-zinc-100',
+                      column.sortable && 'cursor-pointer select-none hover:bg-gray-100',
                       column.headerClassName
                     )}
                     onClick={column.sortable ? () => handleSort(column.key) : undefined}
@@ -234,12 +234,12 @@ export function DataTable<T extends Record<string, unknown>>({
       {/* Pagination */}
       {pagination && sortedData.length > 0 && (
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-zinc-500">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
             <span>Mostrar</span>
             <select
               value={pageSize}
               onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-              className="h-8 rounded-md border border-zinc-200 bg-white px-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900/10"
+              className="h-8 rounded-md border border-gray-200 bg-white px-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10"
             >
               {pageSizeOptions.map((size) => (
                 <option key={size} value={size}>
@@ -251,7 +251,7 @@ export function DataTable<T extends Record<string, unknown>>({
           </div>
 
           <div className="flex items-center gap-1">
-            <span className="text-sm text-zinc-500 mr-4">
+            <span className="text-sm text-gray-500 mr-4">
               {(currentPage - 1) * pageSize + 1}-{Math.min(currentPage * pageSize, sortedData.length)} de {sortedData.length}
             </span>
 

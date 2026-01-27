@@ -1,5 +1,5 @@
 // Database to domain type mappers
-import type { Company, Employee, ConservationCertificate, SelfProtectionSystem, QRDocument, QRDocumentType, EventInformation } from '../../types';
+import type { Company, Employee, ConservationCertificate, SelfProtectionSystem, QRDocument, QRDocumentType, EventInformation, Drill } from '../../types';
 import type { Tables } from '../../types/database.types';
 import { toCompanyServices, toPaymentMethods, toStringArray, toBooleanRecord } from '../utils/typeGuards';
 
@@ -78,7 +78,7 @@ export const mapSystemFromDb = (data: Tables<'self_protection_systems'>): SelfPr
     extensionPdfName: data.extension_pdf_name || undefined,
     extensionPdfUrl: data.extension_pdf_url || undefined,
     expirationDate: data.expiration_date,
-    drills: (data.drills || []) as any,
+    drills: (data.drills as unknown as Drill[]) || [],
     intervener: data.intervener,
     registrationNumber: data.registration_number,
   };

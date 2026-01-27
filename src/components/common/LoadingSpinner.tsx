@@ -20,7 +20,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 }) => {
   return (
     <div className={cn('flex items-center justify-center', className)}>
-      <Loader2 className={cn(sizeClasses[size], 'animate-spin text-zinc-600')} />
+      <Loader2 className={cn(sizeClasses[size], 'animate-spin text-gray-600')} />
     </div>
   );
 };
@@ -31,7 +31,7 @@ export const PageLoader: React.FC<{ message?: string }> = ({ message }) => {
     <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
       <LoadingSpinner size="lg" />
       {message && (
-        <p className="text-sm text-zinc-500 animate-pulse">{message}</p>
+        <p className="text-sm text-gray-500 animate-pulse">{message}</p>
       )}
     </div>
   );

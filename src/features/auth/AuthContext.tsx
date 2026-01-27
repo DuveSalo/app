@@ -138,7 +138,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const completeSubscriptionContext = async (plan: string, paymentDetails: any) => {
+  const completeSubscriptionContext = async (plan: string, paymentDetails: PaymentDetails) => {
     if (!currentCompany) throw new Error("No company to subscribe.");
     setIsLoading(true);
     try {

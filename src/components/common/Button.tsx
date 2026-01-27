@@ -10,13 +10,13 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          'bg-zinc-900 text-white shadow-sm hover:bg-zinc-800 active:bg-zinc-950',
+          'bg-gray-900 text-white shadow-sm hover:bg-gray-800 active:bg-gray-950',
         secondary:
-          'bg-zinc-100 text-zinc-900 hover:bg-zinc-200 active:bg-zinc-300',
+          'bg-gray-100 text-gray-900 hover:bg-gray-200 active:bg-gray-300',
         outline:
-          'border border-zinc-200 bg-white text-zinc-900 shadow-sm hover:bg-zinc-50 active:bg-zinc-100',
+          'border border-gray-200 bg-white text-gray-900 shadow-sm hover:bg-gray-50 active:bg-gray-100',
         ghost:
-          'text-zinc-900 hover:bg-zinc-100 active:bg-zinc-200',
+          'text-gray-900 hover:bg-gray-100 active:bg-gray-200',
         danger:
           'bg-red-600 text-white shadow-sm hover:bg-red-700 active:bg-red-800',
         success:
@@ -24,7 +24,7 @@ const buttonVariants = cva(
         soft:
           'bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 active:bg-indigo-200',
         link:
-          'text-zinc-900 underline-offset-4 hover:underline',
+          'text-gray-900 underline-offset-4 hover:underline',
       },
       size: {
         xs: 'h-7 px-2.5 text-xs rounded-md',

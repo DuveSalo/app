@@ -21,3 +21,14 @@ export interface QRDocument {
   qrCodeData?: string;
   extractedDate: string;
 }
+
+export interface QRDocumentCreate {
+  type: QRDocumentType;
+  documentName: string;
+  floor?: string;
+  unit?: string;
+  pdfFile?: File;
+  pdfFileName?: string;
+  qrCodeData?: string;
+  extractedDate: string;
+}

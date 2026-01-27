@@ -5,7 +5,7 @@ import type {
   AuditFilters,
   AuditStats,
 } from '../../types/audit';
-import { Tables } from '../../types/database.types';
+import { Tables, Json } from '../../types/database.types';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('AuditAPI');
@@ -169,19 +169,21 @@ export const getRecentAuditLogs = async (
  * Helper functions for audit log display
  */
 
-export const calculateChanges = (oldData: any, newData: any): Array<{ field: string; oldValue: any; newValue: any }> => {
+type AuditChange = { field: string; oldValue: Json | undefined; newValue: Json | undefined };
+
+export const calculateChanges = (oldData: Record<string, Json | undefined> | null, newData: Record<string, Json | undefined> | null): AuditChange[] => {
   if (!newData) return [];
   if (!oldData) {
     // INSERT - all fields are new
     return Object.keys(newData).map(field => ({
       field,
-      oldValue: null,
+      oldValue: undefined,
       newValue: newData[field]
     }));
   }
 
   // UPDATE - find changed fields
-  const changes: Array<{ field: string; oldValue: any; newValue: any }> = [];
+  const changes: AuditChange[] = [];
   Object.keys(newData).forEach(field => {
     if (JSON.stringify(oldData[field]) !== JSON.stringify(newData[field])) {
       changes.push({
@@ -194,7 +196,7 @@ export const calculateChanges = (oldData: any, newData: any): Array<{ field: str
   return changes;
 };
 
-export const formatAuditValue = (value: any): string => {
+export const formatAuditValue = (value: Json | undefined): string => {
   if (value === null || value === undefined) return '-';
   if (typeof value === 'boolean') return value ? 'Sí' : 'No';
   if (typeof value === 'object') return JSON.stringify(value);

@@ -6,6 +6,7 @@ import { AuthError, NotFoundError, handleSupabaseError } from '../../utils/error
 import { getCurrentUser } from './auth';
 import { getCompanyByUserId } from './company';
 import { createLogger } from '../../utils/logger';
+import { TablesUpdate } from '../../../types/database.types';
 
 const logger = createLogger('SystemService');
 
@@ -260,7 +261,7 @@ export const updateSelfProtectionSystem = async (systemData: SelfProtectionSyste
   }
 
   // Prepare update data
-  const updateData: any = {
+  const updateData: TablesUpdate<'self_protection_systems'> = {
     probatory_disposition_date: systemData.probatoryDispositionDate || null,
     extension_date: systemData.extensionDate,
     expiration_date: systemData.expirationDate,

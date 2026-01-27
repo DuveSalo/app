@@ -6,16 +6,19 @@
 import { supabase } from '../../supabase/client';
 import { Notification, NotificationFilters, NotificationStats } from '../../../types/notification';
 import { handleSupabaseError } from '../../utils/errors';
+import { Tables } from '../../../types/database.types';
+
+type NotificationRow = Tables<'notifications'>;
 
 /**
  * Maps database row to Notification type
  */
-const mapNotificationFromDb = (row: any): Notification => ({
+const mapNotificationFromDb = (row: NotificationRow): Notification => ({
   id: row.id,
   companyId: row.company_id,
   userId: row.user_id,
-  type: row.type,
-  category: row.category,
+  type: row.type as Notification['type'],
+  category: row.category as Notification['category'],
   title: row.title,
   message: row.message,
   link: row.link,

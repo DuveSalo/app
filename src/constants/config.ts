@@ -21,4 +21,6 @@ export const ALLOWED_FILE_TYPES = {
 
 // Date Formats
 export const DATE_FORMAT = 'es-AR';
-export const EXPIRATION_WARNING_DAYS = 30;
+
+// Note: EXPIRATION_CONFIG is defined in src/lib/constants/expirationThresholds.ts
+// to avoid duplication. Import from '@/lib/constants' for expiration-related constants.

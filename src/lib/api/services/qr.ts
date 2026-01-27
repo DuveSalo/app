@@ -1,10 +1,11 @@
 
 import { supabase } from '../../supabase/client';
-import { QRDocument, QRDocumentType } from '../../../types/index';
+import { QRDocument, QRDocumentType, QRDocumentCreate } from '../../../types/index';
 import { mapQRDocumentFromDb } from '../mappers';
 import { AuthError, NotFoundError, handleSupabaseError } from '../../utils/errors';
 import { getCurrentUser } from './auth';
 import { getCompanyByUserId } from './company';
+import { TablesUpdate } from '../../../types/database.types';
 
 export const getQRDocuments = async (type: QRDocumentType, companyId?: string): Promise<QRDocument[]> => {
   const allDocs = await getAllQRDocuments(companyId);
@@ -35,7 +36,7 @@ export const getAllQRDocuments = async (companyId?: string): Promise<QRDocument[
   return (data || []).map(mapQRDocumentFromDb);
 };
 
-export const uploadQRDocument = async (docData: any): Promise<QRDocument> => {
+export const uploadQRDocument = async (docData: QRDocumentCreate): Promise<QRDocument> => {
   const currentUser = await getCurrentUser();
   if (!currentUser) throw new AuthError("Usuario no autenticado");
 
@@ -113,7 +114,7 @@ export const getQRDocumentById = async (id: string): Promise<QRDocument> => {
   return mapQRDocumentFromDb(data);
 };
 
-export const updateQRDocument = async (id: string, docData: any): Promise<QRDocument> => {
+export const updateQRDocument = async (id: string, docData: Partial<QRDocumentCreate>): Promise<QRDocument> => {
   const currentUser = await getCurrentUser();
   if (!currentUser) throw new AuthError("Usuario no autenticado");
 
@@ -153,7 +154,7 @@ export const updateQRDocument = async (id: string, docData: any): Promise<QRDocu
     }
   }
 
-  const updateData: any = {
+  const updateData: TablesUpdate<'qr_documents'> = {
     document_name: docData.documentName,
     extracted_date: docData.extractedDate,
   };

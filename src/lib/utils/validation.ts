@@ -1,9 +1,19 @@
 
 // Date validation utilities
 
+/**
+ * Parse date as local time to avoid timezone issues
+ * YYYY-MM-DD format is parsed as UTC by default, which can cause
+ * "today" to become "yesterday" in negative UTC timezones
+ */
+const parseLocalDate = (dateString: string): Date => {
+  const dateStr = dateString.includes('T') ? dateString : `${dateString}T00:00:00`;
+  return new Date(dateStr);
+};
+
 export const validateDateRange = (startDate: string, endDate: string): { valid: boolean; error?: string } => {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  const start = parseLocalDate(startDate);
+  const end = parseLocalDate(endDate);
 
   if (isNaN(start.getTime()) || isNaN(end.getTime())) {
     return { valid: false, error: 'Fechas inválidas' };
@@ -17,14 +27,14 @@ export const validateDateRange = (startDate: string, endDate: string): { valid: 
 };
 
 export const validateExpirationDate = (expirationDate: string, presentationDate?: string): { valid: boolean; error?: string } => {
-  const expiry = new Date(expirationDate);
+  const expiry = parseLocalDate(expirationDate);
 
   if (isNaN(expiry.getTime())) {
     return { valid: false, error: 'Fecha de vencimiento inválida' };
   }
 
   if (presentationDate) {
-    const presentation = new Date(presentationDate);
+    const presentation = parseLocalDate(presentationDate);
     if (expiry <= presentation) {
       return { valid: false, error: 'La fecha de vencimiento debe ser posterior a la fecha de presentación' };
     }
@@ -41,7 +51,7 @@ export const validateExpirationDate = (expirationDate: string, presentationDate?
 };
 
 export const validateFutureDate = (date: string): { valid: boolean; error?: string } => {
-  const inputDate = new Date(date);
+  const inputDate = parseLocalDate(date);
 
   if (isNaN(inputDate.getTime())) {
     return { valid: false, error: 'Fecha inválida' };
@@ -58,7 +68,7 @@ export const validateFutureDate = (date: string): { valid: boolean; error?: stri
 };
 
 export const validatePastDate = (date: string): { valid: boolean; error?: string } => {
-  const inputDate = new Date(date);
+  const inputDate = parseLocalDate(date);
 
   if (isNaN(inputDate.getTime())) {
     return { valid: false, error: 'Fecha inválida' };
@@ -108,7 +118,7 @@ export const validatePhone = (phone: string): { valid: boolean; error?: string }
 };
 
 // Required field validation
-export const validateRequired = (value: any, fieldName: string = 'Campo'): { valid: boolean; error?: string } => {
+export const validateRequired = (value: unknown, fieldName: string = 'Campo'): { valid: boolean; error?: string } => {
   if (value === null || value === undefined || value === '' || (typeof value === 'string' && value.trim() === '')) {
     return { valid: false, error: `${fieldName} es requerido` };
   }
@@ -127,8 +137,8 @@ export const validateExpirationDateRange = (
   presentationDate: string,
   expirationDate: string
 ): { valid: boolean; error?: string } => {
-  const presentation = new Date(presentationDate);
-  const expiration = new Date(expirationDate);
+  const presentation = parseLocalDate(presentationDate);
+  const expiration = parseLocalDate(expirationDate);
 
   if (isNaN(presentation.getTime()) || isNaN(expiration.getTime())) {
     return { valid: false, error: 'Fechas inválidas' };
@@ -163,6 +173,6 @@ export const validateServiceWithinNotificationWindow = (
  * Valida que una fecha sea válida y parseable
  */
 export const isValidDate = (dateString: string): boolean => {
-  const date = new Date(dateString);
+  const date = parseLocalDate(dateString);
   return !isNaN(date.getTime());
 };
