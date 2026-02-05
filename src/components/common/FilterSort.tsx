@@ -32,13 +32,13 @@ export const FilterSort: React.FC<FilterSortProps> = ({
       {/* Search */}
       <div className="flex-1 relative">
         <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-          <Search className="h-4 w-4 text-slate-400" />
+          <Search className="h-4 w-4 text-gray-400" />
         </div>
         <input
           type="text"
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="block w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-slate-200 rounded-lg placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all duration-150"
+          className="block w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-all duration-150"
           placeholder={searchPlaceholder}
         />
       </div>
@@ -49,7 +49,7 @@ export const FilterSort: React.FC<FilterSortProps> = ({
           <select
             value={filterValue || ''}
             onChange={(e) => onFilterChange(e.target.value)}
-            className="w-full appearance-none px-3.5 py-2.5 pr-9 text-sm bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all duration-150 cursor-pointer"
+            className="w-full appearance-none px-3.5 py-2.5 pr-9 text-sm bg-white border border-gray-200 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-all duration-150 cursor-pointer"
           >
             <option value="">Todos los estados</option>
             {filterOptions.map(option => (
@@ -58,7 +58,7 @@ export const FilterSort: React.FC<FilterSortProps> = ({
               </option>
             ))}
           </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
         </div>
       )}
 
@@ -68,12 +68,12 @@ export const FilterSort: React.FC<FilterSortProps> = ({
       {/* Sort */}
       <div className="relative w-full md:w-52">
         <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none z-10">
-          <ArrowUpDown className="h-4 w-4 text-slate-400" />
+          <ArrowUpDown className="h-4 w-4 text-gray-400" />
         </div>
         <select
           value={sortValue}
           onChange={(e) => onSortChange(e.target.value)}
-          className="w-full appearance-none pl-10 pr-9 py-2.5 text-sm bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all duration-150 cursor-pointer"
+          className="w-full appearance-none pl-10 pr-9 py-2.5 text-sm bg-white border border-gray-200 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400 transition-all duration-150 cursor-pointer"
         >
           {sortOptions.map(option => (
             <option key={option.value} value={option.value}>
@@ -81,7 +81,7 @@ export const FilterSort: React.FC<FilterSortProps> = ({
             </option>
           ))}
         </select>
-        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
       </div>
     </div>
   );

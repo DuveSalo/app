@@ -131,6 +131,68 @@
 }
 
 /* ==============================================
+   COMPONENT UTILITIES
+   ============================================== */
+@layer components {
+  /* Page container */
+  .page-container {
+    @apply flex flex-col h-full gap-4;
+  }
+
+  /* Section header */
+  .section-header {
+    @apply border-gray-100 border-b px-4 py-4 sm:px-6 sm:py-6;
+  }
+
+  /* Section title */
+  .section-title {
+    @apply text-base sm:text-lg font-semibold text-gray-900;
+  }
+
+  /* Section subtitle */
+  .section-subtitle {
+    @apply text-gray-500 text-xs sm:text-sm mt-1;
+  }
+
+  /* Content card */
+  .content-card {
+    @apply flex-1 border border-gray-200 rounded-2xl shadow-sm bg-white flex flex-col min-h-0 overflow-hidden;
+  }
+
+  /* Card base */
+  .card-base {
+    @apply bg-surface-card border border-borderClr rounded-xl shadow-card;
+  }
+
+  /* Card hover */
+  .card-hoverable {
+    @apply bg-surface-card border border-borderClr rounded-xl shadow-card hover:shadow-card-hover transition-shadow;
+  }
+
+  /* Status badge base */
+  .status-badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  /* Status badge variants */
+  .status-badge-success {
+    @apply status-badge bg-status-success-bg text-status-success-text;
+  }
+
+  .status-badge-warning {
+    @apply status-badge bg-status-warning-bg text-status-warning-text;
+  }
+
+  .status-badge-danger {
+    @apply status-badge bg-status-danger-bg text-status-danger-text;
+  }
+
+  .status-badge-info {
+    @apply status-badge bg-status-info-bg text-status-info-text;
+  }
+}
+
+/* ==============================================
    RESPONSIVE IMPROVEMENTS
    ============================================== */
 

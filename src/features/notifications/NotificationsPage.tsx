@@ -11,6 +11,28 @@ import { useToast } from '../../components/common/Toast';
 
 type FilterType = 'all' | 'unread' | 'read';
 
+const FILTER_BUTTONS: { value: FilterType; label: string }[] = [
+  { value: 'all', label: 'Todas' },
+  { value: 'unread', label: 'No leídas' },
+  { value: 'read', label: 'Leídas' },
+];
+
+const TYPE_BADGE_STYLES: Record<string, string> = {
+  expiration_urgent: 'bg-red-50 text-red-700',
+  expired: 'bg-red-50 text-red-700',
+  expiration_warning: 'bg-amber-50 text-amber-700',
+  system: 'bg-gray-100 text-gray-700',
+  info: 'bg-blue-50 text-blue-700',
+};
+
+const TYPE_BADGE_LABELS: Record<string, string> = {
+  expiration_urgent: 'Urgente',
+  expired: 'Vencido',
+  expiration_warning: 'Por vencer',
+  system: 'Sistema',
+  info: 'Info',
+};
+
 const NotificationsPage: React.FC = () => {
   const { currentCompany } = useAuth();
   const { showSuccess, showError } = useToast();
@@ -33,12 +55,12 @@ const NotificationsPage: React.FC = () => {
       if (filter === 'unread') filters.isRead = false;
       if (filter === 'read') filters.isRead = true;
 
-      const [notifs, statsData] = await Promise.all([
+      const [paginatedNotifs, statsData] = await Promise.all([
         notificationService.getNotifications(currentCompany.id, { ...filters, limit: 50 }),
         notificationService.getNotificationStats(currentCompany.id),
       ]);
 
-      setNotifications(notifs);
+      setNotifications(paginatedNotifs.items);
       setStats(statsData);
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -110,25 +132,9 @@ const NotificationsPage: React.FC = () => {
   };
 
   const getTypeBadge = (type: NotificationType) => {
-    const styles: Record<string, string> = {
-      expiration_urgent: 'bg-red-100 text-red-700',
-      expired: 'bg-red-100 text-red-700',
-      expiration_warning: 'bg-amber-100 text-amber-700',
-      system: 'bg-gray-100 text-gray-700',
-      info: 'bg-blue-100 text-blue-700',
-    };
-
-    const labels: Record<string, string> = {
-      expiration_urgent: 'Urgente',
-      expired: 'Vencido',
-      expiration_warning: 'Por vencer',
-      system: 'Sistema',
-      info: 'Info',
-    };
-
     return (
-      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${styles[type] || styles.info}`}>
-        {labels[type] || type}
+      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${TYPE_BADGE_STYLES[type] || TYPE_BADGE_STYLES.info}`}>
+        {TYPE_BADGE_LABELS[type] || type}
       </span>
     );
   };
@@ -144,12 +150,6 @@ const NotificationsPage: React.FC = () => {
       minute: '2-digit',
     });
   };
-
-  const filterButtons: { value: FilterType; label: string }[] = [
-    { value: 'all', label: 'Todas' },
-    { value: 'unread', label: 'No leídas' },
-    { value: 'read', label: 'Leídas' },
-  ];
 
   return (
     <PageLayout
@@ -176,7 +176,7 @@ const NotificationsPage: React.FC = () => {
       <div className="flex items-center gap-2 mb-4">
         <Filter className="w-4 h-4 text-gray-400" />
         <div className="flex rounded-lg border border-gray-200 overflow-hidden">
-          {filterButtons.map(btn => (
+          {FILTER_BUTTONS.map(btn => (
             <button
               key={btn.value}
               onClick={() => setFilter(btn.value)}

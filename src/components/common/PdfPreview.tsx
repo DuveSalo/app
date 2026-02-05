@@ -28,8 +28,8 @@ export const PdfPreview: React.FC<{ file: File | string | null | undefined }> = 
 
   return (
     <div className="mt-4">
-      <h4 className="text-sm font-medium text-content-muted mb-2">Vista Previa del PDF</h4>
-      <div className="w-full h-96 border border-borderClr rounded-md bg-gray-100">
+      <h4 className="text-sm font-medium text-gray-400 mb-2">Vista Previa del PDF</h4>
+      <div className="w-full h-96 border border-gray-200 rounded-md bg-gray-100">
         <embed src={url} type="application/pdf" width="100%" height="100%" />
       </div>
     </div>

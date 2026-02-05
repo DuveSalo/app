@@ -20,6 +20,21 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '..
 import { calculateExpirationStatus } from '../../lib/utils/dateUtils';
 import { ExpirationStatus } from '../../types/expirable';
 
+const SORT_OPTIONS_SP = [
+  { value: 'expirationDate-asc', label: 'Vencimiento: Más próximo' },
+  { value: 'expirationDate-desc', label: 'Vencimiento: Más lejano' },
+  { value: 'probatoryDispositionDate-desc', label: 'Disp. Aprobatoria: Más reciente' },
+  { value: 'probatoryDispositionDate-asc', label: 'Disp. Aprobatoria: Más antigua' },
+  { value: 'intervener-asc', label: 'Interviniente: A-Z' },
+  { value: 'intervener-desc', label: 'Interviniente: Z-A' },
+];
+
+const FILTER_OPTIONS_SP = [
+  { value: 'valid', label: 'Vigente' },
+  { value: 'expiring', label: 'Próximo a vencer' },
+  { value: 'expired', label: 'Vencido' },
+];
+
 const SelfProtectionSystemListPage: React.FC = () => {
   const [systems, setSystems] = useState<SelfProtectionSystem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -135,20 +150,6 @@ const SelfProtectionSystemListPage: React.FC = () => {
     return result;
   }, [systems, searchQuery, sortBy, filterStatus]);
 
-  const sortOptions = [
-    { value: 'expirationDate-asc', label: 'Vencimiento: Más próximo' },
-    { value: 'expirationDate-desc', label: 'Vencimiento: Más lejano' },
-    { value: 'probatoryDispositionDate-desc', label: 'Disp. Aprobatoria: Más reciente' },
-    { value: 'probatoryDispositionDate-asc', label: 'Disp. Aprobatoria: Más antigua' },
-    { value: 'intervener-asc', label: 'Interviniente: A-Z' },
-    { value: 'intervener-desc', label: 'Interviniente: Z-A' },
-  ];
-
-  const filterOptions = [
-    { value: 'valid', label: 'Vigente' },
-    { value: 'expiring', label: 'Próximo a vencer' },
-    { value: 'expired', label: 'Vencido' },
-  ];
 
   const headerActions = (
     <Button onClick={() => navigate(ROUTE_PATHS.NEW_SELF_PROTECTION_SYSTEM)}>
@@ -181,14 +182,14 @@ const SelfProtectionSystemListPage: React.FC = () => {
             onSearchChange={setSearchQuery}
             sortValue={sortBy}
             onSortChange={setSortBy}
-            sortOptions={sortOptions}
+            sortOptions={SORT_OPTIONS_SP}
             filterValue={filterStatus}
             onFilterChange={setFilterStatus}
-            filterOptions={filterOptions}
+            filterOptions={FILTER_OPTIONS_SP}
             searchPlaceholder="Buscar por interviniente o N° de matrícula..."
           />
 
-          <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-300 overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -206,15 +207,15 @@ const SelfProtectionSystemListPage: React.FC = () => {
                   const isExpanded = expandedRows.has(sys.id);
                   return (
                     <React.Fragment key={sys.id}>
-                      <TableRow className="hover:bg-slate-50 transition-colors">
+                      <TableRow className="hover:bg-gray-50 transition-colors">
                         <TableCell>
                           <button
                             type="button"
                             onClick={() => toggleRow(sys.id)}
-                            className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
+                            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
                             title={isExpanded ? "Contraer" : "Expandir"}
                           >
-                            <ChevronDownIcon className={`w-4 h-4 text-slate-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                            <ChevronDownIcon className={`w-4 h-4 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                           </button>
                         </TableCell>
                         <TableCell className="font-medium">{sys.intervener}</TableCell>
@@ -247,20 +248,20 @@ const SelfProtectionSystemListPage: React.FC = () => {
                         </TableCell>
                       </TableRow>
                       {isExpanded && (
-                        <TableRow className="bg-slate-50/50">
+                        <TableRow className="bg-gray-50/50">
                           <TableCell colSpan={7} className="p-0">
                             <div className="p-6 space-y-3">
                               {/* Disposición Aprobatoria */}
                               {sys.probatoryDispositionDate && (
-                                <div className="flex items-center justify-between py-2.5 border-b border-slate-200/60">
+                                <div className="flex items-center justify-between py-2.5 border-b border-gray-200/60">
                                   <div className="flex-1">
-                                    <span className="text-sm font-medium text-slate-700">Disposición Aprobatoria:</span>
-                                    <span className="ml-2 text-sm text-slate-600">{new Date(sys.probatoryDispositionDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
+                                    <span className="text-sm font-medium text-gray-700">Disposición Aprobatoria:</span>
+                                    <span className="ml-2 text-sm text-gray-600">{new Date(sys.probatoryDispositionDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
                                   </div>
                                   {sys.probatoryDispositionPdfUrl && (
                                     <button
                                       type="button"
-                                      className="inline-flex items-center justify-center px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                      className="inline-flex items-center justify-center px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                                       onClick={() => window.open(sys.probatoryDispositionPdfUrl, '_blank')}
                                       title="Ver PDF"
                                     >
@@ -272,15 +273,15 @@ const SelfProtectionSystemListPage: React.FC = () => {
                               )}
 
                               {/* Extensión */}
-                              <div className="flex items-center justify-between py-2.5 border-b border-slate-200/60">
+                              <div className="flex items-center justify-between py-2.5 border-b border-gray-200/60">
                                 <div className="flex-1">
-                                  <span className="text-sm font-medium text-slate-700">Extensión:</span>
-                                  <span className="ml-2 text-sm text-slate-600">{new Date(sys.extensionDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
+                                  <span className="text-sm font-medium text-gray-700">Extensión:</span>
+                                  <span className="ml-2 text-sm text-gray-600">{new Date(sys.extensionDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
                                 </div>
                                 {sys.extensionPdfUrl && (
                                   <button
                                     type="button"
-                                    className="inline-flex items-center justify-center px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                    className="inline-flex items-center justify-center px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                                     onClick={() => window.open(sys.extensionPdfUrl, '_blank')}
                                     title="Ver PDF"
                                   >
@@ -291,10 +292,10 @@ const SelfProtectionSystemListPage: React.FC = () => {
                               </div>
 
                               {/* Vencimiento */}
-                              <div className="flex items-center justify-between py-2.5 border-b border-slate-200/60">
+                              <div className="flex items-center justify-between py-2.5 border-b border-gray-200/60">
                                 <div className="flex-1">
-                                  <span className="text-sm font-medium text-slate-700">Vencimiento:</span>
-                                  <span className="ml-2 text-sm text-slate-600">{new Date(sys.expirationDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
+                                  <span className="text-sm font-medium text-gray-700">Vencimiento:</span>
+                                  <span className="ml-2 text-sm text-gray-600">{new Date(sys.expirationDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
                                 </div>
                               </div>
 
@@ -304,22 +305,22 @@ const SelfProtectionSystemListPage: React.FC = () => {
                                   <Accordion type="single" collapsible className="w-full">
                                     <AccordionItem value="drills" className="border-none">
                                       <AccordionTrigger className="py-2 hover:no-underline">
-                                        <span className="text-sm font-medium text-slate-700">
+                                        <span className="text-sm font-medium text-gray-700">
                                           Simulacros ({sys.drills.length})
                                         </span>
                                       </AccordionTrigger>
                                       <AccordionContent>
                                         <div className="space-y-2 pt-2">
                                           {sys.drills.map((drill, idx) => (
-                                            <div key={idx} className="flex items-center justify-between py-2 pl-4 border-l-2 border-slate-300">
+                                            <div key={idx} className="flex items-center justify-between py-2 pl-4 border-l-2 border-gray-300">
                                               <div className="flex-1">
-                                                <span className="text-sm text-slate-600">Simulacro {idx + 1}:</span>
-                                                <span className="ml-2 text-sm text-slate-600">{new Date(drill.date + 'T00:00:00').toLocaleDateString('es-AR')}</span>
+                                                <span className="text-sm text-gray-600">Simulacro {idx + 1}:</span>
+                                                <span className="ml-2 text-sm text-gray-600">{new Date(drill.date + 'T00:00:00').toLocaleDateString('es-AR')}</span>
                                               </div>
                                               {drill.pdfUrl && (
                                                 <button
                                                   type="button"
-                                                  className="inline-flex items-center justify-center px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                                  className="inline-flex items-center justify-center px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                                                   onClick={() => window.open(drill.pdfUrl, '_blank')}
                                                   title="Ver PDF"
                                                 >

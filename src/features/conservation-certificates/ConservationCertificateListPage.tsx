@@ -19,6 +19,21 @@ import PageLayout from '../../components/layout/PageLayout';
 import { calculateExpirationStatus, formatDateLocal } from '../../lib/utils/dateUtils';
 import { ExpirationStatus } from '../../types/expirable';
 
+const SORT_OPTIONS_CC = [
+  { value: 'expirationDate-asc', label: 'Vencimiento: Más próximo' },
+  { value: 'expirationDate-desc', label: 'Vencimiento: Más lejano' },
+  { value: 'presentationDate-desc', label: 'Presentación: Más reciente' },
+  { value: 'presentationDate-asc', label: 'Presentación: Más antiguo' },
+  { value: 'intervener-asc', label: 'Interviniente: A-Z' },
+  { value: 'intervener-desc', label: 'Interviniente: Z-A' },
+];
+
+const FILTER_OPTIONS_CC = [
+  { value: 'valid', label: 'Vigente' },
+  { value: 'expiring', label: 'Próximo a vencer' },
+  { value: 'expired', label: 'Vencido' },
+];
+
 const ConservationCertificateListPage: React.FC = () => {
   const [certificates, setCertificates] = useState<ConservationCertificate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -121,20 +136,6 @@ const ConservationCertificateListPage: React.FC = () => {
     return result;
   }, [certificates, searchQuery, sortBy, filterStatus]);
 
-  const sortOptions = [
-    { value: 'expirationDate-asc', label: 'Vencimiento: Más próximo' },
-    { value: 'expirationDate-desc', label: 'Vencimiento: Más lejano' },
-    { value: 'presentationDate-desc', label: 'Presentación: Más reciente' },
-    { value: 'presentationDate-asc', label: 'Presentación: Más antiguo' },
-    { value: 'intervener-asc', label: 'Interviniente: A-Z' },
-    { value: 'intervener-desc', label: 'Interviniente: Z-A' },
-  ];
-
-  const filterOptions = [
-    { value: 'valid', label: 'Vigente' },
-    { value: 'expiring', label: 'Próximo a vencer' },
-    { value: 'expired', label: 'Vencido' },
-  ];
 
   const headerActions = (
     <Button onClick={() => navigate(ROUTE_PATHS.NEW_CONSERVATION_CERTIFICATE)}>
@@ -167,14 +168,14 @@ const ConservationCertificateListPage: React.FC = () => {
             onSearchChange={setSearchQuery}
             sortValue={sortBy}
             onSortChange={setSortBy}
-            sortOptions={sortOptions}
+            sortOptions={SORT_OPTIONS_CC}
             filterValue={filterStatus}
             onFilterChange={setFilterStatus}
-            filterOptions={filterOptions}
+            filterOptions={FILTER_OPTIONS_CC}
             searchPlaceholder="Buscar por interviniente o N° de registro..."
           />
 
-          <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -191,13 +192,13 @@ const ConservationCertificateListPage: React.FC = () => {
                 {filteredAndSortedCertificates.map((cert) => (
                   <TableRow
                     key={cert.id}
-                    className="hover:bg-slate-50 transition-colors"
+                    className="hover:bg-gray-50 transition-colors"
                   >
                     <TableCell className="font-medium max-w-0 truncate">{cert.intervener}</TableCell>
                     <TableCell className="text-xs">{cert.registrationNumber}</TableCell>
                     <TableCell className="text-xs whitespace-nowrap">{formatDateLocal(cert.presentationDate)}</TableCell>
                     <TableCell className="text-xs whitespace-nowrap">{formatDateLocal(cert.expirationDate)}</TableCell>
-                    <TableCell className="max-w-0 truncate text-xs text-slate-500" title={cert.pdfFileName || 'N/A'}>
+                    <TableCell className="max-w-0 truncate text-xs text-gray-500" title={cert.pdfFileName || 'N/A'}>
                       {cert.pdfFileName || 'N/A'}
                     </TableCell>
                     <TableCell>
@@ -207,7 +208,7 @@ const ConservationCertificateListPage: React.FC = () => {
                       <div className="flex items-center gap-0.5">
                         <button
                           type="button"
-                          className="inline-flex items-center justify-center p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                          className="inline-flex items-center justify-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                           onClick={() => {
                             if (cert.pdfFile && typeof cert.pdfFile === 'string') {
                               window.open(cert.pdfFile, '_blank');

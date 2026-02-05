@@ -17,6 +17,13 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import PageLayout from '../../components/layout/PageLayout';
 import { formatDateLocal } from '../../lib/utils/dateUtils';
 
+const SORT_OPTIONS_EV = [
+  { value: 'date-desc', label: 'Fecha: Más reciente' },
+  { value: 'date-asc', label: 'Fecha: Más antigua' },
+  { value: 'description-asc', label: 'Descripción: A-Z' },
+  { value: 'description-desc', label: 'Descripción: Z-A' },
+];
+
 const EventInformationListPage: React.FC = () => {
   const [events, setEvents] = useState<EventInformation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -105,12 +112,6 @@ const EventInformationListPage: React.FC = () => {
     return result;
   }, [events, searchQuery, sortBy]);
 
-  const sortOptions = [
-    { value: 'date-desc', label: 'Fecha: Más reciente' },
-    { value: 'date-asc', label: 'Fecha: Más antigua' },
-    { value: 'description-asc', label: 'Descripción: A-Z' },
-    { value: 'description-desc', label: 'Descripción: Z-A' },
-  ];
 
   const headerActions = (
     <Button onClick={() => navigate(ROUTE_PATHS.NEW_EVENT_INFORMATION)}>
@@ -143,11 +144,11 @@ const EventInformationListPage: React.FC = () => {
             onSearchChange={setSearchQuery}
             sortValue={sortBy}
             onSortChange={setSortBy}
-            sortOptions={sortOptions}
+            sortOptions={SORT_OPTIONS_EV}
             searchPlaceholder="Buscar por descripción..."
           />
 
-          <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-300 overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -161,12 +162,12 @@ const EventInformationListPage: React.FC = () => {
                 {filteredAndSortedEvents.map((event) => (
                   <TableRow
                     key={event.id}
-                    className="hover:bg-slate-50 transition-colors"
+                    className="hover:bg-gray-50 transition-colors"
                   >
                     <TableCell className="font-medium">{event.description}</TableCell>
                     <TableCell className="text-center">{formatDateLocal(event.date)}</TableCell>
                     <TableCell className="text-center">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 text-gray-700 ring-1 ring-inset ring-gray-200">
                         Registrado
                       </span>
                     </TableCell>

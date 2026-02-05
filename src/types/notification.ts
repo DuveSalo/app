@@ -45,3 +45,11 @@ export interface NotificationStats {
   total: number;
   unread: number;
 }
+
+export interface PaginatedNotifications {
+  items: Notification[];
+  total: number;
+  page: number;
+  pageSize: number;
+  pages: number;
+}

@@ -48,6 +48,8 @@ const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let ignore = false;
+
     const fetchItems = async () => {
       if (!currentCompany) return;
       setIsLoading(true);
@@ -60,6 +62,8 @@ const DashboardPage: React.FC = () => {
           api.getSelfProtectionSystems(currentCompany.id),
           api.getAllQRDocuments(currentCompany.id)
         ]);
+
+        if (ignore) return;
 
         const certs = certsData.map(c => ({
           id: c.id,
@@ -109,13 +113,20 @@ const DashboardPage: React.FC = () => {
         setItems(allItems.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]));
 
       } catch (err) {
+        if (ignore) return;
         logger.error("Error fetching dashboard data", err, { companyId: currentCompany?.id });
       } finally {
-        setIsLoading(false);
+        if (!ignore) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchItems();
+
+    return () => {
+      ignore = true;
+    };
   }, [currentCompany]);
 
   const filteredAndSortedItems = useMemo(() => {
@@ -162,12 +173,15 @@ const DashboardPage: React.FC = () => {
     return result;
   }, [items, searchQuery, sortBy, filterStatus, filterType]);
 
-  const stats = {
-    total: items.length,
-    valid: items.filter(item => item.status === 'valid').length,
-    expiring: items.filter(item => item.status === 'expiring').length,
-    expired: items.filter(item => item.status === 'expired').length
-  };
+  const stats = useMemo(() => {
+    const counts = { total: items.length, valid: 0, expiring: 0, expired: 0 };
+    for (const item of items) {
+      if (item.status === 'valid') counts.valid++;
+      else if (item.status === 'expiring') counts.expiring++;
+      else if (item.status === 'expired') counts.expired++;
+    }
+    return counts;
+  }, [items]);
 
   const typeOptions = Array.from(new Set(items.map(item => item.type))).sort();
   const totalPages = Math.ceil(filteredAndSortedItems.length / pageSize);

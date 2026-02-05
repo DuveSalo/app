@@ -10,17 +10,17 @@ interface StatCardProps {
 }
 
 const VARIANT_STYLES = {
-    gray: { bg: 'bg-gray-100', iconBg: 'bg-gray-200', text: 'text-gray-900', label: 'text-gray-500' },
-    green: { bg: 'bg-emerald-50', iconBg: 'bg-emerald-100', text: 'text-emerald-600', label: 'text-emerald-600' },
-    yellow: { bg: 'bg-amber-50', iconBg: 'bg-amber-100', text: 'text-amber-600', label: 'text-amber-600' },
-    red: { bg: 'bg-red-50', iconBg: 'bg-red-100', text: 'text-red-600', label: 'text-red-600' },
+    gray: { bg: 'bg-gray-100', iconBg: 'bg-gray-200', text: 'text-gray-900', label: 'text-gray-500', border: 'border-gray-200' },
+    green: { bg: 'bg-emerald-50', iconBg: 'bg-emerald-100', text: 'text-emerald-600', label: 'text-emerald-600', border: 'border-emerald-200/50' },
+    yellow: { bg: 'bg-amber-50', iconBg: 'bg-amber-100', text: 'text-amber-600', label: 'text-amber-600', border: 'border-amber-200/50' },
+    red: { bg: 'bg-red-50', iconBg: 'bg-red-100', text: 'text-red-600', label: 'text-red-600', border: 'border-red-200/50' },
 };
 
 export const StatCard: React.FC<StatCardProps> = ({ label, value, icon, variant }) => {
     const styles = VARIANT_STYLES[variant];
 
     return (
-        <div className={`${styles.bg} rounded-xl p-3 sm:p-4 border border-gray-200`}>
+        <div className={`${styles.bg} rounded-xl p-3 sm:p-4 border ${styles.border}`}>
             <p className={`text-[10px] sm:text-xs font-medium uppercase tracking-wide ${styles.label} mb-1 sm:mb-2`}>
                 {label}
             </p>

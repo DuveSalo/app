@@ -8,6 +8,7 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import { ROUTE_PATHS } from './constants/index';
 import { SpinnerPage } from './components/common/SpinnerPage';
 import { LazyPages, QR_MODULE_ROUTES, PLACEHOLDER_ROUTES } from './routes/routes.config';
+import { MercadoPagoProvider } from './lib/mercadopago';
 
 // Layouts
 import MainLayout from './components/layout/MainLayout';
@@ -16,9 +17,10 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <ToastProvider>
-          <Suspense fallback={<SpinnerPage />}>
-            <Routes>
+        <MercadoPagoProvider>
+          <ToastProvider>
+            <Suspense fallback={<SpinnerPage />}>
+              <Routes>
               {/* Auth Routes (Public) */}
               <Route path={ROUTE_PATHS.LOGIN} element={<LazyPages.AuthPage mode="login" />} />
               <Route path={ROUTE_PATHS.REGISTER} element={<LazyPages.AuthPage mode="register" />} />
@@ -32,6 +34,14 @@ const App: React.FC = () => {
               <Route
                 path={ROUTE_PATHS.SUBSCRIPTION}
                 element={<ProtectedRoute><LazyPages.SubscriptionPage /></ProtectedRoute>}
+              />
+              <Route
+                path={ROUTE_PATHS.SUBSCRIPTION_CHECKOUT}
+                element={<ProtectedRoute><LazyPages.SubscriptionCheckoutPage /></ProtectedRoute>}
+              />
+              <Route
+                path={ROUTE_PATHS.SUBSCRIPTION_CALLBACK}
+                element={<ProtectedRoute><LazyPages.PaymentCallbackPage /></ProtectedRoute>}
               />
 
               {/* Main Application Routes (Protected with layout) */}
@@ -119,9 +129,10 @@ const App: React.FC = () => {
                   </MainLayout>
                 </ProtectedRoute>
               } />
-            </Routes>
-          </Suspense>
-        </ToastProvider>
+              </Routes>
+            </Suspense>
+          </ToastProvider>
+        </MercadoPagoProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

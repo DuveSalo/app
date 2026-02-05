@@ -17,6 +17,15 @@ import { Flame } from 'lucide-react';
 import PageLayout from '../../components/layout/PageLayout';
 import { formatDateLocal } from '../../lib/utils/dateUtils';
 
+const SORT_OPTIONS_FE = [
+  { value: 'controlDate-desc', label: 'Fecha de Control (Más reciente)' },
+  { value: 'controlDate-asc', label: 'Fecha de Control (Más antiguo)' },
+  { value: 'extinguisherNumber-asc', label: 'Número de Extintor (A-Z)' },
+  { value: 'extinguisherNumber-desc', label: 'Número de Extintor (Z-A)' },
+  { value: 'chargeExpirationDate-asc', label: 'Vencimiento de Carga (Próximo)' },
+  { value: 'chargeExpirationDate-desc', label: 'Vencimiento de Carga (Lejano)' },
+];
+
 const FireExtinguisherListPage: React.FC = () => {
   const [extinguishers, setExtinguishers] = useState<FireExtinguisherControl[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,14 +106,6 @@ const FireExtinguisherListPage: React.FC = () => {
     return result;
   }, [extinguishers, searchQuery, sortBy]);
 
-  const sortOptions = [
-    { value: 'controlDate-desc', label: 'Fecha de Control (Más reciente)' },
-    { value: 'controlDate-asc', label: 'Fecha de Control (Más antiguo)' },
-    { value: 'extinguisherNumber-asc', label: 'Número de Extintor (A-Z)' },
-    { value: 'extinguisherNumber-desc', label: 'Número de Extintor (Z-A)' },
-    { value: 'chargeExpirationDate-asc', label: 'Vencimiento de Carga (Próximo)' },
-    { value: 'chargeExpirationDate-desc', label: 'Vencimiento de Carga (Lejano)' },
-  ];
 
   const headerActions = (
     <Button onClick={() => navigate(ROUTE_PATHS.NEW_FIRE_EXTINGUISHER)}>
@@ -137,7 +138,7 @@ const FireExtinguisherListPage: React.FC = () => {
             onSearchChange={setSearchQuery}
             sortValue={sortBy}
             onSortChange={setSortBy}
-            sortOptions={sortOptions}
+            sortOptions={SORT_OPTIONS_FE}
             searchPlaceholder="Buscar por número de extintor, ubicación o tipo..."
           />
 
@@ -149,7 +150,7 @@ const FireExtinguisherListPage: React.FC = () => {
           ) : (
             <>
               {/* Desktop Table */}
-              <div className="bg-white rounded-xl border border-slate-300 overflow-hidden hidden md:block">
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -164,7 +165,7 @@ const FireExtinguisherListPage: React.FC = () => {
                   </TableHeader>
                   <TableBody>
                     {filteredAndSortedExtinguishers.map((ext) => (
-                      <TableRow key={ext.id} className="hover:bg-slate-50 transition-colors">
+                      <TableRow key={ext.id} className="hover:bg-gray-50 transition-colors">
                         <TableCell className="font-medium">{ext.extinguisherNumber}</TableCell>
                         <TableCell className="hidden lg:table-cell">{ext.type}</TableCell>
                         <TableCell className="hidden lg:table-cell">{ext.capacity} kg</TableCell>
@@ -203,7 +204,7 @@ const FireExtinguisherListPage: React.FC = () => {
                 {filteredAndSortedExtinguishers.map((ext) => (
                   <div
                     key={ext.id}
-                    className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm"
+                    className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm"
                   >
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div>

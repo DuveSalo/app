@@ -102,9 +102,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setCurrentCompany(null);
         // Check if the error is due to email confirmation requirement
         const errorMessage = error instanceof Error ? error.message : '';
-        if (errorMessage.includes('EMAIL_CONFIRMATION_REQUIRED')) {
+        if (errorMessage.includes('EMAIL_CONFIRMATION_REQUIRED') || errorMessage.includes('confirma tu email') || errorMessage.includes('email confirmation')) {
           // Re-throw with a clear message about email confirmation
-          throw new Error('CONFIRMATION_NEEDED');
+          throw new Error('EMAIL_CONFIRMATION_REQUIRED');
         }
         throw error;
     } finally {

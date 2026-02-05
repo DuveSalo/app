@@ -10,9 +10,9 @@ interface DashboardCardsProps {
 
 const getStatusBadge = (status: ExpirationStatus) => {
     const config = {
-        valid: { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200/50', label: 'Vigente' },
-        expiring: { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200/50', label: 'Por vencer' },
-        expired: { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-200/50', label: 'Vencido' },
+        valid: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200/50', label: 'Vigente' },
+        expiring: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200/50', label: 'Por vencer' },
+        expired: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200/50', label: 'Vencido' },
     }[status];
 
     return (

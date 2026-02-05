@@ -1,5 +1,7 @@
 // Fire extinguisher control types
 
+import { YesNo, YesNoNA } from './common';
+
 export enum ExtinguisherType {
   DRY_CHEMICAL = 'Polvo Químico Seco (PQS)',
   CARBON_DIOXIDE = 'Dióxido de Carbono (CO₂)',
@@ -16,8 +18,8 @@ export enum ExtinguisherCapacity {
 }
 
 export interface FireExtinguisherControl {
-  id: string;
-  companyId: string;
+  readonly id: string;
+  readonly companyId: string;
 
   // Fecha de Control
   controlDate: string;
@@ -44,23 +46,23 @@ export interface FireExtinguisherControl {
   nozzleCondition: string;
 
   // Accesibilidad
-  visibilityObstructed: 'Sí' | 'No';
-  accessObstructed: 'Sí' | 'No';
+  visibilityObstructed: YesNo;
+  accessObstructed: YesNo;
 
   // Señalización
   signageCondition: string;
-  signageFloor: 'Sí' | 'No' | 'N/A';
-  signageWall: 'Sí' | 'No' | 'N/A';
-  signageHeight: 'Sí' | 'No' | 'N/A';
+  signageFloor: YesNoNA;
+  signageWall: YesNoNA;
+  signageHeight: YesNoNA;
 
   // Gabinete
-  glassCondition: 'Sí' | 'No' | 'N/A';
-  doorOpensEasily: 'Sí' | 'No' | 'N/A';
-  cabinetClean: 'Sí' | 'No' | 'N/A';
+  glassCondition: YesNoNA;
+  doorOpensEasily: YesNoNA;
+  cabinetClean: YesNoNA;
 
   // Observaciones
   observations: string;
 
-  createdAt?: string;
-  updatedAt?: string;
+  readonly createdAt?: string;
+  readonly updatedAt?: string;
 }

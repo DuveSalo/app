@@ -1,9 +1,12 @@
 
 import { EventInformation } from '../../../types/index';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 export const downloadEventPDF = async (event: EventInformation, companyName: string): Promise<void> => {
+  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+    import('jspdf'),
+    import('jspdf-autotable'),
+  ]);
+
   const doc = new jsPDF({
     orientation: 'p',
     unit: 'mm',

@@ -26,7 +26,9 @@ const ProtectedRoute: React.FC<{ children: ReactElement }> = ({ children }) => {
   }
 
   if (!currentCompany.isSubscribed) {
-    if (location.pathname === ROUTE_PATHS.SUBSCRIPTION || location.pathname === ROUTE_PATHS.CREATE_COMPANY) {
+    if (location.pathname === ROUTE_PATHS.SUBSCRIPTION ||
+        location.pathname === ROUTE_PATHS.SUBSCRIPTION_CHECKOUT ||
+        location.pathname === ROUTE_PATHS.CREATE_COMPANY) {
       return children;
     }
     return <Navigate to={ROUTE_PATHS.SUBSCRIPTION} state={{ from: location }} replace />;
@@ -35,7 +37,8 @@ const ProtectedRoute: React.FC<{ children: ReactElement }> = ({ children }) => {
   if ( location.pathname === ROUTE_PATHS.LOGIN ||
        location.pathname === ROUTE_PATHS.REGISTER ||
        location.pathname === ROUTE_PATHS.CREATE_COMPANY ||
-       location.pathname === ROUTE_PATHS.SUBSCRIPTION
+       location.pathname === ROUTE_PATHS.SUBSCRIPTION ||
+       location.pathname === ROUTE_PATHS.SUBSCRIPTION_CHECKOUT
   ) {
     return <Navigate to={ROUTE_PATHS.DASHBOARD} replace />;
   }

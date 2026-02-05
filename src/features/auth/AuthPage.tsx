@@ -36,7 +36,14 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Ocurrió un error.';
-      if (errorMessage.includes('EMAIL_CONFIRMATION_REQUIRED')) {
+      // Check for email confirmation requirement - check both message content and error code
+      const isEmailConfirmation =
+        errorMessage.includes('EMAIL_CONFIRMATION_REQUIRED') ||
+        errorMessage.includes('confirma tu email') ||
+        errorMessage.includes('email confirmation') ||
+        (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'EMAIL_CONFIRMATION_REQUIRED');
+
+      if (isEmailConfirmation) {
         setShowConfirmationMessage(true);
       } else {
         setError(errorMessage);
@@ -161,31 +168,48 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
             </div>
 
             {showConfirmationMessage ? (
-              <div className="bg-blue-50 border border-blue-200 text-blue-900 p-4 rounded-xl" role="alert">
-                <div className="flex items-start">
-                  <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3 flex-shrink-0">
-                    <CheckIcon className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm mb-1">Registro Exitoso</p>
-                    <p className="text-xs text-blue-800 mb-2">
-                      Se ha enviado un email de confirmación a <strong>{email}</strong>
-                    </p>
-                    <p className="text-xs text-blue-800 mb-1.5">
-                      Para continuar con la configuración de su empresa:
-                    </p>
-                    <ol className="list-decimal list-inside text-xs space-y-0.5 ml-1 text-blue-800">
-                      <li>Revise su bandeja de entrada (o carpeta de spam)</li>
-                      <li>Haga clic en el enlace de confirmación en el email</li>
-                      <li>Será redirigido automáticamente para crear su empresa</li>
-                    </ol>
-                    <div className="mt-3 p-2.5 bg-blue-100/50 rounded-lg">
-                      <p className="text-xs text-blue-800">
-                        <strong>Importante:</strong> No necesita iniciar sesión después de confirmar. Será redirigido automáticamente.
-                      </p>
-                    </div>
-                  </div>
+              <div className="text-center py-6" role="status">
+                {/* Email Icon */}
+                <div className="mx-auto w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-5">
+                  <svg className="w-8 h-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                  </svg>
                 </div>
+
+                {/* Title */}
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Revise su correo electrónico
+                </h3>
+
+                {/* Email address */}
+                <p className="text-sm text-gray-600 mb-6">
+                  Enviamos un enlace de confirmación a<br />
+                  <span className="font-medium text-gray-900">{email}</span>
+                </p>
+
+                {/* Instructions card */}
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-left mb-5">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Siguientes pasos:</p>
+                  <ol className="text-sm text-gray-600 space-y-1.5">
+                    <li className="flex items-start gap-2">
+                      <span className="flex-shrink-0 w-5 h-5 bg-gray-200 text-gray-600 rounded-full text-xs flex items-center justify-center font-medium">1</span>
+                      <span>Abra su bandeja de entrada</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="flex-shrink-0 w-5 h-5 bg-gray-200 text-gray-600 rounded-full text-xs flex items-center justify-center font-medium">2</span>
+                      <span>Haga clic en el enlace de confirmación</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="flex-shrink-0 w-5 h-5 bg-gray-200 text-gray-600 rounded-full text-xs flex items-center justify-center font-medium">3</span>
+                      <span>Será redirigido automáticamente</span>
+                    </li>
+                  </ol>
+                </div>
+
+                {/* Spam note */}
+                <p className="text-xs text-gray-500">
+                  ¿No lo encuentra? Revise su carpeta de spam.
+                </p>
               </div>
             ) : (
               <>
