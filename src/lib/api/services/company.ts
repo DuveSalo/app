@@ -4,7 +4,7 @@ import { Company, Employee, PaymentDetails } from '../../../types/index';
 import { mapCompanyFromDb } from '../mappers';
 import { AuthError, NotFoundError, handleSupabaseError } from '../../utils/errors';
 import { getCurrentUser } from './auth';
-import { TablesUpdate } from '../../../types/database.types';
+import { Tables, TablesUpdate } from '../../../types/database.types';
 
 export const createCompany = async (companyData: Omit<Company, 'id' | 'userId' | 'employees' | 'isSubscribed' | 'selectedPlan'>): Promise<Company> => {
   const currentUser = await getCurrentUser();
@@ -37,28 +37,29 @@ export const createCompany = async (companyData: Omit<Company, 'id' | 'userId' |
   }
 
   // Create initial employee (the owner)
-  await supabase
+  const { data: employeeData } = await supabase
     .from('employees')
     .insert({
       company_id: data.id,
       name: currentUser.name,
       email: currentUser.email,
       role: 'Administrador',
-    });
+    })
+    .select()
+    .single();
 
-  // Fetch employees
-  const { data: employees } = await supabase
-    .from('employees')
-    .select('*')
-    .eq('company_id', data.id);
-
-  return mapCompanyFromDb(data, employees || []);
+  // Return with the created employee (no extra query needed)
+  return mapCompanyFromDb(data, employeeData ? [employeeData] : []);
 };
 
-export const getCompanyByUserId = async (userId: string): Promise<Company> => {
+/**
+ * Lightweight helper to get only company_id without loading employees (N+1 optimization)
+ * Use this when you only need the company_id for queries or file paths
+ */
+export const getCompanyIdByUserId = async (userId: string): Promise<string> => {
   const { data, error } = await supabase
     .from('companies')
-    .select('*')
+    .select('id')
     .eq('user_id', userId)
     .single();
 
@@ -66,13 +67,25 @@ export const getCompanyByUserId = async (userId: string): Promise<Company> => {
     throw new NotFoundError("Empresa no encontrada", "company");
   }
 
-  // Fetch employees
-  const { data: employees } = await supabase
-    .from('employees')
-    .select('*')
-    .eq('company_id', data.id);
+  return data.id;
+};
 
-  return mapCompanyFromDb(data, employees || []);
+export const getCompanyByUserId = async (userId: string): Promise<Company> => {
+  // Use relational query to fetch company with employees in a single query (N+1 fix)
+  const { data, error } = await supabase
+    .from('companies')
+    .select('*, employees(*)')
+    .eq('user_id', userId)
+    .single();
+
+  if (error || !data) {
+    throw new NotFoundError("Empresa no encontrada", "company");
+  }
+
+  // Extract employees from the joined result
+  const { employees, ...companyData } = data;
+
+  return mapCompanyFromDb(companyData as Tables<'companies'>, employees || []);
 };
 
 export const updateCompany = async (companyData: Partial<Company>): Promise<Company> => {
@@ -99,24 +112,22 @@ export const updateCompany = async (companyData: Partial<Company>): Promise<Comp
   }
   if (companyData.paymentMethods) updateData.payment_methods = JSON.parse(JSON.stringify(companyData.paymentMethods));
 
+  // Use relational query to fetch updated company with employees in a single query (N+1 fix)
   const { data, error } = await supabase
     .from('companies')
     .update(updateData)
     .eq('id', companyData.id)
-    .select()
+    .select('*, employees(*)')
     .single();
 
   if (error) {
     handleSupabaseError(error);
   }
 
-  // Fetch employees
-  const { data: employees } = await supabase
-    .from('employees')
-    .select('*')
-    .eq('company_id', data.id);
+  // Extract employees from the joined result
+  const { employees, ...companyResult } = data;
 
-  return mapCompanyFromDb(data, employees || []);
+  return mapCompanyFromDb(companyResult as Tables<'companies'>, employees || []);
 };
 
 export const subscribeCompany = async (_companyId: string, plan: string, _paymentDetails: PaymentDetails): Promise<Company> => {

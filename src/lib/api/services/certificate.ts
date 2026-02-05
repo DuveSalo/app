@@ -4,10 +4,14 @@ import { ConservationCertificate } from '../../../types/index';
 import { mapCertificateFromDb } from '../mappers';
 import { AuthError, NotFoundError, handleSupabaseError } from '../../utils/errors';
 import { getCurrentUser } from './auth';
-import { getCompanyByUserId } from './company';
+import { getCompanyIdByUserId } from './company';
 import { TablesUpdate } from '../../../types/database.types';
+import { PaginationParams, CursorPaginationParams, CursorPaginatedResult } from '../../../types/common';
 
-export const getCertificates = async (companyId?: string): Promise<ConservationCertificate[]> => {
+export const getCertificates = async (
+  companyId?: string,
+  pagination?: PaginationParams
+): Promise<ConservationCertificate[]> => {
   let finalCompanyId = companyId;
 
   if (!finalCompanyId) {
@@ -15,14 +19,23 @@ export const getCertificates = async (companyId?: string): Promise<ConservationC
     if (!currentUser) {
       throw new AuthError('Usuario no autenticado');
     }
-    const company = await getCompanyByUserId(currentUser.id);
-    finalCompanyId = company.id;
+    finalCompanyId = await getCompanyIdByUserId(currentUser.id);
   }
 
-  const { data, error } = await supabase
+  // Explicit column selection (avoid SELECT *)
+  const columns = 'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name';
+
+  let query = supabase
     .from('conservation_certificates')
-    .select('*')
+    .select(columns)
     .eq('company_id', finalCompanyId);
+
+  if (pagination?.page && pagination?.pageSize) {
+    const offset = (pagination.page - 1) * pagination.pageSize;
+    query = query.range(offset, offset + pagination.pageSize - 1);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     handleSupabaseError(error, 'Error al obtener certificados');
@@ -31,10 +44,58 @@ export const getCertificates = async (companyId?: string): Promise<ConservationC
   return (data || []).map(mapCertificateFromDb);
 };
 
+/**
+ * Cursor-based pagination for certificates (O(1) performance on any page)
+ */
+export const getCertificatesCursor = async (
+  companyId: string,
+  params: CursorPaginationParams = {}
+): Promise<CursorPaginatedResult<ConservationCertificate>> => {
+  const columns = 'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name';
+  const limit = params.limit || 20;
+  const fetchLimit = limit + 1;
+
+  let query = supabase
+    .from('conservation_certificates')
+    .select(columns)
+    .eq('company_id', companyId)
+    .order('expiration_date', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(fetchLimit);
+
+  if (params.cursor) {
+    try {
+      const decoded = atob(params.cursor);
+      const [cursorDate, cursorId] = decoded.split('|');
+      if (cursorDate && cursorId) {
+        query = query.or(`expiration_date.lt.${cursorDate},and(expiration_date.eq.${cursorDate},id.lt.${cursorId})`);
+      }
+    } catch { /* Invalid cursor */ }
+  }
+
+  const { data, error } = await query;
+  if (error) handleSupabaseError(error);
+
+  const items = (data || []).slice(0, limit).map(mapCertificateFromDb);
+  const hasMore = (data || []).length > limit;
+  const firstItem = items[0];
+  const lastItem = items[items.length - 1];
+
+  return {
+    items,
+    nextCursor: hasMore && lastItem ? btoa(`${lastItem.expirationDate}|${lastItem.id}`) : null,
+    prevCursor: params.cursor && firstItem ? btoa(`${firstItem.expirationDate}|${firstItem.id}`) : null,
+    hasMore,
+  };
+};
+
 export const getCertificateById = async (id: string): Promise<ConservationCertificate> => {
+  // Explicit column selection (avoid SELECT *)
+  const columns = 'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name';
+
   const { data, error } = await supabase
     .from('conservation_certificates')
-    .select('*')
+    .select(columns)
     .eq('id', id)
     .single();
 
@@ -49,7 +110,8 @@ export const createCertificate = async (certData: Omit<ConservationCertificate, 
   const currentUser = await getCurrentUser();
   if (!currentUser) throw new AuthError("Usuario no autenticado");
 
-  const company = await getCompanyByUserId(currentUser.id);
+  // Use lightweight helper - only get company_id (N+1 optimization)
+  const companyId = await getCompanyIdByUserId(currentUser.id);
 
   let pdfFileUrl: string | null = null;
   let pdfFilePath: string | null = null;
@@ -59,7 +121,7 @@ export const createCertificate = async (certData: Omit<ConservationCertificate, 
     // Sanitize filename - remove special characters and spaces
     const originalName = certData.pdfFileName || certData.pdfFile.name;
     const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const fileName = `${company.id}/${Date.now()}_${sanitizedName}`;
+    const fileName = `${companyId}/${Date.now()}_${sanitizedName}`;
 
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('certificates')
@@ -87,7 +149,7 @@ export const createCertificate = async (certData: Omit<ConservationCertificate, 
   const { data, error } = await supabase
     .from('conservation_certificates')
     .insert({
-      company_id: company.id,
+      company_id: companyId,
       presentation_date: certData.presentationDate,
       expiration_date: certData.expirationDate,
       intervener: certData.intervener,
@@ -110,7 +172,8 @@ export const updateCertificate = async (certData: ConservationCertificate): Prom
   const currentUser = await getCurrentUser();
   if (!currentUser) throw new AuthError("Usuario no autenticado");
 
-  const company = await getCompanyByUserId(currentUser.id);
+  // Use lightweight helper - only get company_id (N+1 optimization)
+  const companyId = await getCompanyIdByUserId(currentUser.id);
 
   let pdfFileUrl: string | null = null;
   let pdfFilePath: string | null = null;
@@ -120,7 +183,7 @@ export const updateCertificate = async (certData: ConservationCertificate): Prom
     // Sanitize filename - remove special characters and spaces
     const originalName = certData.pdfFileName || certData.pdfFile.name;
     const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const fileName = `${company.id}/${Date.now()}_${sanitizedName}`;
+    const fileName = `${companyId}/${Date.now()}_${sanitizedName}`;
 
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('certificates')

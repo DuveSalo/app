@@ -4,7 +4,7 @@
  */
 
 import { supabase } from '../../supabase/client';
-import { Notification, NotificationFilters, NotificationStats } from '../../../types/notification';
+import { Notification, NotificationFilters, NotificationStats, PaginatedNotifications } from '../../../types/notification';
 import { handleSupabaseError } from '../../utils/errors';
 import { Tables } from '../../../types/database.types';
 
@@ -30,54 +30,79 @@ const mapNotificationFromDb = (row: NotificationRow): Notification => ({
 });
 
 /**
- * Get notifications for a company with optional filters
+ * Get notifications for a company with optional filters.
+ * Returns paginated response with metadata.
  */
 export const getNotifications = async (
   companyId: string,
   filters: NotificationFilters = {}
-): Promise<Notification[]> => {
-  let query = supabase
+): Promise<PaginatedNotifications> => {
+  const page = filters.offset && filters.limit ? Math.floor(filters.offset / filters.limit) + 1 : 1;
+  const pageSize = filters.limit || 50;
+
+  // Count query with same filters (use 'id' instead of '*' for efficiency)
+  let countQuery = supabase
     .from('notifications')
-    .select('*')
+    .select('id', { count: 'exact', head: true })
+    .eq('company_id', companyId);
+
+  if (filters.isRead !== undefined) {
+    countQuery = countQuery.eq('is_read', filters.isRead);
+  }
+  if (filters.type) {
+    countQuery = countQuery.eq('type', filters.type);
+  }
+  if (filters.category) {
+    countQuery = countQuery.eq('category', filters.category);
+  }
+
+  // Explicit column selection (avoid SELECT *)
+  const columns = 'id, company_id, user_id, type, category, title, message, link, related_table, related_id, is_read, read_at, created_at';
+
+  // Data query
+  let dataQuery = supabase
+    .from('notifications')
+    .select(columns)
     .eq('company_id', companyId)
     .order('created_at', { ascending: false });
 
   if (filters.isRead !== undefined) {
-    query = query.eq('is_read', filters.isRead);
+    dataQuery = dataQuery.eq('is_read', filters.isRead);
   }
-
   if (filters.type) {
-    query = query.eq('type', filters.type);
+    dataQuery = dataQuery.eq('type', filters.type);
   }
-
   if (filters.category) {
-    query = query.eq('category', filters.category);
+    dataQuery = dataQuery.eq('category', filters.category);
   }
 
-  if (filters.limit) {
-    query = query.limit(filters.limit);
-  }
+  const offset = (page - 1) * pageSize;
+  dataQuery = dataQuery.range(offset, offset + pageSize - 1);
 
-  if (filters.offset) {
-    query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1);
-  }
+  const [countResult, dataResult] = await Promise.all([countQuery, dataQuery]);
 
-  const { data, error } = await query;
+  if (countResult.error) handleSupabaseError(countResult.error);
+  if (dataResult.error) handleSupabaseError(dataResult.error);
 
-  if (error) {
-    handleSupabaseError(error);
-  }
+  const total = countResult.count || 0;
 
-  return (data || []).map(mapNotificationFromDb);
+  return {
+    items: (dataResult.data || []).map(mapNotificationFromDb),
+    total,
+    page,
+    pageSize,
+    pages: Math.ceil(total / pageSize),
+  };
 };
 
 /**
  * Get unread notification count for a company
  */
 export const getUnreadCount = async (companyId: string): Promise<number> => {
+  // Use 'id' instead of '*' for count efficiency
   const { count, error } = await supabase
     .from('notifications')
-    .select('*', { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .eq('company_id', companyId)
     .eq('is_read', false);
 
@@ -92,14 +117,15 @@ export const getUnreadCount = async (companyId: string): Promise<number> => {
  * Get notification stats (total and unread count)
  */
 export const getNotificationStats = async (companyId: string): Promise<NotificationStats> => {
+  // Use 'id' instead of '*' for count efficiency
   const [totalResult, unreadResult] = await Promise.all([
     supabase
       .from('notifications')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('company_id', companyId),
     supabase
       .from('notifications')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('company_id', companyId)
       .eq('is_read', false),
   ]);

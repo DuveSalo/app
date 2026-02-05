@@ -1,20 +1,35 @@
 
 import { supabase } from '../../supabase/client';
 import { Employee } from '../../../types/index';
-import { handleSupabaseError } from '../../utils/errors';
+import { handleSupabaseError, AuthError, NotFoundError } from '../../utils/errors';
 import { getCurrentUser } from './auth';
-import { getCompanyByUserId } from './company';
+
+// Helper to get company_id without loading employees (N+1 fix)
+const getCompanyIdByUserId = async (userId: string): Promise<string> => {
+  const { data, error } = await supabase
+    .from('companies')
+    .select('id')
+    .eq('user_id', userId)
+    .single();
+
+  if (error || !data) {
+    throw new NotFoundError("Empresa no encontrada", "company");
+  }
+
+  return data.id;
+};
 
 export const addEmployee = async (employee: Omit<Employee, 'id'>): Promise<Employee> => {
   const currentUser = await getCurrentUser();
-  if (!currentUser) throw new Error("Empresa no encontrada");
+  if (!currentUser) throw new AuthError("Usuario no autenticado");
 
-  const company = await getCompanyByUserId(currentUser.id);
+  // Use lightweight query to get only company_id (N+1 fix)
+  const companyId = await getCompanyIdByUserId(currentUser.id);
 
   const { data, error } = await supabase
     .from('employees')
     .insert({
-      company_id: company.id,
+      company_id: companyId,
       name: employee.name,
       email: employee.email,
       role: employee.role,
@@ -60,17 +75,22 @@ export const updateEmployee = async (employee: Employee): Promise<Employee> => {
 
 export const deleteEmployee = async (employeeId: string): Promise<void> => {
   const currentUser = await getCurrentUser();
-  if (!currentUser) throw new Error("Empresa no encontrada");
+  if (!currentUser) throw new AuthError("Usuario no autenticado");
 
-  const company = await getCompanyByUserId(currentUser.id);
+  // Use lightweight query to get only company_id (N+1 fix)
+  const companyId = await getCompanyIdByUserId(currentUser.id);
 
-  // Check if this is the last employee
-  const { data: employees } = await supabase
+  // Check if this is the last employee (count only, no full data fetch)
+  const { count, error: countError } = await supabase
     .from('employees')
-    .select('id')
-    .eq('company_id', company.id);
+    .select('id', { count: 'exact', head: true })
+    .eq('company_id', companyId);
 
-  if (employees && employees.length <= 1) {
+  if (countError) {
+    handleSupabaseError(countError);
+  }
+
+  if (count !== null && count <= 1) {
     throw new Error("No se puede eliminar al único empleado de la empresa.");
   }
 
