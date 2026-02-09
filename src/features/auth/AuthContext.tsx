@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Company, PaymentDetails } from '../../types/index';
+import { User, Company } from '../../types/index';
 import * as api from '../../lib/api/supabaseApi';
 import { ROUTE_PATHS } from '../../constants/index';
 import { createLogger } from '../../lib/utils/logger';
@@ -18,10 +18,10 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   setCompany: (company: Company) => void;
-  refreshCompany: () => Promise<void>;
-  completeSubscription: (plan: string, paymentDetails: PaymentDetails) => Promise<void>;
-  changePlan: (newPlanId: string) => Promise<void>;
+  refreshCompany: (silent?: boolean) => Promise<void>;
+  changePlan: (newPlanId: string) => Promise<string | undefined>;
   cancelSubscription: () => Promise<void>;
+  pauseSubscription: () => Promise<void>;
   updateUserDetails: (details: Partial<User>) => Promise<void>;
 }
 
@@ -123,42 +123,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setCurrentCompany(company);
   };
 
-  const refreshCompanyData = async () => {
+  const refreshCompanyData = async (silent = false) => {
     if (currentUser) {
-      setIsLoading(true);
+      if (!silent) setIsLoading(true);
       try {
         const company = await api.getCompanyByUserId(currentUser.id);
         setCurrentCompany(company);
       } catch (error) {
         logger.error("Error refreshing company data", error, { userId: currentUser.id });
-        setCurrentCompany(null); 
+        setCurrentCompany(null);
       } finally {
-        setIsLoading(false);
+        if (!silent) setIsLoading(false);
       }
     }
   };
 
-  const completeSubscriptionContext = async (plan: string, paymentDetails: PaymentDetails) => {
-    if (!currentCompany) throw new Error("No company to subscribe.");
-    setIsLoading(true);
-    try {
-      const updatedCompany = await api.subscribeCompany(currentCompany.id, plan, paymentDetails);
-      setCurrentCompany(updatedCompany);
-      navigate(ROUTE_PATHS.DASHBOARD);
-    } catch (error) {
-      logger.error("Error completing subscription", error, { companyId: currentCompany.id, plan });
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const changePlanContext = async (newPlanId: string) => {
+  const changePlanContext = async (newPlanId: string): Promise<string | undefined> => {
     if (!currentCompany) throw new Error("No company found.");
     setIsLoading(true);
     try {
-      const updatedCompany = await api.changeSubscriptionPlan(newPlanId);
-      setCurrentCompany(updatedCompany);
+      const { company, initPoint } = await api.changeSubscriptionPlan(newPlanId);
+      setCurrentCompany(company);
+      return initPoint;
     } catch (error) {
       logger.error("Error changing subscription plan", error, { companyId: currentCompany.id, newPlanId });
       throw error;
@@ -175,6 +161,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setCurrentCompany(updatedCompany);
     } catch (error) {
       logger.error("Error cancelling subscription", error, { companyId: currentCompany.id });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const pauseSubscriptionContext = async () => {
+    if (!currentCompany) throw new Error("No company found.");
+    setIsLoading(true);
+    try {
+      const updatedCompany = await api.pauseSubscription();
+      setCurrentCompany(updatedCompany);
+    } catch (error) {
+      logger.error("Error pausing subscription", error, { companyId: currentCompany.id });
       throw error;
     } finally {
       setIsLoading(false);
@@ -220,9 +220,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       logout: logoutUser,
       setCompany: setCompanyContext,
       refreshCompany: refreshCompanyData,
-      completeSubscription: completeSubscriptionContext,
       changePlan: changePlanContext,
       cancelSubscription: cancelSubscriptionContext,
+      pauseSubscription: pauseSubscriptionContext,
       updateUserDetails: updateUserDetailsContext,
     }}>
       {children}

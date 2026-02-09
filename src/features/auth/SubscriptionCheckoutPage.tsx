@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import AuthLayout from '@/components/layout/AuthLayout';
@@ -32,6 +32,7 @@ const SubscriptionCheckoutPage: React.FC = () => {
 
   const [step, setStep] = useState<CheckoutStep>('confirm');
   const [error, setError] = useState<string>('');
+  const isSubmittingRef = useRef(false);
 
   // Redirect if no company or user
   useEffect(() => {
@@ -41,6 +42,9 @@ const SubscriptionCheckoutPage: React.FC = () => {
   }, [currentCompany, currentUser, navigate]);
 
   const handleSubscribe = async () => {
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
+
     setStep('processing');
     setError('');
 
@@ -85,6 +89,7 @@ const SubscriptionCheckoutPage: React.FC = () => {
       console.error('[Checkout] Error:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
       setStep('error');
+      isSubmittingRef.current = false;
     }
   };
 

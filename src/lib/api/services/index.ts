@@ -9,3 +9,4 @@ export * from './event';
 export * from './pdf';
 export * from './fireExtinguisher';
 export * from './notifications';
+export * from './subscription';

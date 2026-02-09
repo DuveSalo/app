@@ -26,11 +26,17 @@
       "Bash(npx tsc:*)",
       "mcp__supabase__apply_migration",
       "Bash(dir /s \"c:\\Users\\david\\OneDrive\\Escritorio\\app\\supabase\\functions\")",
-      "Bash(npx shadcn@latest add:*)"
+      "Bash(npx shadcn@latest add:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "WebFetch(domain:www.mercadopago.com.co)",
+      "WebFetch(domain:www.mercadopago.com.ar)",
+      "WebFetch(domain:github.com)"
     ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "supabase"
+    "supabase",
+    "mercadopago"
   ]
 }

@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import * as api from '../../lib/api/supabaseApi';
-import { Employee, QRDocumentType, Company, User, CompanyServices, Plan } from '../../types/index';
+import { Employee, QRDocumentType, Company, User, CompanyServices } from '../../types/index';
+import type { PaymentTransaction } from '../../lib/api/services/subscription';
 import { MODULE_TITLES } from '../../constants/index';
 import { plansData } from '../auth/SubscriptionPage';
 import { Card } from '../../components/common/Card';
@@ -43,8 +44,8 @@ export const SettingsPage: React.FC = () => {
   const [showEmployeeModal, setShowEmployeeModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [showBillingModal, setShowBillingModal] = useState(false);
-  const [billingAction, setBillingAction] = useState<'change' | 'cancel'>('change');
-  const { currentUser, currentCompany, refreshCompany, updateUserDetails, logout, changePlan, cancelSubscription } = useAuth();
+  const [billingAction, setBillingAction] = useState<'change' | 'cancel' | 'pause'>('change');
+  const { currentUser, currentCompany, refreshCompany, updateUserDetails, logout, changePlan, cancelSubscription, pauseSubscription } = useAuth();
   const { showSuccess, showError, showWarning } = useToast();
 
   const [companyForm, setCompanyForm] = useState<Partial<CompanyFormData>>({});
@@ -58,6 +59,8 @@ export const SettingsPage: React.FC = () => {
   const [isPasswordResetLoading, setIsPasswordResetLoading] = useState(false);
   const [error, setError] = useState('');
   const [newSelectedPlanId, setNewSelectedPlanId] = useState<string>('');
+  const [paymentHistory, setPaymentHistory] = useState<PaymentTransaction[]>([]);
+  const [isLoadingPayments, setIsLoadingPayments] = useState(false);
 
   useEffect(() => {
     if (currentCompany) {
@@ -81,6 +84,16 @@ export const SettingsPage: React.FC = () => {
       setProfileForm({ name: currentUser.name, email: currentUser.email });
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    if (activeTab === 'billing' && paymentHistory.length === 0) {
+      setIsLoadingPayments(true);
+      api.getPaymentHistory()
+        .then(setPaymentHistory)
+        .catch(() => setPaymentHistory([]))
+        .finally(() => setIsLoadingPayments(false));
+    }
+  }, [activeTab]);
   
   const validateCompanyField = (name: string, value: string): string => {
       switch (name) {
@@ -247,18 +260,26 @@ export const SettingsPage: React.FC = () => {
             setShowBillingModal(false);
             return;
         }
-        await changePlan(newSelectedPlanId);
+        const initPoint = await changePlan(newSelectedPlanId);
+        setShowBillingModal(false);
+        if (initPoint) {
+          window.location.href = initPoint;
+          return;
+        }
+        await refreshCompany();
+      } else if (billingAction === 'pause') {
+        await pauseSubscription();
+        setShowBillingModal(false);
+        await refreshCompany();
+        showSuccess('Suscripcion pausada correctamente');
       } else {
-        if (!window.confirm('¿Está seguro de que desea cancelar su suscripción?')) {
-            setIsLoading(false);
-            return
-        };
         await cancelSubscription();
+        setShowBillingModal(false);
+        await refreshCompany();
+        showSuccess('Suscripcion cancelada correctamente');
       }
-      setShowBillingModal(false);
-      await refreshCompany();
     } catch (err) {
-      setError((err as Error).message || `Error al ${billingAction === 'change' ? 'cambiar de plan' : 'cancelar la suscripción'}`);
+      setError((err as Error).message || `Error al ${billingAction === 'change' ? 'cambiar de plan' : billingAction === 'pause' ? 'pausar' : 'cancelar'} la suscripcion`);
     } finally {
       setIsLoading(false);
     }
@@ -509,24 +530,118 @@ export const SettingsPage: React.FC = () => {
 
                 {activeTab === 'billing' && (
                     <div className="space-y-4 sm:space-y-6">
-                        <h2 className="text-base font-semibold text-gray-900">Facturación</h2>
+                        <h2 className="text-base font-semibold text-gray-900">Facturacion</h2>
                         <Card>
-                            <h3 className="text-sm font-semibold text-gray-900">Plan actual</h3>
-                            <p className="text-sm text-gray-600 mt-1">
-                                Plan {currentCompany.selectedPlan} - {plansData.find(p => p.id === currentCompany.selectedPlan)?.price}/mes
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-semibold text-gray-900">Plan actual</h3>
+                                <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-md ${
+                                    currentCompany.subscriptionStatus === 'canceled' ? 'bg-red-50 text-red-700' :
+                                    currentCompany.subscriptionStatus === 'paused' ? 'bg-amber-50 text-amber-700' :
+                                    currentCompany.subscriptionStatus === 'active' || currentCompany.subscriptionStatus === 'authorized' ? 'bg-emerald-50 text-emerald-700' :
+                                    'bg-gray-100 text-gray-700'
+                                }`}>
+                                    {currentCompany.subscriptionStatus === 'canceled' ? 'Cancelado' :
+                                     currentCompany.subscriptionStatus === 'paused' ? 'Pausado' :
+                                     currentCompany.subscriptionStatus === 'active' || currentCompany.subscriptionStatus === 'authorized' ? 'Activo' :
+                                     currentCompany.subscriptionStatus === 'pending' ? 'Pendiente' :
+                                     currentCompany.subscriptionStatus || 'Sin suscripcion'}
+                                </span>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-2">
+                                Plan {plansData.find(p => p.id === currentCompany.selectedPlan)?.name || currentCompany.selectedPlan} - {plansData.find(p => p.id === currentCompany.selectedPlan)?.price}/mes
                             </p>
-                            <p className="text-sm text-gray-500 mt-1">
-                                {currentCompany.subscriptionStatus === 'canceled'
-                                    ? <span className="text-red-600 font-semibold">Cancelado</span>
-                                    : `Próxima facturación: ${formatDateLocal(currentCompany.subscriptionRenewalDate)}`
-                                }
-                            </p>
+                            {currentCompany.subscriptionStatus !== 'canceled' && currentCompany.subscriptionRenewalDate && (
+                                <p className="text-sm text-gray-500 mt-1">
+                                    Proxima facturacion: {formatDateLocal(currentCompany.subscriptionRenewalDate)}
+                                </p>
+                            )}
                         </Card>
                         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                            <Button variant="outline" onClick={() => { setBillingAction('change'); setShowBillingModal(true); }} className="w-full sm:w-auto">Cambiar plan</Button>
-                            {currentCompany.subscriptionStatus !== 'canceled' &&
-                            <Button variant="danger" onClick={() => { setBillingAction('cancel'); setShowBillingModal(true); }} className="w-full sm:w-auto">Cancelar suscripción</Button>
-                            }
+                            {currentCompany.subscriptionStatus !== 'canceled' && (
+                                <Button variant="outline" onClick={() => { setBillingAction('change'); setShowBillingModal(true); }} className="w-full sm:w-auto">Cambiar plan</Button>
+                            )}
+                            {(currentCompany.subscriptionStatus === 'active' || currentCompany.subscriptionStatus === 'authorized') && (
+                                <Button variant="outline" onClick={() => { setBillingAction('pause'); setShowBillingModal(true); }} className="w-full sm:w-auto">Pausar suscripcion</Button>
+                            )}
+                            {currentCompany.subscriptionStatus !== 'canceled' && (
+                                <Button variant="danger" onClick={() => { setBillingAction('cancel'); setShowBillingModal(true); }} className="w-full sm:w-auto">Cancelar suscripcion</Button>
+                            )}
+                        </div>
+
+                        {/* Payment History */}
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-900 mb-3">Historial de pagos</h3>
+                            {isLoadingPayments ? (
+                                <div className="flex justify-center py-8"><LoadingSpinner /></div>
+                            ) : paymentHistory.length === 0 ? (
+                                <Card>
+                                    <p className="text-sm text-gray-500 text-center py-4">No hay pagos registrados aun.</p>
+                                </Card>
+                            ) : (
+                                <>
+                                    {/* Desktop Table */}
+                                    <div className="hidden md:block border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
+                                        <table className="min-w-full divide-y divide-gray-100">
+                                            <thead className="bg-gray-50/50">
+                                                <tr>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Fecha</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Monto</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Metodo</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="bg-white divide-y divide-gray-100">
+                                                {paymentHistory.map((tx) => (
+                                                    <tr key={tx.id} className="hover:bg-gray-50 transition-colors">
+                                                        <td className="px-4 py-3 text-sm text-gray-700">{formatDateLocal(tx.dateCreated)}</td>
+                                                        <td className="px-4 py-3 text-sm text-gray-900 font-medium">${Number(tx.amount).toLocaleString('es-AR')}</td>
+                                                        <td className="px-4 py-3">
+                                                            <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-md ${
+                                                                tx.status === 'approved' ? 'bg-emerald-50 text-emerald-700' :
+                                                                tx.status === 'pending' ? 'bg-amber-50 text-amber-700' :
+                                                                tx.status === 'rejected' ? 'bg-red-50 text-red-700' :
+                                                                'bg-gray-100 text-gray-700'
+                                                            }`}>
+                                                                {tx.status === 'approved' ? 'Aprobado' :
+                                                                 tx.status === 'pending' ? 'Pendiente' :
+                                                                 tx.status === 'rejected' ? 'Rechazado' :
+                                                                 tx.status === 'refunded' ? 'Reembolsado' :
+                                                                 tx.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-sm text-gray-500">{tx.paymentMethod || '-'}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {/* Mobile Cards */}
+                                    <div className="md:hidden space-y-3">
+                                        {paymentHistory.map((tx) => (
+                                            <div key={tx.id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="text-sm text-gray-500">{formatDateLocal(tx.dateCreated)}</span>
+                                                    <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-md ${
+                                                        tx.status === 'approved' ? 'bg-emerald-50 text-emerald-700' :
+                                                        tx.status === 'pending' ? 'bg-amber-50 text-amber-700' :
+                                                        tx.status === 'rejected' ? 'bg-red-50 text-red-700' :
+                                                        'bg-gray-100 text-gray-700'
+                                                    }`}>
+                                                        {tx.status === 'approved' ? 'Aprobado' :
+                                                         tx.status === 'pending' ? 'Pendiente' :
+                                                         tx.status === 'rejected' ? 'Rechazado' :
+                                                         tx.status === 'refunded' ? 'Reembolsado' :
+                                                         tx.status}
+                                                    </span>
+                                                </div>
+                                                <p className="text-lg font-semibold text-gray-900">${Number(tx.amount).toLocaleString('es-AR')}</p>
+                                                {tx.paymentMethod && <p className="text-sm text-gray-500 mt-1">{tx.paymentMethod}</p>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 )}
@@ -592,14 +707,22 @@ export const SettingsPage: React.FC = () => {
             </form>
         </Modal>
 
-        <Modal isOpen={showBillingModal} onClose={() => setShowBillingModal(false)} title={billingAction === 'change' ? 'Cambiar plan' : 'Cancelar suscripción'}>
+        <Modal isOpen={showBillingModal} onClose={() => setShowBillingModal(false)} title={
+            billingAction === 'change' ? 'Cambiar plan' :
+            billingAction === 'pause' ? 'Pausar suscripcion' :
+            'Cancelar suscripcion'
+        }>
             <div className="space-y-4">
             <p className="text-sm text-gray-600">
-                {billingAction === 'change' ? 'Selecciona un nuevo plan para tu suscripción.' : '¿Estás seguro de que deseas cancelar tu suscripción? Perderás el acceso a las funciones al final de tu ciclo de facturación actual.'}
+                {billingAction === 'change'
+                    ? 'Selecciona un nuevo plan. Se cancelara tu plan actual y seras redirigido a MercadoPago para completar el pago del nuevo plan.'
+                    : billingAction === 'pause'
+                    ? 'Tu suscripcion sera pausada. No se realizaran cobros mientras este pausada, pero podras reactivarla en cualquier momento.'
+                    : 'Al cancelar tu suscripcion perderas el acceso a las funciones del sistema. Esta accion no se puede deshacer.'}
             </p>
             {billingAction === 'change' && (
                 <div className="space-y-2">
-                {plansData.map((plan) => (
+                {plansData.filter(p => p.id !== currentCompany?.selectedPlan).map((plan) => (
                     <div key={plan.id} className={`border rounded-xl p-4 cursor-pointer transition-all ${newSelectedPlanId === plan.id ? 'border-gray-900 ring-2 ring-gray-900' : 'border-gray-200 hover:border-gray-300'}`} onClick={() => setNewSelectedPlanId(plan.id)}>
                     <div className="flex justify-between items-center">
                         <div>
@@ -614,9 +737,11 @@ export const SettingsPage: React.FC = () => {
             )}
             {error && <p className="text-sm text-red-600 text-center">{error}</p>}
             <div className="flex justify-end gap-2.5 pt-4 mt-2">
-                <Button variant="outline" onClick={() => setShowBillingModal(false)}>Cancelar</Button>
+                <Button variant="outline" onClick={() => setShowBillingModal(false)}>Volver</Button>
                 <Button variant={billingAction === 'cancel' ? 'danger' : 'primary'} onClick={handleBillingAction} loading={isLoading}>
-                {billingAction === 'change' ? 'Cambiar plan' : 'Confirmar Cancelación'}
+                {billingAction === 'change' ? 'Cambiar plan' :
+                 billingAction === 'pause' ? 'Pausar suscripcion' :
+                 'Confirmar cancelacion'}
                 </Button>
             </div>
             </div>

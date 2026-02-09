@@ -13,3 +13,12 @@ major_version = 17
 
 [functions.send-expiration-emails]
 verify_jwt = false
+
+[functions.manage-subscription]
+verify_jwt = true
+
+[functions.webhook-mercadopago]
+verify_jwt = false
+
+[functions.cron-check-subscriptions]
+verify_jwt = false

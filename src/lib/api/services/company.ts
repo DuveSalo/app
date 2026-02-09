@@ -1,6 +1,6 @@
 
 import { supabase } from '../../supabase/client';
-import { Company, Employee, PaymentDetails } from '../../../types/index';
+import { Company, Employee } from '../../../types/index';
 import { mapCompanyFromDb } from '../mappers';
 import { AuthError, NotFoundError, handleSupabaseError } from '../../utils/errors';
 import { getCurrentUser } from './auth';
@@ -130,44 +130,66 @@ export const updateCompany = async (companyData: Partial<Company>): Promise<Comp
   return mapCompanyFromDb(companyResult as Tables<'companies'>, employees || []);
 };
 
-export const subscribeCompany = async (_companyId: string, plan: string, _paymentDetails: PaymentDetails): Promise<Company> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError("Usuario no autenticado");
+/**
+ * Helper to call the manage-subscription Edge Function.
+ * Handles cancel, pause, and change_plan actions against the MercadoPago API.
+ */
+async function callManageSubscription(
+  action: 'cancel' | 'pause' | 'change_plan',
+  newPlanId?: string
+): Promise<{ success: boolean; init_point?: string; message?: string }> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) throw new AuthError("Sesion expirada");
 
-  const company = await getCompanyByUserId(currentUser.id);
+  const { VITE_SUPABASE_URL } = await import('../../env').then(m => m.env);
 
-  const renewalDate = new Date();
-  renewalDate.setDate(renewalDate.getDate() + 30);
+  const response = await fetch(
+    `${VITE_SUPABASE_URL}/functions/v1/manage-subscription`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ action, ...(newPlanId && { newPlanId }) }),
+    }
+  );
 
-  return updateCompany({
-    id: company.id,
-    isSubscribed: true,
-    selectedPlan: plan,
-    subscriptionStatus: 'active',
-    subscriptionRenewalDate: renewalDate.toISOString().split('T')[0],
-  });
-};
+  const result = await response.json();
 
-export const changeSubscriptionPlan = async (newPlanId: string): Promise<Company> => {
+  if (!response.ok || !result.success) {
+    throw new Error(result.message || `Error al ${action === 'cancel' ? 'cancelar' : action === 'pause' ? 'pausar' : 'cambiar'} la suscripcion`);
+  }
+
+  return result;
+}
+
+export const changeSubscriptionPlan = async (newPlanId: string): Promise<{ company: Company; initPoint?: string }> => {
   const currentUser = await getCurrentUser();
   if (!currentUser) throw new Error("No company found.");
 
+  const result = await callManageSubscription('change_plan', newPlanId);
+
+  // Refresh company data from DB after the Edge Function updated it
   const company = await getCompanyByUserId(currentUser.id);
 
-  return updateCompany({
-    id: company.id,
-    selectedPlan: newPlanId,
-  });
+  return { company, initPoint: result.init_point };
 };
 
 export const cancelSubscription = async (): Promise<Company> => {
   const currentUser = await getCurrentUser();
   if (!currentUser) throw new Error("No company found.");
 
-  const company = await getCompanyByUserId(currentUser.id);
+  await callManageSubscription('cancel');
 
-  return updateCompany({
-    id: company.id,
-    subscriptionStatus: 'canceled',
-  });
+  return getCompanyByUserId(currentUser.id);
+};
+
+export const pauseSubscription = async (): Promise<Company> => {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) throw new Error("No company found.");
+
+  await callManageSubscription('pause');
+
+  return getCompanyByUserId(currentUser.id);
 };

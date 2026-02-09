@@ -24,6 +24,11 @@ interface CreateSubscriptionRequest {
 }
 
 const VALID_PLAN_IDS = ['basic', 'standard', 'premium'];
+const PLAN_PRICES: Record<string, number> = {
+  basic: 29000,
+  standard: 59000,
+  premium: 99000,
+};
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function errorResponse(
@@ -143,6 +148,16 @@ serve(async (req) => {
       });
     }
 
+    // Use server-side price — never trust client-sent amount
+    const serverAmount = PLAN_PRICES[body.planId];
+    if (!serverAmount) {
+      return errorResponse(400, 'INVALID_PLAN', `Plan invalido: ${body.planId}`);
+    }
+
+    if (body.amount !== serverAmount) {
+      console.warn(`[create-subscription] Amount mismatch: client=${body.amount}, server=${serverAmount}, plan=${body.planId}`);
+    }
+
     // Build preapproval request body - Using PENDING status
     // User will be redirected to MercadoPago to complete payment
     const preapprovalBody = {
@@ -152,7 +167,7 @@ serve(async (req) => {
       auto_recurring: {
         frequency: 1,
         frequency_type: 'months',
-        transaction_amount: body.amount,
+        transaction_amount: serverAmount,
         currency_id: 'ARS',
       },
       back_url: `${APP_URL}/#/subscription/callback`,
@@ -161,7 +176,9 @@ serve(async (req) => {
 
     console.log('[create-subscription] Request to MP:', JSON.stringify(preapprovalBody, null, 2));
 
-    // Create preapproval (subscription) in Mercado Pago
+    // Create preapproval (subscription) in Mercado Pago via fetch
+    console.log('[create-subscription] Using token:', MP_ACCESS_TOKEN.substring(0, 10) + '...');
+
     const preapprovalResponse = await fetch(
       'https://api.mercadopago.com/preapproval',
       {
@@ -192,7 +209,10 @@ serve(async (req) => {
         errorMessage = `Error: ${causes}`;
       }
 
-      return errorResponse(400, 'MP_ERROR', errorMessage);
+      return errorResponse(400, 'MP_ERROR', errorMessage, {
+        mp_status: preapprovalResponse.status,
+        mp_response: preapproval,
+      });
     }
 
     // Save subscription to database with pending status (UPSERT for idempotency)
@@ -205,7 +225,7 @@ serve(async (req) => {
           mp_payer_id: preapproval.payer_id?.toString(),
           plan_id: body.planId,
           plan_name: body.planName,
-          amount: body.amount,
+          amount: serverAmount,
           status: 'pending', // Will be updated to 'authorized' via webhook
           start_date: preapproval.date_created,
           updated_at: new Date().toISOString(),

@@ -32,33 +32,47 @@ CREATE TABLE subscriptions (
     REFERENCES companies(id) ON DELETE CASCADE
 );
 
--- Indexes
+-- Indexes (composite for common query pattern: company_id + status + created_at)
 CREATE INDEX idx_subscriptions_company ON subscriptions(company_id);
 CREATE INDEX idx_subscriptions_mp_preapproval ON subscriptions(mp_preapproval_id);
-CREATE INDEX idx_subscriptions_status ON subscriptions(status);
+CREATE INDEX idx_subscriptions_company_status_created ON subscriptions(company_id, status, created_at DESC);
+CREATE INDEX idx_subscriptions_active ON subscriptions(company_id, created_at DESC) WHERE status IN ('pending', 'authorized', 'paused');
+
+-- Status constraint
+ALTER TABLE subscriptions ADD CONSTRAINT chk_subscription_status
+  CHECK (status IN ('pending', 'authorized', 'paused', 'cancelled', 'expired'));
+
+-- GRANTs (least privilege)
+GRANT SELECT, INSERT ON subscriptions TO authenticated;
+GRANT SELECT ON subscriptions TO anon;
+GRANT ALL ON subscriptions TO service_role;
 
 -- RLS
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
 
+-- (select auth.uid()) wrapped for performance: evaluated once, not per row
 CREATE POLICY "Users can view own company subscriptions"
   ON subscriptions FOR SELECT
+  TO authenticated
   USING (
     company_id IN (
-      SELECT id FROM companies WHERE user_id = auth.uid()
+      SELECT id FROM companies WHERE user_id = (select auth.uid())
     )
   );
 
 CREATE POLICY "Users can insert subscriptions for own company"
   ON subscriptions FOR INSERT
+  TO authenticated
   WITH CHECK (
     company_id IN (
-      SELECT id FROM companies WHERE user_id = auth.uid()
+      SELECT id FROM companies WHERE user_id = (select auth.uid())
     )
   );
 
--- Service role can update (for webhooks and edge functions)
-CREATE POLICY "Service role can update subscriptions"
-  ON subscriptions FOR UPDATE
+-- Service role: full access (for webhooks and edge functions)
+CREATE POLICY "Service role can manage subscriptions"
+  ON subscriptions FOR ALL
+  TO service_role
   USING (true)
   WITH CHECK (true);
 

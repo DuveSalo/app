@@ -3,6 +3,13 @@
     "supabase": {
       "type": "http",
       "url": "https://mcp.supabase.com/mcp"
+    },
+    "mercadopago": {
+      "type": "http",
+      "url": "https://mcp.mercadopago.com/mcp",
+      "headers": {
+        "Authorization": "Bearer TEST-4136674109911942-013008-66aad7c14b3606f606eed57ed201810d-488274178"
+      }
     }
   }
 }

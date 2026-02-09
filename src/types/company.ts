@@ -54,7 +54,7 @@ export interface Company {
   selectedPlan?: string;
   services?: CompanyServices;
   subscriptionRenewalDate?: string;
-  subscriptionStatus?: 'active' | 'canceled' | 'expired';
+  subscriptionStatus?: 'active' | 'authorized' | 'pending' | 'paused' | 'canceled' | 'expired';
   paymentMethods?: PaymentMethod[];
 }
 

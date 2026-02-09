@@ -119,6 +119,7 @@ serve(async (req) => {
   }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+  const mpHeaders = { 'Authorization': `Bearer ${MP_ACCESS_TOKEN}` };
 
   try {
     const body = await req.json();
@@ -128,13 +129,18 @@ serve(async (req) => {
 
     // Handle payment notifications
     if (type === 'payment') {
-      const paymentResponse = await fetch(
+      const paymentResp = await fetch(
         `https://api.mercadopago.com/v1/payments/${data.id}`,
-        {
-          headers: { 'Authorization': `Bearer ${MP_ACCESS_TOKEN}` },
-        }
+        { headers: mpHeaders }
       );
-      const payment = await paymentResponse.json();
+      if (!paymentResp.ok) {
+        console.error('Failed to fetch payment from MP:', data.id, paymentResp.status);
+        return new Response(JSON.stringify({ received: true }), {
+          status: 200,
+          headers: responseHeaders,
+        });
+      }
+      const payment = await paymentResp.json();
 
       // Find subscription by preapproval_id or external_reference (parallel queries)
       const subscriptionQueries = [];
@@ -188,8 +194,28 @@ serve(async (req) => {
           }
         );
 
-        // If payment was rejected, update subscription and company in parallel
-        if (payment.status === 'rejected') {
+        if (payment.status === 'approved') {
+          // Payment approved - sync renewal date from preapproval if available
+          const preapprovalId = payment.metadata?.preapproval_id;
+          if (preapprovalId) {
+            const preapprovalResp = await fetch(
+              `https://api.mercadopago.com/preapproval/${preapprovalId}`,
+              { headers: mpHeaders }
+            );
+            if (preapprovalResp.ok) {
+              const preapproval = await preapprovalResp.json();
+              if (preapproval.next_payment_date) {
+                await supabase
+                  .from('companies')
+                  .update({ subscription_renewal_date: preapproval.next_payment_date })
+                  .eq('id', subscription.company_id);
+              }
+            } else {
+              console.warn('Could not fetch preapproval for renewal date sync:', preapprovalResp.status);
+            }
+          }
+        } else if (payment.status === 'rejected') {
+          // Payment rejected - pause subscription and company
           await Promise.all([
             supabase
               .from('subscriptions')
@@ -208,15 +234,20 @@ serve(async (req) => {
 
     // Handle subscription (preapproval) status changes
     if (type === 'subscription_preapproval') {
-      const preapprovalResponse = await fetch(
+      const preapprovalResp = await fetch(
         `https://api.mercadopago.com/preapproval/${data.id}`,
-        {
-          headers: { 'Authorization': `Bearer ${MP_ACCESS_TOKEN}` },
-        }
+        { headers: mpHeaders }
       );
-      const preapproval = await preapprovalResponse.json();
+      if (!preapprovalResp.ok) {
+        console.error('Failed to fetch preapproval from MP:', data.id, preapprovalResp.status);
+        return new Response(JSON.stringify({ received: true }), {
+          status: 200,
+          headers: responseHeaders,
+        });
+      }
+      const preapproval = await preapprovalResp.json();
 
-      // Update subscription in our database
+      // Update subscription in our database and read plan_id for sync
       const { data: sub } = await supabase
         .from('subscriptions')
         .update({
@@ -225,21 +256,23 @@ serve(async (req) => {
           updated_at: new Date().toISOString(),
         })
         .eq('mp_preapproval_id', data.id)
-        .select('company_id')
+        .select('company_id, plan_id')
         .single();
 
       // Update company based on subscription status
       if (sub) {
         if (preapproval.status === 'authorized') {
-          // Subscription is now active - grant access
+          // Subscription is now active - grant access and sync plan + renewal date
           await supabase
             .from('companies')
             .update({
               subscription_status: 'active',
               is_subscribed: true,
+              selected_plan: sub.plan_id,
+              subscription_renewal_date: preapproval.next_payment_date || null,
             })
             .eq('id', sub.company_id);
-          console.log('Company subscription activated:', sub.company_id);
+          console.log('Company subscription activated:', sub.company_id, 'plan:', sub.plan_id);
         } else if (['cancelled', 'expired'].includes(preapproval.status)) {
           // Subscription ended - revoke access
           await supabase
@@ -251,7 +284,7 @@ serve(async (req) => {
             .eq('id', sub.company_id);
           console.log('Company subscription deactivated:', sub.company_id);
         } else if (preapproval.status === 'paused') {
-          // Subscription paused
+          // Subscription paused - keep is_subscribed true temporarily
           await supabase
             .from('companies')
             .update({

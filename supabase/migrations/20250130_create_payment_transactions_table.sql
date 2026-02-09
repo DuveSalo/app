@@ -35,19 +35,31 @@ CREATE INDEX idx_transactions_company ON payment_transactions(company_id);
 CREATE INDEX idx_transactions_subscription ON payment_transactions(subscription_id);
 CREATE INDEX idx_transactions_mp_payment ON payment_transactions(mp_payment_id);
 
+-- Status constraint
+ALTER TABLE payment_transactions ADD CONSTRAINT chk_transaction_status
+  CHECK (status IN ('approved', 'pending', 'rejected', 'refunded', 'cancelled'));
+
+-- GRANTs (least privilege - users only read, service_role manages)
+GRANT SELECT ON payment_transactions TO authenticated;
+GRANT SELECT ON payment_transactions TO anon;
+GRANT ALL ON payment_transactions TO service_role;
+
 -- RLS
 ALTER TABLE payment_transactions ENABLE ROW LEVEL SECURITY;
 
+-- (select auth.uid()) wrapped for performance: evaluated once, not per row
 CREATE POLICY "Users can view own company transactions"
   ON payment_transactions FOR SELECT
+  TO authenticated
   USING (
     company_id IN (
-      SELECT id FROM companies WHERE user_id = auth.uid()
+      SELECT id FROM companies WHERE user_id = (select auth.uid())
     )
   );
 
--- Service role can insert/update (for webhooks and edge functions)
+-- Service role: full access (webhooks insert/update transactions)
 CREATE POLICY "Service role can manage transactions"
   ON payment_transactions FOR ALL
+  TO service_role
   USING (true)
   WITH CHECK (true);
