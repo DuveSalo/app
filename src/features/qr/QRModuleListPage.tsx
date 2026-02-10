@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QRDocument, QRDocumentType } from '../../types/index';
-import * as api from '../../lib/api/supabaseApi';
+import * as api from '@/lib/api/services';
 import { useAuth } from '../auth/AuthContext';
 import { Button } from '../../components/common/Button';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
@@ -10,7 +10,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { Empty } from '../../components/common/Empty';
 import { TrashIcon, PlusIcon, EyeIcon, EditIcon } from '../../components/common/Icons';
-import { QrCode } from 'lucide-react';
+import { FolderOpen } from 'lucide-react';
 import PageLayout from '../../components/layout/PageLayout';
 
 interface QRModulePageProps {
@@ -34,8 +34,8 @@ const QRModuleListPage: React.FC<QRModulePageProps> = ({ qrType, title, uploadPa
     try {
       const data = await api.getQRDocuments(qrType, currentCompany.id);
       setDocuments(data);
-    } catch (err: any) {
-      setError((err as Error).message || `Error al cargar documentos QR de ${title}`);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : `Error al cargar archivos de ${title}`);
     } finally {
       setIsLoading(false);
     }
@@ -51,8 +51,8 @@ const QRModuleListPage: React.FC<QRModulePageProps> = ({ qrType, title, uploadPa
       try {
         await api.deleteQRDocument(id);
         setDocuments(prev => prev.filter(doc => doc.id !== id));
-      } catch (err: any) {
-        setError((err as Error).message || "Error al eliminar el documento.");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Error al eliminar el documento.");
       }
     }
   };
@@ -89,9 +89,9 @@ const QRModuleListPage: React.FC<QRModulePageProps> = ({ qrType, title, uploadPa
         </div>
       ) : documents.length === 0 ? (
           <Empty
-            icon={QrCode}
-            title="No hay documentos"
-            description="Comience subiendo su primer documento QR."
+            icon={FolderOpen}
+            title="No hay archivos"
+            description="Comience subiendo su primer archivo."
             size="lg"
             action={{
               label: "Subir primer documento",

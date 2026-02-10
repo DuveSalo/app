@@ -1,4 +1,5 @@
 import React from 'react';
+import NotificationBell from './NotificationBell';
 
 interface PageLayoutProps {
   title: string;
@@ -16,32 +17,33 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   footer
 }) => {
   return (
-    <div className="bg-white h-full rounded-2xl md:rounded-[32px] border border-gray-200 shadow-sm flex flex-col overflow-hidden">
+    <div className="bg-white h-full rounded-2xl md:rounded-3xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="px-4 pt-4 pb-2 sm:px-6 sm:pt-6 md:px-8 md:pt-8 lg:px-10 lg:pt-10 flex-shrink-0">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4 md:mb-6">
+      <div className="px-4 pt-4 pb-0 sm:px-5 sm:pt-4 md:px-6 md:pt-5 flex-shrink-0">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3 md:mb-4">
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-medium tracking-tight text-gray-900">{title}</h1>
+            <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-gray-900">{title}</h1>
             {subtitle && (
-              <p className="text-sm sm:text-base text-gray-500 mt-1">{subtitle}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
             )}
           </div>
-          {headerActions && (
-            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 flex-wrap">
-              {headerActions}
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 flex-wrap">
+            {headerActions}
+            <div className="hidden md:block">
+              <NotificationBell />
             </div>
-          )}
+          </div>
         </div>
       </div>
 
       {/* Body */}
-      <div className="flex-1 px-4 py-4 sm:px-6 sm:py-5 md:px-8 md:py-6 lg:px-10 min-h-0 overflow-y-auto [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar]:h-0 [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="flex-1 px-4 py-2 sm:px-5 sm:py-2 md:px-6 md:py-3 min-h-0 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-300 [scrollbar-width:thin] [scrollbar-color:rgb(229,231,235)_transparent]">
         {children}
       </div>
 
       {/* Footer */}
       {footer && (
-        <div className="px-4 py-3 sm:px-6 sm:py-4 md:px-8 lg:px-10 border-t border-gray-200 bg-gray-50/50 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 flex-shrink-0">
+        <div className="px-4 py-2.5 sm:px-5 sm:py-3 md:px-6 border-t border-gray-100 bg-gray-50/30 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 flex-shrink-0">
           {footer}
         </div>
       )}

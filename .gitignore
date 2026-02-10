@@ -48,3 +48,10 @@ Thumbs.db
 *.tmp
 *.temp
 .cache
+
+# Agent/test tooling
+.agent/
+.agents/
+.playwright-mcp/
+testsprite_tests/
+nul

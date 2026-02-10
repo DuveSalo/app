@@ -3,11 +3,12 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ConservationCertificate } from '../../types/index';
 import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
-import * as api from '../../lib/api/supabaseApi';
+import * as api from '@/lib/api/services';
 import { useToast } from '../../components/common/Toast';
 import { validateDateRange, validateRequired, sanitizeInput } from '../../lib/utils/validation';
 import { useEntityForm } from '../../lib/hooks/useEntityForm';
 import { Input } from '../../components/common/Input';
+import { DatePicker } from '../../components/common/DatePicker';
 import { Button } from '../../components/common/Button';
 import { FileUpload } from '../../components/common/FileUpload';
 import { SkeletonForm } from '../../components/common/SkeletonLoader';
@@ -110,8 +111,8 @@ const CreateEditConservationCertificatePage: React.FC = () => {
       }
 
       navigate(ROUTE_PATHS.CONSERVATION_CERTIFICATES);
-    } catch (err: any) {
-      showError(err.message || "Error al guardar certificado");
+    } catch (err: unknown) {
+      showError(err instanceof Error ? err.message : "Error al guardar certificado");
     } finally {
       setIsSubmitting(false);
     }
@@ -151,26 +152,22 @@ const CreateEditConservationCertificatePage: React.FC = () => {
     <PageLayout title={pageTitle} footer={footerActions}>
       <form id="certificate-form" onSubmit={handleSubmit} className="space-y-5 bg-white rounded-xl border border-gray-200/60 p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
+            <DatePicker
               label="Fecha de Presentación"
               id="presentationDate"
-              type="date"
-              name="presentationDate"
               value={currentFormData.presentationDate}
-              onChange={handleChange}
+              onChange={(value) => handleFieldChange('presentationDate', value)}
               error={fieldErrors.presentationDate}
               required
             />
-            <Input
+            <DatePicker
               label="Fecha de Vencimiento"
               id="expirationDate"
-              type="date"
-              name="expirationDate"
               value={currentFormData.expirationDate}
-              onChange={handleChange}
+              onChange={(value) => handleFieldChange('expirationDate', value)}
               error={fieldErrors.expirationDate}
               required
-              min={currentFormData.presentationDate || undefined}
+              minDate={currentFormData.presentationDate || undefined}
             />
           </div>
 

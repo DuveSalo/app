@@ -1,8 +1,8 @@
 import React from 'react';
 import { Clock, User, Database } from 'lucide-react';
-import type { AuditLog } from '../../types/audit';
-import { AUDIT_ACTION_LABELS, AUDIT_TABLE_LABELS } from '../../types/audit';
-import { calculateChanges, formatAuditValue, getFieldLabel } from '../../lib/api/auditApi';
+import type { AuditLog } from '../../../types/audit';
+import { AUDIT_ACTION_LABELS, AUDIT_TABLE_LABELS } from '../../../types/audit';
+import { calculateChanges, formatAuditValue, getFieldLabel } from '../../../lib/api/auditApi';
 
 interface AuditLogItemProps {
   log: AuditLog;

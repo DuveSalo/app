@@ -81,6 +81,13 @@
     @apply h-full overflow-hidden;
   }
 
+  /* Compact UI for desktop — scales all rem-based values */
+  @media (min-width: 768px) {
+    html {
+      font-size: 13px;
+    }
+  }
+
   body {
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;

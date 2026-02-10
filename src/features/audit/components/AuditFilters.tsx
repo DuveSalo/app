@@ -1,8 +1,8 @@
 import React from 'react';
-import { Select } from './Select';
-import { Input } from './Input';
-import type { AuditFilters as AuditFiltersType, AuditAction, AuditTableName } from '../../types/audit';
-import { AUDIT_ACTION_LABELS, AUDIT_TABLE_LABELS } from '../../types/audit';
+import { Select } from '@/components/common/Select';
+import { DatePicker } from '@/components/common/DatePicker';
+import type { AuditFilters as AuditFiltersType, AuditAction, AuditTableName } from '../../../types/audit';
+import { AUDIT_ACTION_LABELS, AUDIT_TABLE_LABELS } from '../../../types/audit';
 
 interface AuditFiltersProps {
   filters: AuditFiltersType;
@@ -79,27 +79,17 @@ export const AuditFilters: React.FC<AuditFiltersProps> = ({
           </Select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Fecha desde
-          </label>
-          <Input
-            type="date"
-            value={filters.dateFrom || ''}
-            onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-          />
-        </div>
+        <DatePicker
+          label="Fecha desde"
+          value={filters.dateFrom || ''}
+          onChange={(value) => handleFilterChange('dateFrom', value)}
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Fecha hasta
-          </label>
-          <Input
-            type="date"
-            value={filters.dateTo || ''}
-            onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-          />
-        </div>
+        <DatePicker
+          label="Fecha hasta"
+          value={filters.dateTo || ''}
+          onChange={(value) => handleFilterChange('dateTo', value)}
+        />
       </div>
     </div>
   );

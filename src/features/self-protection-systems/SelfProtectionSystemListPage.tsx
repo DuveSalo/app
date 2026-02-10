@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SelfProtectionSystem } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
-import * as api from '../../lib/api/supabaseApi';
+import * as api from '@/lib/api/services';
 import { useToast } from '../../components/common/Toast';
 import { useAuth } from '../auth/AuthContext';
 import { Button } from '../../components/common/Button';
@@ -54,8 +54,8 @@ const SelfProtectionSystemListPage: React.FC = () => {
     try {
       const data = await api.getSelfProtectionSystems(currentCompany.id);
       setSystems(data);
-    } catch (err: any) {
-      showError(err.message || "Error al cargar sistemas de autoprotección");
+    } catch (err: unknown) {
+      showError(err instanceof Error ? err.message : "Error al cargar sistemas de autoprotección");
     } finally {
       setIsLoading(false);
     }
@@ -97,10 +97,10 @@ const SelfProtectionSystemListPage: React.FC = () => {
     try {
       await api.deleteSelfProtectionSystem(deleteId);
       showSuccess('Sistema eliminado correctamente');
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Revert optimistic update
       setSystems(previousSystems);
-      showError(err.message || "Error al eliminar el sistema");
+      showError(err instanceof Error ? err.message : "Error al eliminar el sistema");
     } finally {
       setIsDeleting(false);
       setDeleteId(null);

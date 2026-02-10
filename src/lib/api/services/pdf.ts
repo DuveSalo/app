@@ -1,6 +1,10 @@
 
 import { EventInformation } from '../../../types/index';
 
+interface AutoTableDoc {
+  lastAutoTable?: { finalY: number };
+}
+
 export const downloadEventPDF = async (event: EventInformation, companyName: string): Promise<void> => {
   const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
     import('jspdf'),
@@ -41,9 +45,9 @@ export const downloadEventPDF = async (event: EventInformation, companyName: str
   doc.text(`Empresa: ${companyName}`, margin, y);
   y += 8;
 
-  // Parse date as local time to avoid timezone issues
-  const dateStr = event.date.includes('T') ? event.date : `${event.date}T00:00:00`;
-  const eventDate = new Date(dateStr).toLocaleDateString('es-AR');
+  // Parse date manually to avoid timezone/browser inconsistencies
+  const [year, month, day] = (event.date.split('T')[0]).split('-').map(Number);
+  const eventDate = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
   doc.text(`Fecha y Hora: ${eventDate} - ${event.time}`, margin, y);
   y += 8;
 
@@ -83,8 +87,7 @@ export const downloadEventPDF = async (event: EventInformation, companyName: str
       theme: 'grid',
       headStyles: { fillColor: '#4A90E2', textColor: 255 },
     });
-    const table1 = (doc as typeof doc & { lastAutoTable?: { finalY: number } });
-    y = (table1.lastAutoTable?.finalY ?? y) + 10;
+    y = ((doc as unknown as AutoTableDoc).lastAutoTable?.finalY ?? y) + 10;
   }
 
   const validObservations = event.observations?.filter(o => o?.trim()) || [];
@@ -97,8 +100,7 @@ export const downloadEventPDF = async (event: EventInformation, companyName: str
       theme: 'grid',
       headStyles: { fillColor: '#50E3C2', textColor: 255 },
     });
-    const table2 = (doc as typeof doc & { lastAutoTable?: { finalY: number } });
-    y = (table2.lastAutoTable?.finalY ?? y) + 10;
+    y = ((doc as unknown as AutoTableDoc).lastAutoTable?.finalY ?? y) + 10;
   }
 
   const finalCheckItems = [
@@ -119,5 +121,4 @@ export const downloadEventPDF = async (event: EventInformation, companyName: str
   }
 
   doc.save(`informe-evento-${event.date}.pdf`);
-  return Promise.resolve();
 };

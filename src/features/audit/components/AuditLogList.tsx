@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AuditLogItem } from './AuditLogItem';
-import type { AuditLog } from '../../types/audit';
+import type { AuditLog } from '../../../types/audit';
 
 interface AuditLogListProps {
   logs: AuditLog[];

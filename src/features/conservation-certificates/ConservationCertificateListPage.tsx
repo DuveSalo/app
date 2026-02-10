@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ConservationCertificate } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
-import * as api from '../../lib/api/supabaseApi';
+import * as api from '@/lib/api/services';
 import { useToast } from '../../components/common/Toast';
 import { useAuth } from '../auth/AuthContext';
 import { Button } from '../../components/common/Button';
@@ -52,8 +52,8 @@ const ConservationCertificateListPage: React.FC = () => {
     try {
       const data = await api.getCertificates(currentCompany.id);
       setCertificates(data);
-    } catch (err: any) {
-      showError(err.message || "Error al cargar certificados");
+    } catch (err: unknown) {
+      showError(err instanceof Error ? err.message : "Error al cargar certificados");
     } finally {
       setIsLoading(false);
     }
@@ -83,10 +83,10 @@ const ConservationCertificateListPage: React.FC = () => {
     try {
       await api.deleteCertificate(deleteId);
       showSuccess('Certificado eliminado correctamente');
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Revert optimistic update
       setCertificates(previousCertificates);
-      showError(err.message || "Error al eliminar certificado");
+      showError(err instanceof Error ? err.message : "Error al eliminar certificado");
     } finally {
       setIsDeleting(false);
       setDeleteId(null);

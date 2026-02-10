@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Shield, Activity, TrendingUp, Users } from 'lucide-react';
 import { PageLayout } from '../../components/layout/PageLayout';
 import { Card } from '../../components/common/Card';
-import { AuditLogList } from '../../components/common/AuditLogList';
-import { AuditFilters } from '../../components/common/AuditFilters';
+import { AuditLogList } from './components/AuditLogList';
+import { AuditFilters } from './components/AuditFilters';
 import { useAuth } from '../auth/AuthContext';
 import { useToast } from '../../components/common/Toast';
 import type { AuditLog, AuditFilters as AuditFiltersType, AuditStats } from '../../types/audit';
@@ -53,7 +53,7 @@ export const AuditPage: React.FC = () => {
         filters.dateTo
       );
       setStats(data);
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Error loading audit stats', error, { companyId: currentCompany.id });
     }
   }, [currentCompany, filters.dateFrom, filters.dateTo]);

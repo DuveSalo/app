@@ -1,19 +1,18 @@
 import React from 'react';
 import { Input } from '../../../components/common/Input';
+import { DatePicker } from '../../../components/common/DatePicker';
 import { Select } from '../../../components/common/Select';
 import { ExtinguisherType, ExtinguisherCapacity } from '../../../types/index';
 import { SectionProps } from '../types';
 
-export const IdentificationSection: React.FC<SectionProps> = ({ formData, onChange }) => {
+export const IdentificationSection: React.FC<SectionProps> = ({ formData, onChange, onFieldChange }) => {
   return (
     <div className="space-y-4">
-      <Input
+      <DatePicker
         label="Fecha de Control"
         id="controlDate"
-        type="date"
-        name="controlDate"
         value={formData.controlDate}
-        onChange={onChange}
+        onChange={(value) => onFieldChange?.('controlDate', value)}
         required
       />
       <Input

@@ -3,13 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { EventInformation } from '../../types/index';
 import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
-import * as api from '../../lib/api/supabaseApi';
+import * as api from '@/lib/api/services';
 import { useAuth } from '../auth/AuthContext';
 import { Input } from '../../components/common/Input';
+import { DatePicker } from '../../components/common/DatePicker';
 import { Button } from '../../components/common/Button';
 import { Textarea } from '../../components/common/Textarea';
 import { Checkbox } from '../../components/common/Checkbox';
-import { DynamicListInput } from '../../components/common/DynamicListInput';
+import { DynamicListInput } from './components/DynamicListInput';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import PageLayout from '../../components/layout/PageLayout';
 import { createLogger } from '../../lib/utils/logger';
@@ -117,8 +118,8 @@ const CreateEditEventInformationPage: React.FC = () => {
         await api.createEvent(fullApiData);
       }
       navigate(ROUTE_PATHS.EVENT_INFORMATION);
-    } catch (err: any) {
-      setFormError((err as Error).message || "Error al guardar el evento.");
+    } catch (err: unknown) {
+      setFormError(err instanceof Error ? err.message : "Error al guardar el evento.");
     } finally {
       setIsSubmitting(false);
     }
@@ -193,7 +194,7 @@ const CreateEditEventInformationPage: React.FC = () => {
       </div>
       <form id="event-form" onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input label="Fecha" id="date" type="date" name="date" value={currentFormData.date} onChange={handleChange} required />
+          <DatePicker label="Fecha" id="date" value={currentFormData.date} onChange={(value) => setCurrentFormData(prev => ({ ...prev, date: value }))} required />
           <Input label="Horario" id="time" type="time" name="time" value={currentFormData.time} onChange={handleChange} required />
         </div>
         <Textarea

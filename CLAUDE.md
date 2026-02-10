@@ -31,7 +31,7 @@ npm run format           # Format with Prettier
 - `src/routes/routes.config.ts` - Centralized route definitions with lazy loading
 - `src/routes/ProtectedRoute.tsx` - Multi-level auth guard (user → company → subscription)
 - `src/features/auth/AuthContext.tsx` - Global authentication state
-- `src/lib/api/supabaseApi.ts` - Main Supabase client wrapper
+- `src/lib/supabase/client.ts` - Main Supabase client
 
 ### Authentication Flow
 HashRouter with Google OAuth → AuthContext manages state → ProtectedRoute guards routes → Onboarding: Login → Create Company → Subscription → Dashboard
@@ -53,4 +53,13 @@ Supabase with migrations in `/supabase/migrations/`. Key tables: users, companie
 Vitest with jsdom, React Testing Library. Mocks configured for matchMedia, IntersectionObserver, ResizeObserver.
 
 ## Design System
-Custom Tailwind config with semantic colors (content, surface, borderClr, brand, status, metric) and animations (fade-in-up, scale-in, slide-in-right).
+Custom Tailwind config. Use `gray-*` for all neutral colors (NEVER `slate-*`).
+Status colors: `emerald` (success), `amber` (warning), `red` (danger), `blue` (info).
+See `.interface-design/system.md` for full design system reference.
+IMPORTANT: Do NOT use semantic tokens like `text-content-primary`, `bg-surface-primary` — they don't exist in the Tailwind config.
+
+## Feature Structure Convention
+Use `src/features/fire-extinguishers/` as the canonical pattern:
+- `components/` - Feature-specific UI components
+- `hooks/` - Feature-specific hooks
+- `types.ts` - Feature-specific types (when needed beyond src/types/)

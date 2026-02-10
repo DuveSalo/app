@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, CheckCircle, TrendingUp, AlertCircle } from 'lucide-react';
 import { QRDocumentType } from '../../types/index';
 import { ROUTE_PATHS } from '../../constants/index';
-import * as api from '../../lib/api/supabaseApi';
+import * as api from '@/lib/api/services';
 import { useAuth } from '../auth/AuthContext';
 import PageLayout from '../../components/layout/PageLayout';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
@@ -100,7 +100,7 @@ const DashboardPage: React.FC = () => {
 
           return {
             id: doc.id,
-            name: `Doc. ${doc.type}`,
+            name: `Archivo: ${doc.type}`,
             type: doc.type,
             expirationDate: expirationDate,
             modulePath: linkPath,
@@ -205,27 +205,37 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <PageLayout title={`Dashboard de ${currentCompany?.name}`}>
-      <div className="flex flex-col h-full gap-4">
+    <PageLayout title={`Dashboard de ${currentCompany?.name}`} subtitle="Resumen general de vencimientos y documentos">
+      <div className="flex flex-col h-full gap-3">
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-          <StatCard label="Total" value={stats.total} icon={<Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />} variant="gray" />
-          <StatCard label="Vigentes" value={stats.valid} icon={<CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />} variant="green" />
-          <StatCard label="Por vencer" value={stats.expiring} icon={<TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />} variant="yellow" />
-          <StatCard label="Vencidos" value={stats.expired} icon={<AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />} variant="red" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+          <StatCard label="Total documentos" value={stats.total} icon={<Calendar className="w-5 h-5 text-gray-500" />} variant="gray" />
+          <StatCard label="Vigentes" value={stats.valid} icon={<CheckCircle className="w-5 h-5 text-emerald-600" />} variant="green" />
+          <StatCard label="Por vencer" value={stats.expiring} icon={<TrendingUp className="w-5 h-5 text-amber-600" />} variant="yellow" />
+          <StatCard label="Vencidos" value={stats.expired} icon={<AlertCircle className="w-5 h-5 text-red-600" />} variant="red" />
         </div>
 
         {/* Main Content - Table Section */}
-        <div className="flex-1 border border-gray-200 rounded-2xl shadow-sm bg-white flex flex-col min-h-0 overflow-hidden">
+        <div className="flex-1 border border-gray-200 rounded-2xl bg-white flex flex-col min-h-0 overflow-hidden">
           {/* Table Header & Title */}
-          <div className="border-gray-100 border-b px-4 py-4 sm:px-6 sm:py-6">
-            <h2 className="text-base sm:text-lg font-semibold text-gray-900">Control de Vencimientos</h2>
-            <p className="text-gray-500 text-xs sm:text-sm mt-1">Seguimiento de certificados y documentos</p>
+          <div className="border-gray-100 border-b px-4 py-3 sm:px-5 sm:py-3.5 flex items-center justify-between">
+            <div>
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">Control de Vencimientos</h2>
+              <p className="text-gray-500 text-xs sm:text-sm mt-0.5">Seguimiento de certificados y documentos</p>
+            </div>
+            {items.length > 0 && (
+              <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                {filteredAndSortedItems.length} {filteredAndSortedItems.length === 1 ? 'resultado' : 'resultados'}
+              </span>
+            )}
           </div>
 
           {items.length === 0 ? (
             <div className="flex-1 flex items-center justify-center py-16">
               <div className="text-center">
+                <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-6 h-6 text-gray-400" />
+                </div>
                 <h3 className="text-base font-medium text-gray-900 mb-1">Todo en orden</h3>
                 <p className="text-sm text-gray-500">No hay elementos con vencimiento para mostrar.</p>
               </div>

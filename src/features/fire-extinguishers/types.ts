@@ -36,6 +36,7 @@ export interface FireExtinguisherFormData {
 export interface SectionProps {
   formData: FireExtinguisherFormData;
   onChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+  onFieldChange?: (name: string, value: string) => void;
   onCheckChange?: (e: ChangeEvent<HTMLInputElement>) => void;
 }
 

@@ -5,8 +5,8 @@ export { Button } from './Button';
 export { Card } from './Card';
 export { Checkbox } from './Checkbox';
 export { ChipGroup } from './ChipGroup';
+export { DatePicker } from './DatePicker';
 export { ConfirmDialog } from './ConfirmDialog';
-export { DynamicListInput } from './DynamicListInput';
 export { ErrorBoundary } from './ErrorBoundary';
 export { FileUpload } from './FileUpload';
 export { FilterSort } from './FilterSort';
@@ -22,11 +22,6 @@ export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 export { Tabs } from './Tabs';
 export { Textarea } from './Textarea';
 export { ToastProvider, useToast } from './Toast';
-
-// Audit components
-export { AuditLogItem } from './AuditLogItem';
-export { AuditLogList } from './AuditLogList';
-export { AuditFilters } from './AuditFilters';
 
 // Icons
 export * from './Icons';

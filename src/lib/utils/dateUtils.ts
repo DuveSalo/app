@@ -3,7 +3,7 @@
  * Funciones centralizadas para manejo de fechas y cálculos de vencimiento
  */
 
-import { EXPIRATION_CONFIG } from '../constants';
+import { EXPIRATION_CONFIG } from '@/constants/expirationThresholds';
 
 /**
  * Calcula los días restantes hasta una fecha de vencimiento

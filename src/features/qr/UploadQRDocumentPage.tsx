@@ -2,11 +2,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QRDocumentType } from '../../types/index';
-import * as api from '../../lib/api/supabaseApi';
+import * as api from '@/lib/api/services';
 import { Button } from '../../components/common/Button';
 import { FileUpload } from '../../components/common/FileUpload';
 import { Card } from '../../components/common/Card';
-import { Input } from '../../components/common/Input';
+import { DatePicker } from '../../components/common/DatePicker';
 import PageLayout from '../../components/layout/PageLayout';
 
 interface UploadQRDocumentPageProps {
@@ -56,14 +56,14 @@ const UploadQRDocumentPage: React.FC<UploadQRDocumentPageProps> = ({ qrType, tit
         extractedDate: extractedDate,
       });
       navigate(listPath);
-    } catch (err: any) {
-      setFormError((err as Error).message || "Error al subir el documento.");
+    } catch (err: unknown) {
+      setFormError(err instanceof Error ? err.message : "Error al subir el documento.");
     } finally {
       setIsSubmitting(false);
     }
   };
   
-  const pageTitle = `Subir Documento QR para ${title}`;
+  const pageTitle = `Subir Archivo para ${title}`;
   const footerActions = (
     <>
       <Button type="button" variant="outline" onClick={() => navigate(listPath)} disabled={isSubmitting}>Cancelar</Button>
@@ -73,28 +73,25 @@ const UploadQRDocumentPage: React.FC<UploadQRDocumentPageProps> = ({ qrType, tit
 
   return (
     <PageLayout title={pageTitle} footer={footerActions}>
-      <form id="upload-form" onSubmit={handleSubmit} className="w-full max-w-xl mx-auto space-y-6">
-        <FileUpload
-          label="Seleccionar Documento (Imagen o PDF)"
-          accept=".pdf,.png,.jpg,.jpeg"
-          onFileSelect={handleFileSelect}
-          currentFileName={fileToUpload?.name}
-        />
-        {fileToUpload && (
-            <Card className="p-4 bg-gray-50 border-gray-200">
-                <h3 className="text-md font-semibold text-gray-800 mb-3">Fecha de Emisión</h3>
-                <Input
-                    label="Fecha de Emisión del Documento"
-                    id="extractedDate"
-                    type="date"
-                    value={extractedDate}
-                    onChange={(e) => setExtractedDate(e.target.value)}
-                    helperText="El vencimiento se calculará a 1 año de esta fecha."
-                    required
-                />
-            </Card>
-        )}
-        {formError && <p className="text-sm text-red-600 mt-2 text-center">{formError}</p>}
+      <form id="upload-form" onSubmit={handleSubmit} className="h-full flex items-center justify-center">
+        <div className="w-full max-w-2xl space-y-5">
+          <FileUpload
+            label="Seleccionar Documento (Imagen o PDF)"
+            accept=".pdf,.png,.jpg,.jpeg"
+            onFileSelect={handleFileSelect}
+            currentFileName={fileToUpload?.name}
+          />
+          <DatePicker
+            label="Fecha de Emisión del Documento"
+            id="extractedDate"
+            value={extractedDate}
+            onChange={setExtractedDate}
+            helperText="El vencimiento se calculará a 1 año de esta fecha."
+            required
+            disabled={!fileToUpload}
+          />
+          {formError && <p className="text-sm text-red-600 mt-2">{formError}</p>}
+        </div>
       </form>
     </PageLayout>
   );

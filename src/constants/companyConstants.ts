@@ -1,6 +1,6 @@
 
 // Shared constants for company-related functionality
-import { QRDocumentType } from '../../types';
+import { QRDocumentType } from '../types';
 
 /**
  * Service options for company services

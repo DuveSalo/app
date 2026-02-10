@@ -8,7 +8,7 @@ import {
   ShieldCheck,
   Flame,
   AlertTriangle,
-  QrCode,
+  FolderOpen,
   Settings,
   LogOut,
   Zap,
@@ -18,7 +18,7 @@ import { useAuth } from '../../features/auth/AuthContext';
 import { QRDocumentType } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
 import { ConfirmDialog } from '../common/ConfirmDialog';
-import NotificationBell from '../common/NotificationBell';
+import NotificationBell from './NotificationBell';
 
 interface NavItem {
   path: string;
@@ -64,7 +64,7 @@ const MobileNav: React.FC = () => {
       .map(item => ({
         path: item.path,
         label: item.label,
-        icon: <QrCode className="w-5 h-5" />,
+        icon: <FolderOpen className="w-5 h-5" />,
       }));
   }, [currentCompany?.services]);
 
@@ -173,7 +173,7 @@ const MobileNav: React.FC = () => {
             {serviceNavItems.length > 0 && (
               <div className="mt-6 px-3">
                 <p className="px-3 mb-2 text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Servicios
+                  Archivos
                 </p>
                 <div className="space-y-1">
                   {serviceNavItems.map((item) => (

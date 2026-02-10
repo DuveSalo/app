@@ -10,6 +10,8 @@ import { createLogger } from '../utils/logger';
 
 const logger = createLogger('AuditAPI');
 
+const AUDIT_LOG_COLUMNS = 'id, company_id, user_id, action, table_name, record_id, old_data, new_data, ip_address, user_agent, created_at' as const;
+
 /**
  * Maps audit log data from the database to the application format.
  */
@@ -41,7 +43,7 @@ export const getAuditLogs = async (
   try {
     let query = supabase
       .from('audit_logs')
-      .select('*')
+      .select(AUDIT_LOG_COLUMNS)
       .eq('company_id', companyId)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
@@ -86,7 +88,7 @@ export const getRecordHistory = async (
   try {
     const { data, error } = await supabase
       .from('audit_logs')
-      .select('*')
+      .select(AUDIT_LOG_COLUMNS)
       .eq('record_id', recordId)
       .eq('table_name', tableName)
       .order('created_at', { ascending: false });
@@ -151,7 +153,7 @@ export const getRecentAuditLogs = async (
   try {
     const { data, error } = await supabase
       .from('audit_logs')
-      .select('*')
+      .select(AUDIT_LOG_COLUMNS)
       .eq('company_id', companyId)
       .order('created_at', { ascending: false })
       .limit(limit);

@@ -3,8 +3,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SelfProtectionSystem } from '../../types/index';
 import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
-import * as api from '../../lib/api/supabaseApi';
+import * as api from '@/lib/api/services';
 import { Input } from '../../components/common/Input';
+import { DatePicker } from '../../components/common/DatePicker';
 import { Button } from '../../components/common/Button';
 import { FileUpload } from '../../components/common/FileUpload';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
@@ -154,8 +155,8 @@ const CreateEditSelfProtectionSystemPage: React.FC = () => {
         await api.createSelfProtectionSystem(currentFormData);
       }
       navigate(ROUTE_PATHS.SELF_PROTECTION_SYSTEMS);
-    } catch (err: any) {
-      setFormError((err as Error).message || "Error al guardar el sistema");
+    } catch (err: unknown) {
+      setFormError(err instanceof Error ? err.message : "Error al guardar el sistema");
     } finally {
       setIsSubmitting(false);
     }
@@ -215,7 +216,7 @@ const CreateEditSelfProtectionSystemPage: React.FC = () => {
         disabled: false,
         content: (
             <div className="space-y-4">
-                <Input id="probatoryDispositionDate" label="Fecha Disposición Aprobatoria" type="date" name="probatoryDispositionDate" value={currentFormData.probatoryDispositionDate || ''} onChange={handleChange} required/>
+                <DatePicker id="probatoryDispositionDate" label="Fecha Disposición Aprobatoria" value={currentFormData.probatoryDispositionDate || ''} onChange={(value) => setCurrentFormData(prev => ({ ...prev, probatoryDispositionDate: value }))} required/>
 
                 {id && currentFormData.probatoryDispositionPdfUrl && !currentFormData.probatoryDispositionPdf && (
                   <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
@@ -240,7 +241,7 @@ const CreateEditSelfProtectionSystemPage: React.FC = () => {
                 <FileUpload label={id ? "Reemplazar PDF Disposición Aprobatoria (opcional)" : "PDF Disposición Aprobatoria"} accept=".pdf" currentFileName={currentFormData.probatoryDispositionPdfName} onFileSelect={(file) => handleFileChange('probatoryDispositionPdf', file)} />
                 <PdfPreview file={currentFormData.probatoryDispositionPdf} />
 
-                <Input id="extensionDate" label="Fecha Extensión" type="date" name="extensionDate" value={currentFormData.extensionDate || ''} onChange={handleChange} disabled />
+                <DatePicker id="extensionDate" label="Fecha Extensión" value={currentFormData.extensionDate || ''} onChange={(value) => setCurrentFormData(prev => ({ ...prev, extensionDate: value }))} disabled />
 
                 {id && currentFormData.extensionPdfUrl && !currentFormData.extensionPdf && (
                   <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
@@ -265,7 +266,7 @@ const CreateEditSelfProtectionSystemPage: React.FC = () => {
                 <FileUpload label={id ? "Reemplazar PDF Extensión (opcional)" : "PDF Extensión"} accept=".pdf" currentFileName={currentFormData.extensionPdfName} onFileSelect={(file) => handleFileChange('extensionPdf', file)} />
                 <PdfPreview file={currentFormData.extensionPdf} />
 
-                <Input id="expirationDate" label="Fecha Vencimiento" type="date" name="expirationDate" value={currentFormData.expirationDate} onChange={handleChange} required disabled/>
+                <DatePicker id="expirationDate" label="Fecha Vencimiento" value={currentFormData.expirationDate} onChange={(value) => setCurrentFormData(prev => ({ ...prev, expirationDate: value }))} required disabled/>
             </div>
         )
     },
@@ -292,7 +293,7 @@ const CreateEditSelfProtectionSystemPage: React.FC = () => {
                         </Button>
                     </div>
                     <div className="space-y-3">
-                      <Input label="Fecha" id={`drillDate-${index}`} type="date" value={drill.date} onChange={(e) => handleDrillChange(index, 'date', e.target.value)} required/>
+                      <DatePicker label="Fecha" id={`drillDate-${index}`} value={drill.date} onChange={(value) => handleDrillChange(index, 'date', value)} required/>
 
                       {id && drill.pdfUrl && !drill.pdfFile && (
                         <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">

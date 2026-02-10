@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EventInformation } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
-import * as api from '../../lib/api/supabaseApi';
+import * as api from '@/lib/api/services';
 import { useAuth } from '../auth/AuthContext';
 import { Button } from '../../components/common/Button';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
@@ -41,8 +41,8 @@ const EventInformationListPage: React.FC = () => {
     try {
       const data = await api.getEvents(currentCompany.id);
       setEvents(data);
-    } catch (err: any) {
-      showError(err.message || "Error al cargar información de eventos");
+    } catch (err: unknown) {
+      showError(err instanceof Error ? err.message : "Error al cargar información de eventos");
     } finally {
       setIsLoading(false);
     }
@@ -68,10 +68,10 @@ const EventInformationListPage: React.FC = () => {
     try {
       await api.deleteEvent(deleteId);
       showSuccess('Evento eliminado correctamente');
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Revert optimistic update
       setEvents(previousEvents);
-      showError(err.message || "Error al eliminar el evento");
+      showError(err instanceof Error ? err.message : "Error al eliminar el evento");
     } finally {
       setIsDeleting(false);
       setDeleteId(null);

@@ -2,6 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, File as FileIcon, X } from 'lucide-react';
 
+const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 interface FileUploadProps {
   onFileSelect: (file: File | null) => void;
   accept?: string;
@@ -18,6 +21,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [displayFileName, setDisplayFileName] = useState<string | null>(currentFileName || null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -27,8 +31,34 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     }
   }, [currentFileName]);
 
+  const isValidFileType = (file: File): boolean => {
+    const acceptedTypes = accept.split(',').map(t => t.trim().toLowerCase());
+    const fileName = file.name.toLowerCase();
+    const fileType = file.type.toLowerCase();
+    return acceptedTypes.some(type => {
+      if (type.startsWith('.')) return fileName.endsWith(type);
+      return fileType === type;
+    });
+  };
+
+  const validateFile = (file: File): string | null => {
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      return `El archivo excede el tamaño máximo de ${MAX_FILE_SIZE_MB}MB.`;
+    }
+    if (!isValidFileType(file)) {
+      return `Tipo de archivo no permitido. Formatos aceptados: ${accept}`;
+    }
+    return null;
+  };
+
   const handleFileChange = (file: File | null) => {
+    setError(null);
     if (file) {
+      const validationError = validateFile(file);
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
       setSelectedFile(file);
       setDisplayFileName(file.name);
       onFileSelect(file);
@@ -75,15 +105,17 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           onDrop={handleDrop}
           onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
           onDragLeave={() => setIsDragOver(false)}
-          className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-            isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+          className={`border-2 border-dashed rounded-xl py-12 px-6 text-center transition-all ${
+            isDragOver ? 'border-gray-900 bg-gray-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50/50'
           }`}
         >
-          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-          <p className="text-sm text-gray-600 mb-2">
+          <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
+            <Upload className="w-6 h-6 text-gray-400" />
+          </div>
+          <p className="text-sm text-gray-600 mb-1">
             Arrastra y suelta el archivo aquí, o
           </p>
-          <label className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer">
+          <label className="inline-flex items-center px-4 py-2 mt-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer transition-colors shadow-sm">
             <span>Seleccionar archivo</span>
             <input
               ref={fileInputRef}
@@ -93,6 +125,8 @@ export const FileUpload: React.FC<FileUploadProps> = ({
               className="hidden"
             />
           </label>
+          <p className="text-xs text-gray-400 mt-3">PDF, PNG, JPG hasta {MAX_FILE_SIZE_MB}MB</p>
+          {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
         </div>
       ) : (
         <div className="border rounded-lg p-4 bg-gray-50">

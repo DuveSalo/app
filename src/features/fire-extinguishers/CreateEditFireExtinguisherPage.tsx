@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FireExtinguisherControl } from '../../types/index';
 import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
-import * as api from '../../lib/api/supabaseApi';
+import * as api from '@/lib/api/services';
 import { Button } from '../../components/common/Button';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import PageLayout from '../../components/layout/PageLayout';
@@ -79,6 +79,10 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFieldChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -174,12 +178,12 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
     {
       label: 'Identificación',
       disabled: false,
-      content: <IdentificationSection formData={formData} onChange={handleChange} />,
+      content: <IdentificationSection formData={formData} onChange={handleChange} onFieldChange={handleFieldChange} />,
     },
     {
       label: 'Ubicación e Información',
       disabled: maxAllowedStep < 1,
-      content: <LocationSection formData={formData} onChange={handleChange} />,
+      content: <LocationSection formData={formData} onChange={handleChange} onFieldChange={handleFieldChange} />,
     },
     {
       label: 'Condiciones Controladas',

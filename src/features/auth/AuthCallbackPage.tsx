@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase/client';
 import { ROUTE_PATHS } from '../../constants/index';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
-import * as api from '../../lib/api/supabaseApi';
+import * as api from '@/lib/api/services';
 import { createLogger } from '../../lib/utils/logger';
 
 const logger = createLogger('AuthCallbackPage');

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FireExtinguisherControl } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
-import * as api from '../../lib/api/supabaseApi';
+import * as api from '@/lib/api/services';
 import { useToast } from '../../components/common/Toast';
 import { useAuth } from '../auth/AuthContext';
 import { Button } from '../../components/common/Button';

@@ -1,8 +1,9 @@
 import React from 'react';
 import { Input } from '../../../components/common/Input';
+import { DatePicker } from '../../../components/common/DatePicker';
 import { SectionProps } from '../types';
 
-export const LocationSection: React.FC<SectionProps> = ({ formData, onChange }) => {
+export const LocationSection: React.FC<SectionProps> = ({ formData, onChange, onFieldChange }) => {
   return (
     <div className="space-y-4">
       <Input
@@ -15,22 +16,18 @@ export const LocationSection: React.FC<SectionProps> = ({ formData, onChange }) 
         placeholder="Ej: P-01"
         required
       />
-      <Input
+      <DatePicker
         label="Vencimiento de Vigencia de la Carga"
         id="chargeExpirationDate"
-        type="date"
-        name="chargeExpirationDate"
         value={formData.chargeExpirationDate}
-        onChange={onChange}
+        onChange={(value) => onFieldChange?.('chargeExpirationDate', value)}
         required
       />
-      <Input
+      <DatePicker
         label="Vencimiento de Vigencia de la Presión Hidráulica"
         id="hydraulicPressureExpirationDate"
-        type="date"
-        name="hydraulicPressureExpirationDate"
         value={formData.hydraulicPressureExpirationDate}
-        onChange={onChange}
+        onChange={(value) => onFieldChange?.('hydraulicPressureExpirationDate', value)}
         required
       />
       <Input

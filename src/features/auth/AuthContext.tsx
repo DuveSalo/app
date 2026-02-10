@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Company } from '../../types/index';
-import * as api from '../../lib/api/supabaseApi';
+import * as api from '@/lib/api/services';
 import { ROUTE_PATHS } from '../../constants/index';
 import { createLogger } from '../../lib/utils/logger';
 

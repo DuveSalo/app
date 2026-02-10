@@ -128,7 +128,7 @@ export const validateRequired = (value: unknown, fieldName: string = 'Campo'): {
 
 // Expiration-specific validations
 import { calculateDaysUntilExpiration } from './dateUtils';
-import { EXPIRATION_CONFIG } from '../constants';
+import { EXPIRATION_CONFIG } from '@/constants/expirationThresholds';
 
 /**
  * Valida que una fecha de vencimiento sea posterior a una fecha de presentación

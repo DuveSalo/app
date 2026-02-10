@@ -22,5 +22,4 @@ export const ALLOWED_FILE_TYPES = {
 // Date Formats
 export const DATE_FORMAT = 'es-AR';
 
-// Note: EXPIRATION_CONFIG is defined in src/lib/constants/expirationThresholds.ts
-// to avoid duplication. Import from '@/lib/constants' for expiration-related constants.
+// Note: EXPIRATION_CONFIG is defined in @/constants/expirationThresholds.ts
