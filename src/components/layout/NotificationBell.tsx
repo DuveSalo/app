@@ -37,7 +37,7 @@ const NotificationBell: React.FC = () => {
           notificationService.getNotifications(currentCompany.id, { limit: 5 }),
           notificationService.getUnreadCount(currentCompany.id),
         ]);
-        setNotifications(notifs);
+        setNotifications(notifs.items ?? []);
         setUnreadCount(count);
       } catch (error) {
         console.error('Error fetching notifications:', error);
