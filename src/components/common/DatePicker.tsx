@@ -116,7 +116,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           className="block text-sm font-medium text-gray-700 mb-1.5"
         >
           {label}
-          {required && <span className="text-red-500 ml-0.5">*</span>}
+          {required && <span className="text-red-600 ml-0.5">*</span>}
         </label>
       )}
       <Popover open={open} onOpenChange={setOpen}>

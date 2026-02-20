@@ -72,7 +72,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                         disabled={currentPage === 1}
                         className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 disabled:text-gray-300 disabled:hover:bg-transparent transition-colors"
                     >
-                        <ChevronLeft className="w-4 h-4" />
+                        <ChevronLeft className="w-5 h-5" />
                     </button>
                     <span className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-900 text-white text-xs font-medium">
                         {currentPage}
@@ -85,7 +85,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                         disabled={currentPage === totalPages}
                         className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 disabled:text-gray-300 disabled:hover:bg-transparent transition-colors"
                     >
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-5 h-5" />
                     </button>
                 </div>
             </div>

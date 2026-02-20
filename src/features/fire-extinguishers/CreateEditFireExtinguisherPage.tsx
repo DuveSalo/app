@@ -127,7 +127,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
   }, [activeTab]);
 
   if (isLoadingData) return <div className="flex-grow flex justify-center items-center h-full"><LoadingSpinner size="lg" /></div>;
-  if (pageError) return <div className="flex-grow flex justify-center items-center h-full"><p className="text-red-500 text-center py-10">{pageError}</p></div>;
+  if (pageError) return <div className="flex-grow flex justify-center items-center h-full"><p className="text-red-600 text-center py-10">{pageError}</p></div>;
 
   const pageTitle = id ? "Editar Control de Extintor" : "Nuevo Control de Extintor";
 

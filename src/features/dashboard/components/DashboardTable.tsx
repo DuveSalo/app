@@ -37,7 +37,7 @@ export const DashboardTable: React.FC<DashboardTableProps> = ({ items, onItemCli
         <div className="flex-1 overflow-x-auto hidden sm:block">
             <table className="w-full text-left border-collapse">
                 <thead>
-                    <tr className="border-b border-gray-100">
+                    <tr className="border-b border-gray-200">
                         <th className="text-xs font-medium text-gray-400 tracking-wide px-4 sm:px-5 py-2.5">Nombre</th>
                         <th className="text-xs font-medium text-gray-400 tracking-wide px-4 sm:px-5 py-2.5 hidden md:table-cell">Tipo</th>
                         <th className="text-xs font-medium text-gray-400 tracking-wide px-4 sm:px-5 py-2.5">Vencimiento</th>

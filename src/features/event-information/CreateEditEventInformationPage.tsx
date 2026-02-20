@@ -163,7 +163,7 @@ const CreateEditEventInformationPage: React.FC = () => {
   ];
 
   if (isLoadingData) return <div className="flex-grow flex justify-center items-center h-full"><LoadingSpinner size="lg" /></div>;
-  if (pageError) return <div className="flex-grow flex justify-center items-center h-full"><p className="text-red-500 text-center py-10">{pageError}</p></div>;
+  if (pageError) return <div className="flex-grow flex justify-center items-center h-full"><p className="text-red-600 text-center py-10">{pageError}</p></div>;
 
   const pageTitle = id ? "Editar Información del Evento" : "Nueva Información del Evento";
 
@@ -185,7 +185,7 @@ const CreateEditEventInformationPage: React.FC = () => {
 
   return (
     <PageLayout title={pageTitle} footer={footerActions}>
-      <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+      <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
         <p className="text-sm text-gray-700">
           Por favor, asegúrese de que el informe sea objetivo y no tenga la intención de señalar responsables.
           Este documento será presentado a la autoridad competente (UERESGP) para la implementación
@@ -251,7 +251,7 @@ const CreateEditEventInformationPage: React.FC = () => {
             onChange={handleCheckChange}
           />
         ))}
-        {formError && <p className="text-sm text-red-500">{formError}</p>}
+        {formError && <p className="text-sm text-red-600">{formError}</p>}
       </form>
     </PageLayout>
   );

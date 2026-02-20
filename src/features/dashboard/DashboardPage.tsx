@@ -218,7 +218,7 @@ const DashboardPage: React.FC = () => {
         {/* Main Content - Table Section */}
         <div className="flex-1 border border-gray-200 rounded-2xl bg-white flex flex-col min-h-0 overflow-hidden">
           {/* Table Header & Title */}
-          <div className="border-gray-100 border-b px-4 py-3 sm:px-5 sm:py-3.5 flex items-center justify-between">
+          <div className="border-gray-200 border-b px-4 py-3 sm:px-5 sm:py-3.5 flex items-center justify-between">
             <div>
               <h2 className="text-base sm:text-lg font-semibold text-gray-900">Control de Vencimientos</h2>
               <p className="text-gray-500 text-xs sm:text-sm mt-0.5">Seguimiento de certificados y documentos</p>

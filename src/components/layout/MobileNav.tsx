@@ -164,7 +164,7 @@ const MobileNav: React.FC = () => {
                     </span>
                     <span>{item.label}</span>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
                 </button>
               ))}
             </div>
@@ -192,7 +192,7 @@ const MobileNav: React.FC = () => {
                         </span>
                         <span>{item.label}</span>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                      <ChevronRight className="w-5 h-5 text-gray-400" />
                     </button>
                   ))}
                 </div>

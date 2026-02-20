@@ -153,7 +153,7 @@ const SelfProtectionSystemListPage: React.FC = () => {
 
   const headerActions = (
     <Button onClick={() => navigate(ROUTE_PATHS.NEW_SELF_PROTECTION_SYSTEM)}>
-      <PlusIcon className="w-4 h-4 mr-2" />
+      <PlusIcon className="w-5 h-5 mr-2" />
       Nuevo sistema
     </Button>
   );
@@ -189,7 +189,7 @@ const SelfProtectionSystemListPage: React.FC = () => {
             searchPlaceholder="Buscar por interviniente o N° de matrícula..."
           />
 
-          <div className="bg-white rounded-xl border border-gray-300 overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -215,7 +215,7 @@ const SelfProtectionSystemListPage: React.FC = () => {
                             className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
                             title={isExpanded ? "Contraer" : "Expandir"}
                           >
-                            <ChevronDownIcon className={`w-4 h-4 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                            <ChevronDownIcon className={`w-5 h-5 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                           </button>
                         </TableCell>
                         <TableCell className="font-medium">{sys.intervener}</TableCell>
@@ -233,16 +233,16 @@ const SelfProtectionSystemListPage: React.FC = () => {
                               onClick={() => navigate(ROUTE_PATHS.EDIT_SELF_PROTECTION_SYSTEM.replace(':id', sys.id))}
                               title="Editar"
                             >
-                              <EditIcon className="w-4 h-4" />
+                              <EditIcon className="w-5 h-5" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteClick(sys.id)}
-                              className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                              className="text-red-600 hover:bg-red-50 hover:text-red-700"
                               title="Eliminar"
                             >
-                              <TrashIcon className="w-4 h-4" />
+                              <TrashIcon className="w-5 h-5" />
                             </Button>
                           </div>
                         </TableCell>
@@ -253,7 +253,7 @@ const SelfProtectionSystemListPage: React.FC = () => {
                             <div className="p-6 space-y-3">
                               {/* Disposición Aprobatoria */}
                               {sys.probatoryDispositionDate && (
-                                <div className="flex items-center justify-between py-2.5 border-b border-gray-200/60">
+                                <div className="flex items-center justify-between py-2.5 border-b border-gray-200">
                                   <div className="flex-1">
                                     <span className="text-sm font-medium text-gray-700">Disposición Aprobatoria:</span>
                                     <span className="ml-2 text-sm text-gray-600">{new Date(sys.probatoryDispositionDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
@@ -265,7 +265,7 @@ const SelfProtectionSystemListPage: React.FC = () => {
                                       onClick={() => window.open(sys.probatoryDispositionPdfUrl, '_blank')}
                                       title="Ver PDF"
                                     >
-                                      <EyeIcon className="w-4 h-4 mr-1.5" />
+                                      <EyeIcon className="w-5 h-5 mr-1.5" />
                                       Ver PDF
                                     </button>
                                   )}
@@ -273,7 +273,7 @@ const SelfProtectionSystemListPage: React.FC = () => {
                               )}
 
                               {/* Extensión */}
-                              <div className="flex items-center justify-between py-2.5 border-b border-gray-200/60">
+                              <div className="flex items-center justify-between py-2.5 border-b border-gray-200">
                                 <div className="flex-1">
                                   <span className="text-sm font-medium text-gray-700">Extensión:</span>
                                   <span className="ml-2 text-sm text-gray-600">{new Date(sys.extensionDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
@@ -285,14 +285,14 @@ const SelfProtectionSystemListPage: React.FC = () => {
                                     onClick={() => window.open(sys.extensionPdfUrl, '_blank')}
                                     title="Ver PDF"
                                   >
-                                    <EyeIcon className="w-4 h-4 mr-1.5" />
+                                    <EyeIcon className="w-5 h-5 mr-1.5" />
                                     Ver PDF
                                   </button>
                                 )}
                               </div>
 
                               {/* Vencimiento */}
-                              <div className="flex items-center justify-between py-2.5 border-b border-gray-200/60">
+                              <div className="flex items-center justify-between py-2.5 border-b border-gray-200">
                                 <div className="flex-1">
                                   <span className="text-sm font-medium text-gray-700">Vencimiento:</span>
                                   <span className="ml-2 text-sm text-gray-600">{new Date(sys.expirationDate + 'T00:00:00').toLocaleDateString('es-AR')}</span>
@@ -312,7 +312,7 @@ const SelfProtectionSystemListPage: React.FC = () => {
                                       <AccordionContent>
                                         <div className="space-y-2 pt-2">
                                           {sys.drills.map((drill, idx) => (
-                                            <div key={idx} className="flex items-center justify-between py-2 pl-4 border-l-2 border-gray-300">
+                                            <div key={idx} className="flex items-center justify-between py-2 pl-4 border-l-2 border-gray-200">
                                               <div className="flex-1">
                                                 <span className="text-sm text-gray-600">Simulacro {idx + 1}:</span>
                                                 <span className="ml-2 text-sm text-gray-600">{new Date(drill.date + 'T00:00:00').toLocaleDateString('es-AR')}</span>
@@ -324,7 +324,7 @@ const SelfProtectionSystemListPage: React.FC = () => {
                                                   onClick={() => window.open(drill.pdfUrl, '_blank')}
                                                   title="Ver PDF"
                                                 >
-                                                  <EyeIcon className="w-4 h-4 mr-1.5" />
+                                                  <EyeIcon className="w-5 h-5 mr-1.5" />
                                                   Ver PDF
                                                 </button>
                                               )}

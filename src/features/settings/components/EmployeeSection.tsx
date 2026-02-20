@@ -43,7 +43,7 @@ export const EmployeeSection: React.FC<EmployeeSectionProps> = ({
                 <td className="px-4 py-3.5 text-sm text-gray-700">{employee.name}</td>
                 <td className="px-4 py-3.5 text-sm text-gray-700">{employee.email}</td>
                 <td className="px-4 py-3.5 text-sm">
-                  <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-md ${employee.role === 'Administrador' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700'}`}>
+                  <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${employee.role === 'Administrador' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700'}`}>
                     {employee.role}
                   </span>
                 </td>
@@ -51,7 +51,7 @@ export const EmployeeSection: React.FC<EmployeeSectionProps> = ({
                   <div className="flex items-center gap-0.5">
                     <Button variant="ghost" size="sm" onClick={() => openEmployeeModal(employee)} disabled={isLoading}><EditIcon /></Button>
                     {currentUser.email !== employee.email && (
-                      <Button variant="ghost" size="sm" onClick={() => handleDeleteEmployee(employee)} className="text-red-500 hover:bg-red-50 hover:text-red-600" disabled={isLoading}><TrashIcon /></Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteEmployee(employee)} className="text-red-600 hover:bg-red-50 hover:text-red-700" disabled={isLoading}><TrashIcon /></Button>
                     )}
                   </div>
                 </td>
@@ -71,13 +71,13 @@ export const EmployeeSection: React.FC<EmployeeSectionProps> = ({
                 <p className="text-sm text-gray-500 truncate">{employee.email}</p>
               </div>
               <div className="flex gap-1 flex-shrink-0">
-                <Button variant="ghost" size="sm" onClick={() => openEmployeeModal(employee)} disabled={isLoading}><EditIcon className="w-4 h-4" /></Button>
+                <Button variant="ghost" size="sm" onClick={() => openEmployeeModal(employee)} disabled={isLoading}><EditIcon className="w-5 h-5" /></Button>
                 {currentUser.email !== employee.email && (
-                  <Button variant="ghost" size="sm" onClick={() => handleDeleteEmployee(employee)} className="text-red-500 hover:bg-red-50 hover:text-red-600" disabled={isLoading}><TrashIcon className="w-4 h-4" /></Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDeleteEmployee(employee)} className="text-red-600 hover:bg-red-50 hover:text-red-700" disabled={isLoading}><TrashIcon className="w-5 h-5" /></Button>
                 )}
               </div>
             </div>
-            <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-md ${employee.role === 'Administrador' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700'}`}>
+            <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${employee.role === 'Administrador' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700'}`}>
               {employee.role}
             </span>
           </div>

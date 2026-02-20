@@ -50,18 +50,18 @@ class ErrorBoundaryClass extends Component<ErrorBoundaryProps, ErrorBoundaryStat
 
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
               <AlertTriangle className="w-8 h-8 text-red-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-semibold text-gray-900 mb-2">
               Algo salió mal
             </h1>
             <p className="text-gray-600 mb-6">
               Lo sentimos, ocurrió un error inesperado. Por favor intenta recargar la página.
             </p>
             {error && (
-              <details className="text-left mb-6 p-4 bg-gray-50 rounded-md">
+              <details className="text-left mb-6 p-4 bg-gray-50 rounded-lg">
                 <summary className="cursor-pointer text-sm font-medium text-gray-700 mb-2">
                   Detalles del error
                 </summary>

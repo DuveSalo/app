@@ -19,7 +19,7 @@ export const ObservationsSection: React.FC<ObservationsSectionProps> = ({ formDa
         placeholder="Ingrese observaciones generales sobre el control (opcional)"
         rows={6}
       />
-      {formError && <p className="text-sm text-red-500 mt-4">{formError}</p>}
+      {formError && <p className="text-sm text-red-600 mt-4">{formError}</p>}
     </div>
   );
 };

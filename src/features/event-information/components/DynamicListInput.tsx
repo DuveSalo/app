@@ -64,10 +64,10 @@ export const DynamicListInput: React.FC<DynamicListInputProps> = ({
                 type="button"
                 onClick={() => removeItem(index)}
                 disabled={items.length <= minItems}
-                className="flex-shrink-0 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-gray-400 disabled:hover:bg-transparent"
+                className="flex-shrink-0 p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-gray-400 disabled:hover:bg-transparent"
                 aria-label={`Eliminar ${label.toLowerCase()} ${index + 1}`}
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -79,7 +79,7 @@ export const DynamicListInput: React.FC<DynamicListInputProps> = ({
           onClick={addItem}
           className="flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-5 h-5" />
           <span>{addButtonLabel || `Agregar ${label.toLowerCase()}`}</span>
         </Button>
       </div>

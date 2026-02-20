@@ -13,7 +13,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({ className = '' }) => {
 
 export const SkeletonCard: React.FC = () => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-4">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
       <div className="flex items-center justify-between">
         <div className="space-y-2 flex-1">
           <Skeleton className="h-4 w-1/3" />
@@ -27,7 +27,7 @@ export const SkeletonCard: React.FC = () => {
 
 export const SkeletonTable: React.FC<{ rows?: number }> = ({ rows = 5 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200">
         <Skeleton className="h-6 w-1/4" />
       </div>
@@ -62,7 +62,7 @@ export const SkeletonList: React.FC<{ items?: number }> = ({ items = 5 }) => {
   return (
     <div className="space-y-4">
       {Array.from({ length: items }).map((_, i) => (
-        <div key={i} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <div className="flex items-center justify-between mb-3">
             <Skeleton className="h-5 w-1/3" />
             <Skeleton className="h-6 w-20 rounded-full" />
@@ -79,19 +79,19 @@ export const SkeletonList: React.FC<{ items?: number }> = ({ items = 5 }) => {
 
 export const SkeletonForm: React.FC = () => {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
       <Skeleton className="h-8 w-1/3" />
       <div className="space-y-4">
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="space-y-2">
             <Skeleton className="h-4 w-1/4" />
-            <Skeleton className="h-10 w-full rounded-md" />
+            <Skeleton className="h-10 w-full rounded-lg" />
           </div>
         ))}
       </div>
       <div className="flex justify-end space-x-3">
-        <Skeleton className="h-10 w-24 rounded-md" />
-        <Skeleton className="h-10 w-32 rounded-md" />
+        <Skeleton className="h-10 w-24 rounded-lg" />
+        <Skeleton className="h-10 w-32 rounded-lg" />
       </div>
     </div>
   );

@@ -75,14 +75,14 @@ const QRModuleListPage: React.FC<QRModulePageProps> = ({ qrType, title, uploadPa
 
   const headerActions = (
     <Button onClick={() => navigate(uploadPath)}>
-      <PlusIcon className="w-4 h-4 mr-2" />
+      <PlusIcon className="w-5 h-5 mr-2" />
       Subir Documento
     </Button>
   );
 
   return (
     <PageLayout title={title} headerActions={headerActions}>
-      {error && <p className="text-red-500 text-center py-2">{error}</p>}
+      {error && <p className="text-red-600 text-center py-2">{error}</p>}
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
           <LoadingSpinner size="lg" />
@@ -99,7 +99,7 @@ const QRModuleListPage: React.FC<QRModulePageProps> = ({ qrType, title, uploadPa
             }}
           />
       ) : (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -118,10 +118,10 @@ const QRModuleListPage: React.FC<QRModulePageProps> = ({ qrType, title, uploadPa
                       <StatusBadge status={getStatus(expirationDate)} />
                     </TableCell>
                     <TableCell>
-                      <div className="flex space-x-1">
+                      <div className="flex items-center gap-1">
                         <button
                           type="button"
-                          className="inline-flex items-center justify-center p-2 text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                          className="inline-flex items-center justify-center p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                           onClick={() => {
                             if (doc.pdfUrl) {
                               window.open(doc.pdfUrl, '_blank');
@@ -131,7 +131,7 @@ const QRModuleListPage: React.FC<QRModulePageProps> = ({ qrType, title, uploadPa
                           }}
                           title="Ver PDF"
                         >
-                          <EyeIcon className="w-4 h-4" />
+                          <EyeIcon className="w-5 h-5" />
                         </button>
                         <Button
                           variant="ghost"
@@ -139,16 +139,16 @@ const QRModuleListPage: React.FC<QRModulePageProps> = ({ qrType, title, uploadPa
                           onClick={() => navigate(editPath.replace(':id', doc.id))}
                           title="Editar"
                         >
-                          <EditIcon className="w-4 h-4" />
+                          <EditIcon className="w-5 h-5" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDelete(doc.id)}
-                          className="text-red-600 hover:bg-red-50"
+                          className="text-red-600 hover:bg-red-50 hover:text-red-700"
                           title="Eliminar"
                         >
-                          <TrashIcon className="w-4 h-4" />
+                          <TrashIcon className="w-5 h-5" />
                         </Button>
                       </div>
                     </TableCell>

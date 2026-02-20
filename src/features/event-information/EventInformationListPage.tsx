@@ -115,7 +115,7 @@ const EventInformationListPage: React.FC = () => {
 
   const headerActions = (
     <Button onClick={() => navigate(ROUTE_PATHS.NEW_EVENT_INFORMATION)}>
-      <PlusIcon className="w-4 h-4 mr-2" />
+      <PlusIcon className="w-5 h-5 mr-2" />
       Nuevo evento
     </Button>
   );
@@ -148,7 +148,7 @@ const EventInformationListPage: React.FC = () => {
             searchPlaceholder="Buscar por descripción..."
           />
 
-          <div className="bg-white rounded-xl border border-gray-300 overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -167,7 +167,7 @@ const EventInformationListPage: React.FC = () => {
                     <TableCell className="font-medium">{event.description}</TableCell>
                     <TableCell className="text-center">{formatDateLocal(event.date)}</TableCell>
                     <TableCell className="text-center">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 text-gray-700 ring-1 ring-inset ring-gray-200">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200/50">
                         Registrado
                       </span>
                     </TableCell>
@@ -179,16 +179,16 @@ const EventInformationListPage: React.FC = () => {
                           onClick={() => navigate(ROUTE_PATHS.EDIT_EVENT_INFORMATION.replace(':id', event.id))}
                           title="Editar"
                         >
-                          <EditIcon className="w-4 h-4" />
+                          <EditIcon className="w-5 h-5" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteClick(event.id)}
-                          className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                          className="text-red-600 hover:bg-red-50 hover:text-red-700"
                           title="Eliminar"
                         >
-                          <TrashIcon className="w-4 h-4" />
+                          <TrashIcon className="w-5 h-5" />
                         </Button>
                       </div>
                     </TableCell>

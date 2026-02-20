@@ -150,7 +150,7 @@ const CreateEditConservationCertificatePage: React.FC = () => {
 
   return (
     <PageLayout title={pageTitle} footer={footerActions}>
-      <form id="certificate-form" onSubmit={handleSubmit} className="space-y-5 bg-white rounded-xl border border-gray-200/60 p-6">
+      <form id="certificate-form" onSubmit={handleSubmit} className="space-y-5 bg-white rounded-xl border border-gray-200 p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <DatePicker
               label="Fecha de Presentación"

@@ -139,7 +139,7 @@ const ConservationCertificateListPage: React.FC = () => {
 
   const headerActions = (
     <Button onClick={() => navigate(ROUTE_PATHS.NEW_CONSERVATION_CERTIFICATE)}>
-      <PlusIcon className="w-4 h-4 mr-2" />
+      <PlusIcon className="w-5 h-5 mr-2" />
       Nuevo certificado
     </Button>
   );
@@ -218,7 +218,7 @@ const ConservationCertificateListPage: React.FC = () => {
                           }}
                           title="Ver PDF"
                         >
-                          <EyeIcon className="w-4 h-4" />
+                          <EyeIcon className="w-5 h-5" />
                         </button>
                         <Button
                           variant="ghost"
@@ -226,16 +226,16 @@ const ConservationCertificateListPage: React.FC = () => {
                           onClick={() => navigate(ROUTE_PATHS.EDIT_CONSERVATION_CERTIFICATE.replace(':id', cert.id))}
                           title="Editar"
                         >
-                          <EditIcon className="w-4 h-4" />
+                          <EditIcon className="w-5 h-5" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteClick(cert.id)}
-                          className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                          className="text-red-600 hover:bg-red-50 hover:text-red-700"
                           title="Eliminar"
                         >
-                          <TrashIcon className="w-4 h-4" />
+                          <TrashIcon className="w-5 h-5" />
                         </Button>
                       </div>
                     </TableCell>

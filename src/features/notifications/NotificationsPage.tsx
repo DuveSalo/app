@@ -18,11 +18,11 @@ const FILTER_BUTTONS: { value: FilterType; label: string }[] = [
 ];
 
 const TYPE_BADGE_STYLES: Record<string, string> = {
-  expiration_urgent: 'bg-red-50 text-red-700',
-  expired: 'bg-red-50 text-red-700',
-  expiration_warning: 'bg-amber-50 text-amber-700',
-  system: 'bg-gray-100 text-gray-700',
-  info: 'bg-blue-50 text-blue-700',
+  expiration_urgent: 'bg-red-50 text-red-700 border border-red-200/50',
+  expired: 'bg-red-50 text-red-700 border border-red-200/50',
+  expiration_warning: 'bg-amber-50 text-amber-700 border border-amber-200/50',
+  system: 'bg-gray-50 text-gray-700 border border-gray-200/50',
+  info: 'bg-blue-50 text-blue-700 border border-blue-200/50',
 };
 
 const TYPE_BADGE_LABELS: Record<string, string> = {
@@ -123,7 +123,7 @@ const NotificationsPage: React.FC = () => {
     switch (type) {
       case 'expiration_urgent':
       case 'expired':
-        return <AlertTriangle className="w-5 h-5 text-red-500" />;
+        return <AlertTriangle className="w-5 h-5 text-red-600" />;
       case 'expiration_warning':
         return <AlertCircle className="w-5 h-5 text-amber-500" />;
       default:
@@ -159,13 +159,13 @@ const NotificationsPage: React.FC = () => {
         <div className="flex items-center gap-2">
           {stats.unread > 0 && (
             <Button variant="outline" size="sm" onClick={handleMarkAllAsRead}>
-              <CheckCheck className="w-4 h-4 mr-1.5" />
+              <CheckCheck className="w-5 h-5 mr-1.5" />
               Marcar todo como leído
             </Button>
           )}
           {notifications.some(n => n.isRead) && (
             <Button variant="ghost" size="sm" onClick={handleDeleteAllRead}>
-              <Trash2 className="w-4 h-4 mr-1.5" />
+              <Trash2 className="w-5 h-5 mr-1.5" />
               Eliminar leídas
             </Button>
           )}
@@ -174,7 +174,7 @@ const NotificationsPage: React.FC = () => {
     >
       {/* Filters */}
       <div className="flex items-center gap-2 mb-4">
-        <Filter className="w-4 h-4 text-gray-400" />
+        <Filter className="w-5 h-5 text-gray-400" />
         <div className="flex rounded-lg border border-gray-200 overflow-hidden">
           {FILTER_BUTTONS.map(btn => (
             <button
@@ -253,18 +253,18 @@ const NotificationsPage: React.FC = () => {
                       {!notification.isRead && (
                         <button
                           onClick={() => handleMarkAsRead(notification.id)}
-                          className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
                           title="Marcar como leída"
                         >
-                          <Check className="w-4 h-4" />
+                          <Check className="w-5 h-5" />
                         </button>
                       )}
                       <button
                         onClick={() => handleDelete(notification.id)}
-                        className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                         title="Eliminar"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-5 h-5" />
                       </button>
                     </div>
                   </div>

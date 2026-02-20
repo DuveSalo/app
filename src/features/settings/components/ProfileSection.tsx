@@ -34,7 +34,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
           <Input id="profileEmail" label="Email" value={profileForm.email} disabled className="mt-4"/>
         </div>
 
-        <div className="border-t border-gray-100 pt-6">
+        <div className="border-t border-gray-200 pt-6">
           <h3 className="text-sm font-semibold text-gray-900">Seguridad de la Cuenta</h3>
           <p className="text-sm text-gray-500 mt-1">Para cambiar su contraseña, le enviaremos un enlace seguro a su correo electrónico.</p>
           <Button type="button" variant="outline" onClick={handlePasswordReset} loading={isPasswordResetLoading} className="mt-4">
@@ -55,7 +55,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Nombre completo</p>
             <p className="text-sm text-gray-900">{currentUser.name}</p>
           </div>
-          <div className="border-t border-gray-100 pt-3">
+          <div className="border-t border-gray-200 pt-3">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Email</p>
             <p className="text-sm text-gray-900">{currentUser.email}</p>
           </div>

@@ -94,7 +94,7 @@ export const AuditPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total de Registros</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalLogs}</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats.totalLogs}</p>
               </div>
               <Activity className="w-8 h-8 text-blue-500" />
             </div>
@@ -104,9 +104,9 @@ export const AuditPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Creaciones</p>
-                <p className="text-2xl font-bold text-green-600">{stats.insertCount}</p>
+                <p className="text-2xl font-semibold text-emerald-600">{stats.insertCount}</p>
               </div>
-              <TrendingUp className="w-8 h-8 text-green-500" />
+              <TrendingUp className="w-8 h-8 text-emerald-500" />
             </div>
           </Card>
 
@@ -114,7 +114,7 @@ export const AuditPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Actualizaciones</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.updateCount}</p>
+                <p className="text-2xl font-semibold text-blue-600">{stats.updateCount}</p>
               </div>
               <Activity className="w-8 h-8 text-blue-500" />
             </div>
@@ -124,9 +124,9 @@ export const AuditPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Usuarios Activos</p>
-                <p className="text-2xl font-bold text-purple-600">{stats.uniqueUsers}</p>
+                <p className="text-2xl font-semibold text-indigo-600">{stats.uniqueUsers}</p>
               </div>
-              <Users className="w-8 h-8 text-purple-500" />
+              <Users className="w-8 h-8 text-indigo-500" />
             </div>
           </Card>
         </div>
@@ -148,11 +148,11 @@ export const AuditPage: React.FC = () => {
 
       {/* Paginación */}
       {logs.length >= pageSize && (
-        <div className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4">
+        <div className="flex items-center justify-between bg-white border border-gray-200 rounded-xl p-4">
           <button
             onClick={handlePrevPage}
             disabled={currentPage === 0}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Anterior
           </button>
@@ -162,7 +162,7 @@ export const AuditPage: React.FC = () => {
           <button
             onClick={handleNextPage}
             disabled={logs.length < pageSize}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Siguiente
           </button>

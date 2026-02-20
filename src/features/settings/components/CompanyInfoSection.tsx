@@ -43,7 +43,7 @@ export const CompanyInfoSection: React.FC<CompanyInfoSectionProps> = ({
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-lg font-medium text-gray-900">Información de la empresa</h2>
+          <h2 className="text-base font-semibold text-gray-900">Información de la empresa</h2>
         </div>
         <div className="space-y-4">
           <Input id="companyName" label="Nombre de la empresa" name="name" value={companyForm.name || ''} onChange={handleCompanyFormChange} required error={companyFormErrors.name} />

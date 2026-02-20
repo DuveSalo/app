@@ -126,7 +126,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             />
           </label>
           <p className="text-xs text-gray-400 mt-3">PDF, PNG, JPG hasta {MAX_FILE_SIZE_MB}MB</p>
-          {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
+          {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
         </div>
       ) : (
         <div className="border rounded-lg p-4 bg-gray-50">
@@ -145,10 +145,10 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             <button
               type="button"
               onClick={clearFile}
-              className="text-gray-400 hover:text-red-500 transition-colors ml-2"
+              className="text-gray-400 hover:text-red-600 transition-colors ml-2"
               aria-label="Clear file"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>

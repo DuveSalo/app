@@ -109,7 +109,7 @@ const FireExtinguisherListPage: React.FC = () => {
 
   const headerActions = (
     <Button onClick={() => navigate(ROUTE_PATHS.NEW_FIRE_EXTINGUISHER)}>
-      <PlusIcon className="w-4 h-4 mr-2" />
+      <PlusIcon className="w-5 h-5 mr-2" />
       Nuevo Control
     </Button>
   );
@@ -180,16 +180,16 @@ const FireExtinguisherListPage: React.FC = () => {
                               onClick={() => navigate(`${ROUTE_PATHS.FIRE_EXTINGUISHERS}/${ext.id}/edit`)}
                               title="Editar"
                             >
-                              <EditIcon className="w-4 h-4" />
+                              <EditIcon className="w-5 h-5" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => setDeleteId(ext.id)}
                               title="Eliminar"
-                              className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                              className="text-red-600 hover:bg-red-50 hover:text-red-700"
                             >
-                              <TrashIcon className="w-4 h-4" />
+                              <TrashIcon className="w-5 h-5" />
                             </Button>
                           </div>
                         </TableCell>
@@ -217,15 +217,15 @@ const FireExtinguisherListPage: React.FC = () => {
                           size="sm"
                           onClick={() => navigate(`${ROUTE_PATHS.FIRE_EXTINGUISHERS}/${ext.id}/edit`)}
                         >
-                          <EditIcon className="w-4 h-4" />
+                          <EditIcon className="w-5 h-5" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => setDeleteId(ext.id)}
-                          className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                          className="text-red-600 hover:bg-red-50 hover:text-red-700"
                         >
-                          <TrashIcon className="w-4 h-4" />
+                          <TrashIcon className="w-5 h-5" />
                         </Button>
                       </div>
                     </div>

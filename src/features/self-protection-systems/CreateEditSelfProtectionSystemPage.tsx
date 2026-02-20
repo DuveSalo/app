@@ -206,7 +206,7 @@ const CreateEditSelfProtectionSystemPage: React.FC = () => {
 
   // Early returns for loading and error states
   if (isLoadingData) return <div className="flex-grow flex justify-center items-center h-full"><LoadingSpinner size="lg" /></div>;
-  if (pageError) return <div className="flex-grow flex justify-center items-center h-full"><p className="text-red-500 text-center py-10">{pageError}</p></div>;
+  if (pageError) return <div className="flex-grow flex justify-center items-center h-full"><p className="text-red-600 text-center py-10">{pageError}</p></div>;
 
   const pageTitle = id ? "Editar Sistema de Autoprotección" : "Nuevo Sistema de Autoprotección";
 
@@ -339,7 +339,7 @@ const CreateEditSelfProtectionSystemPage: React.FC = () => {
     <PageLayout title={pageTitle} footer={footerActions}>
       <form id="sps-form" onSubmit={handleSubmit}>
         <Tabs tabs={formTabs} activeTab={activeTab} onTabClick={setActiveTab} />
-        {formError && <p className="text-sm text-red-500 mt-4 text-center">{formError}</p>}
+        {formError && <p className="text-sm text-red-600 mt-4 text-center">{formError}</p>}
       </form>
     </PageLayout>
   );
