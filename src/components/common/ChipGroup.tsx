@@ -1,4 +1,5 @@
-import React from 'react';
+
+
 import { cva } from 'class-variance-authority';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -22,7 +23,7 @@ interface ChipProps {
   disabled?: boolean;
 }
 
-const Chip: React.FC<ChipProps> = ({ label, isSelected, onSelect, disabled }) => (
+const Chip = ({ label, isSelected, onSelect, disabled }: ChipProps) => (
   <button
     type="button"
     onClick={onSelect}
@@ -46,14 +47,14 @@ interface ChipGroupProps {
   className?: string;
 }
 
-export const ChipGroup: React.FC<ChipGroupProps> = ({
+export const ChipGroup = ({
   options,
   selectedOptions,
   onChange,
   label,
   disabled,
   className,
-}) => {
+}: ChipGroupProps) => {
   const toggleOption = (option: string) => {
     if (disabled) return;
     if (selectedOptions.includes(option)) {

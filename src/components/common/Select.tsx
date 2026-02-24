@@ -1,4 +1,4 @@
-import React from 'react';
+import { forwardRef, type SelectHTMLAttributes, type ReactNode } from 'react';
 import { cva } from 'class-variance-authority';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -18,16 +18,16 @@ const selectVariants = cva(
   }
 );
 
-interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
   helperText?: string;
   options?: { value: string | number; label: string }[];
-  children?: React.ReactNode;
+  children?: ReactNode;
   placeholder?: string;
 }
 
-export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ label, id, error, helperText, options, children, className, disabled, placeholder = 'Seleccione...', ...props }, ref) => {
     const hasError = !!error;
 

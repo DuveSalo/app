@@ -1,11 +1,10 @@
-import React from 'react';
 import { Input } from '../../../components/common/Input';
 import { DatePicker } from '../../../components/common/DatePicker';
 import { Select } from '../../../components/common/Select';
 import { ExtinguisherType, ExtinguisherCapacity } from '../../../types/index';
 import { SectionProps } from '../types';
 
-export const IdentificationSection: React.FC<SectionProps> = ({ formData, onChange, onFieldChange }) => {
+export const IdentificationSection = ({ formData, onChange, onFieldChange }: SectionProps) => {
   return (
     <div className="space-y-4">
       <DatePicker

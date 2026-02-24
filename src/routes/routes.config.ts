@@ -2,47 +2,47 @@
  * Routes Configuration
  * Centralized configuration for application routes with lazy-loaded components
  */
-import React from 'react';
+import { lazy } from 'react';
 import { QRDocumentType } from '../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../constants/index';
 
 // Lazy-loaded page components
 export const LazyPages = {
     // Auth pages
-    AuthPage: React.lazy(() => import('../features/auth/AuthPage')),
-    AuthCallbackPage: React.lazy(() => import('../features/auth/AuthCallbackPage')),
-    CreateCompanyPage: React.lazy(() => import('../features/auth/CreateCompanyPage')),
-    SubscriptionPage: React.lazy(() => import('../features/auth/SubscriptionPage')),
-    TrialExpiredPage: React.lazy(() => import('../features/auth/TrialExpiredPage')),
+    AuthPage: lazy(() => import('../features/auth/AuthPage')),
+    AuthCallbackPage: lazy(() => import('../features/auth/AuthCallbackPage')),
+    CreateCompanyPage: lazy(() => import('../features/auth/CreateCompanyPage')),
+    SubscriptionPage: lazy(() => import('../features/auth/SubscriptionPage')),
+    TrialExpiredPage: lazy(() => import('../features/auth/TrialExpiredPage')),
 
     // Main pages
-    DashboardPage: React.lazy(() => import('../features/dashboard/DashboardPage')),
-    SettingsPage: React.lazy(() => import('../features/settings/SettingsPage')),
-    NotificationsPage: React.lazy(() => import('../features/notifications/NotificationsPage')),
+    DashboardPage: lazy(() => import('../features/dashboard/DashboardPage')),
+    SettingsPage: lazy(() => import('../features/settings/SettingsPage')),
+    NotificationsPage: lazy(() => import('../features/notifications/NotificationsPage')),
 
     // Conservation Certificates
-    ConservationCertificateListPage: React.lazy(() => import('../features/conservation-certificates/ConservationCertificateListPage')),
-    CreateEditConservationCertificatePage: React.lazy(() => import('../features/conservation-certificates/CreateEditConservationCertificatePage')),
+    ConservationCertificateListPage: lazy(() => import('../features/conservation-certificates/ConservationCertificateListPage')),
+    CreateEditConservationCertificatePage: lazy(() => import('../features/conservation-certificates/CreateEditConservationCertificatePage')),
 
     // Self Protection Systems
-    SelfProtectionSystemListPage: React.lazy(() => import('../features/self-protection-systems/SelfProtectionSystemListPage')),
-    CreateEditSelfProtectionSystemPage: React.lazy(() => import('../features/self-protection-systems/CreateEditSelfProtectionSystemPage')),
+    SelfProtectionSystemListPage: lazy(() => import('../features/self-protection-systems/SelfProtectionSystemListPage')),
+    CreateEditSelfProtectionSystemPage: lazy(() => import('../features/self-protection-systems/CreateEditSelfProtectionSystemPage')),
 
     // QR Documents
-    QRModuleListPage: React.lazy(() => import('../features/qr/QRModuleListPage')),
-    UploadQRDocumentPage: React.lazy(() => import('../features/qr/UploadQRDocumentPage')),
-    EditQRDocumentPage: React.lazy(() => import('../features/qr/EditQRDocumentPage')),
+    QRModuleListPage: lazy(() => import('../features/qr/QRModuleListPage')),
+    UploadQRDocumentPage: lazy(() => import('../features/qr/UploadQRDocumentPage')),
+    EditQRDocumentPage: lazy(() => import('../features/qr/EditQRDocumentPage')),
 
     // Event Information
-    EventInformationListPage: React.lazy(() => import('../features/event-information/EventInformationListPage')),
-    CreateEditEventInformationPage: React.lazy(() => import('../features/event-information/CreateEditEventInformationPage')),
+    EventInformationListPage: lazy(() => import('../features/event-information/EventInformationListPage')),
+    CreateEditEventInformationPage: lazy(() => import('../features/event-information/CreateEditEventInformationPage')),
 
     // Fire Extinguishers
-    FireExtinguisherListPage: React.lazy(() => import('../features/fire-extinguishers/FireExtinguisherListPage')),
-    CreateEditFireExtinguisherPage: React.lazy(() => import('../features/fire-extinguishers/CreateEditFireExtinguisherPage')),
+    FireExtinguisherListPage: lazy(() => import('../features/fire-extinguishers/FireExtinguisherListPage')),
+    CreateEditFireExtinguisherPage: lazy(() => import('../features/fire-extinguishers/CreateEditFireExtinguisherPage')),
 
     // Placeholders
-    PlaceholderPage: React.lazy(() => import('../features/placeholders/PlaceholderPage')),
+    PlaceholderPage: lazy(() => import('../features/placeholders/PlaceholderPage')),
 };
 
 // QR Module route configuration

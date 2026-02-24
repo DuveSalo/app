@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type ChangeEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FireExtinguisherControl } from '../../types/index';
 import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
@@ -19,7 +19,7 @@ import {
   ObservationsSection,
 } from './components';
 
-const CreateEditFireExtinguisherPage: React.FC = () => {
+const CreateEditFireExtinguisherPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,7 +77,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
     }
   }, [id]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -86,7 +86,7 @@ const CreateEditFireExtinguisherPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCheckChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCheckChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: checked }));
   };

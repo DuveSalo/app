@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { Button } from '../../components/common/Button';
@@ -6,7 +5,7 @@ import AuthLayout from '../../components/layout/AuthLayout';
 import { ROUTE_PATHS } from '../../constants/index';
 import { ExclamationTriangleIcon, CheckCircleIcon } from '../../components/common/Icons';
 
-const TrialExpiredPage: React.FC = () => {
+const TrialExpiredPage = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
 

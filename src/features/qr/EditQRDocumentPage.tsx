@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { QRDocumentType } from '../../types/index';
 import * as api from '@/lib/api/services';
@@ -17,7 +17,7 @@ interface EditQRDocumentPageProps {
   listPath: string;
 }
 
-const EditQRDocumentPage: React.FC<EditQRDocumentPageProps> = ({ qrType, title, listPath }) => {
+const EditQRDocumentPage = ({ qrType, title, listPath }: EditQRDocumentPageProps) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
@@ -52,7 +52,7 @@ const EditQRDocumentPage: React.FC<EditQRDocumentPageProps> = ({ qrType, title, 
     setFormError('');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!id) return;
 

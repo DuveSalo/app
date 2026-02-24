@@ -1,11 +1,11 @@
-import React, { type ReactElement } from 'react';
+import { type ReactElement } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
 import { ROUTE_PATHS } from '../constants/index';
 import { SpinnerPage } from '../components/common/SpinnerPage';
 import { getTrialStatus } from '../lib/utils/trial';
 
-const ProtectedRoute: React.FC<{ children: ReactElement }> = ({ children }) => {
+const ProtectedRoute = ({ children }: { children: ReactElement }) => {
   const { currentUser, currentCompany, isLoading } = useAuth();
   const location = useLocation();
 

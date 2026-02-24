@@ -1,4 +1,3 @@
-import React from 'react';
 import { Employee } from '../../../types/index';
 import { Button } from '../../../components/common/Button';
 import { EditIcon, TrashIcon } from '../../../components/common/Icons';
@@ -12,13 +11,13 @@ interface EmployeeSectionProps {
   handleDeleteEmployee: (employee: Employee) => void;
 }
 
-export const EmployeeSection: React.FC<EmployeeSectionProps> = ({
+export const EmployeeSection = ({
   currentCompany,
   currentUser,
   isLoading,
   openEmployeeModal,
   handleDeleteEmployee,
-}) => {
+}: EmployeeSectionProps) => {
   return (
     <div className="h-full flex flex-col">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4 sm:mb-6 flex-shrink-0">

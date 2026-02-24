@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { Button } from '../../../components/common/Button';
 import { CheckIcon, ReceiptIcon, XCircleIcon } from '../../../components/common/Icons';
@@ -64,7 +64,7 @@ function formatCurrency(amount: number, currency = 'USD'): string {
   }).format(amount);
 }
 
-export const BillingSection: React.FC<BillingSectionProps> = ({
+export const BillingSection = ({
   companyId,
   subscription,
   payments,
@@ -77,7 +77,7 @@ export const BillingSection: React.FC<BillingSectionProps> = ({
   onMpCreateSubscription,
   userEmail,
   trialEndsAt,
-}) => {
+}: BillingSectionProps) => {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [showPlanSelection, setShowPlanSelection] = useState(false);

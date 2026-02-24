@@ -1,4 +1,3 @@
-import React from 'react';
 import { Textarea } from '../../../components/common/Textarea';
 import { SectionProps } from '../types';
 
@@ -6,7 +5,7 @@ interface ObservationsSectionProps extends SectionProps {
   formError?: string;
 }
 
-export const ObservationsSection: React.FC<ObservationsSectionProps> = ({ formData, onChange, formError }) => {
+export const ObservationsSection = ({ formData, onChange, formError }: ObservationsSectionProps) => {
   return (
     <div className="space-y-4">
       <p className="text-sm text-gray-600 mb-4">Agregue cualquier observación adicional sobre el control del extintor.</p>

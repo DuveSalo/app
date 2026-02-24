@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Menu,
@@ -13,7 +13,7 @@ import { ConfirmDialog } from '../common/ConfirmDialog';
 import NotificationBell from './NotificationBell';
 import { useNavigationItems } from './useNavigationItems';
 
-const MobileNav: React.FC = () => {
+const MobileNav = () => {
   const { currentUser, currentCompany, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);

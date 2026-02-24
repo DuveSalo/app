@@ -1,9 +1,8 @@
-import React from 'react';
 import { Select } from '../../../components/common/Select';
 import { Textarea } from '../../../components/common/Textarea';
 import { SectionProps } from '../types';
 
-export const SignageSection: React.FC<SectionProps> = ({ formData, onChange }) => {
+export const SignageSection = ({ formData, onChange }: SectionProps) => {
   return (
     <div className="space-y-4">
       <Textarea

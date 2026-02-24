@@ -1,4 +1,3 @@
-import React from 'react';
 import { Clock, User, Database } from 'lucide-react';
 import type { AuditLog } from '../../../types/audit';
 import { AUDIT_ACTION_LABELS, AUDIT_TABLE_LABELS } from '../../../types/audit';
@@ -10,11 +9,11 @@ interface AuditLogItemProps {
   onToggleDetails?: () => void;
 }
 
-export const AuditLogItem: React.FC<AuditLogItemProps> = ({
+export const AuditLogItem = ({
   log,
   showDetails = false,
   onToggleDetails,
-}) => {
+}: AuditLogItemProps) => {
   const changes = calculateChanges(log.oldData, log.newData);
 
   const getActionColor = (action: string) => {

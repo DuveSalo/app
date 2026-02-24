@@ -1,4 +1,4 @@
-import React from 'react';
+import { forwardRef, type TextareaHTMLAttributes } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
@@ -18,14 +18,14 @@ const textareaVariants = cva(
 );
 
 export interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement>,
+  extends TextareaHTMLAttributes<HTMLTextAreaElement>,
     Omit<VariantProps<typeof textareaVariants>, 'hasError'> {
   label?: string;
   error?: string;
   helperText?: string;
 }
 
-export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, label, error, helperText, id, disabled, rows = 4, ...props }, ref) => {
     const hasError = !!error;
 

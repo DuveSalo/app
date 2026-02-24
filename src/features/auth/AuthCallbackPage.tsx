@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase/client';
 import { ROUTE_PATHS } from '../../constants/index';
@@ -9,7 +9,7 @@ import { getTrialStatus } from '../../lib/utils/trial';
 
 const logger = createLogger('AuthCallbackPage');
 
-const AuthCallbackPage: React.FC = () => {
+const AuthCallbackPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {

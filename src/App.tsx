@@ -1,5 +1,5 @@
 
-import React, { Suspense } from 'react';
+import { Fragment, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './features/auth/AuthContext';
 import { ToastProvider } from './components/common/Toast';
@@ -12,7 +12,7 @@ import { LazyPages, QR_MODULE_ROUTES, PLACEHOLDER_ROUTES } from './routes/routes
 // Layouts
 import MainLayout from './components/layout/MainLayout';
 
-const App: React.FC = () => {
+const App = () => {
   return (
     <ErrorBoundary>
       <AuthProvider>
@@ -59,7 +59,7 @@ const App: React.FC = () => {
 
                       {/* QR Module Routes - Dynamically generated */}
                       {QR_MODULE_ROUTES.map((qrModule) => (
-                        <React.Fragment key={qrModule.type}>
+                        <Fragment key={qrModule.type}>
                           <Route
                             path={qrModule.listPath.substring(1)}
                             element={
@@ -91,7 +91,7 @@ const App: React.FC = () => {
                               />
                             }
                           />
-                        </React.Fragment>
+                        </Fragment>
                       ))}
 
                       {/* Event Information */}

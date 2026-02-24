@@ -1,8 +1,7 @@
-import React from 'react';
 import { Select } from '../../../components/common/Select';
 import { SectionProps } from '../types';
 
-export const CabinetSection: React.FC<SectionProps> = ({ formData, onChange }) => {
+export const CabinetSection = ({ formData, onChange }: SectionProps) => {
   return (
     <div className="space-y-4">
       <p className="text-sm text-gray-600 mb-4">Indique el estado del gabinete donde se encuentra el extintor.</p>

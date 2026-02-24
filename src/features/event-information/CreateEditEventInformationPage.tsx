@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { EventInformation } from '../../types/index';
 import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
@@ -45,7 +45,7 @@ const createInitialFormState = (): EventFormDataType => ({
   },
 });
 
-const CreateEditEventInformationPage: React.FC = () => {
+const CreateEditEventInformationPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { currentCompany } = useAuth();
@@ -87,12 +87,12 @@ const CreateEditEventInformationPage: React.FC = () => {
     }
   }, [id]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setCurrentFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCheckChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCheckChange = (e: ChangeEvent<HTMLInputElement>) => {
       const { name, checked } = e.target;
        if (name.startsWith("finalChecks.")) {
         const checkKey = name.split(".")[1];
@@ -100,7 +100,7 @@ const CreateEditEventInformationPage: React.FC = () => {
       }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setFormError('');

@@ -1,4 +1,4 @@
-import React from 'react';
+import { type Dispatch, type SetStateAction, type FormEvent } from 'react';
 import { Card } from '../../../components/common/Card';
 import { Input } from '../../../components/common/Input';
 import { Button } from '../../../components/common/Button';
@@ -8,14 +8,14 @@ interface ProfileSectionProps {
   currentUser: User;
   isEditing: boolean;
   profileForm: { name: string; email: string };
-  setProfileForm: React.Dispatch<React.SetStateAction<{ name: string; email: string }>>;
-  handleProfileSubmit: (e: React.FormEvent) => void;
+  setProfileForm: Dispatch<SetStateAction<{ name: string; email: string }>>;
+  handleProfileSubmit: (e: FormEvent) => void;
   handlePasswordReset: () => void;
   isPasswordResetLoading: boolean;
   error: string;
 }
 
-export const ProfileSection: React.FC<ProfileSectionProps> = ({
+export const ProfileSection = ({
   currentUser,
   isEditing,
   profileForm,
@@ -24,7 +24,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
   handlePasswordReset,
   isPasswordResetLoading,
   error,
-}) => {
+}: ProfileSectionProps) => {
   if (isEditing) {
     return (
       <form id="profile-form" onSubmit={handleProfileSubmit} className="space-y-6">

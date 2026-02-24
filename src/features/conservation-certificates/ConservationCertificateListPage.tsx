@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ConservationCertificate } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
@@ -34,7 +34,7 @@ const FILTER_OPTIONS_CC = [
   { value: 'expired', label: 'Vencido' },
 ];
 
-const ConservationCertificateListPage: React.FC = () => {
+const ConservationCertificateListPage = () => {
   const [certificates, setCertificates] = useState<ConservationCertificate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);

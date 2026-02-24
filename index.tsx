@@ -1,8 +1,7 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 import App from './src/App';
 import { HashRouter } from 'react-router-dom';
-import { ToastProvider } from './src/components/common/Toast';
 import { initializeLogger } from './src/config/logger.config';
 
 // Import global styles (Tailwind + shadcn CSS)
@@ -16,13 +15,10 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
-const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
+createRoot(rootElement).render(
+  <StrictMode>
     <HashRouter>
-      <ToastProvider>
-        <App />
-      </ToastProvider>
+      <App />
     </HashRouter>
-  </React.StrictMode>
+  </StrictMode>
 );

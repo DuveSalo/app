@@ -1,9 +1,8 @@
-import React from 'react';
 import { Input } from '../../../components/common/Input';
 import { DatePicker } from '../../../components/common/DatePicker';
 import { SectionProps } from '../types';
 
-export const LocationSection: React.FC<SectionProps> = ({ formData, onChange, onFieldChange }) => {
+export const LocationSection = ({ formData, onChange, onFieldChange }: SectionProps) => {
   return (
     <div className="space-y-4">
       <Input

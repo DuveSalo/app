@@ -1,4 +1,3 @@
-import React from 'react';
 import { ChevronRight } from 'lucide-react';
 import { ExpirationStatus } from '../../../types/expirable';
 import { DashboardItem } from './DashboardTable';
@@ -24,7 +23,7 @@ const getStatusBadge = (status: ExpirationStatus) => {
     );
 };
 
-export const DashboardCards: React.FC<DashboardCardsProps> = ({ items, onItemClick }) => {
+export const DashboardCards = ({ items, onItemClick }: DashboardCardsProps) => {
     return (
         <div className="flex-1 overflow-y-auto sm:hidden">
             <div className="divide-y divide-gray-100">

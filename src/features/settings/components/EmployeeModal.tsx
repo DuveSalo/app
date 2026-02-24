@@ -1,4 +1,4 @@
-import React from 'react';
+import { type Dispatch, type SetStateAction, type FormEvent } from 'react';
 import { Employee } from '../../../types/index';
 import { Modal } from '../../../components/common/Modal';
 import { Input } from '../../../components/common/Input';
@@ -9,12 +9,12 @@ interface EmployeeModalProps {
   onClose: () => void;
   editingEmployee: Employee | null;
   employeeForm: Omit<Employee, 'id'>;
-  setEmployeeForm: React.Dispatch<React.SetStateAction<Omit<Employee, 'id'>>>;
-  handleSubmit: (e: React.FormEvent) => void;
+  setEmployeeForm: Dispatch<SetStateAction<Omit<Employee, 'id'>>>;
+  handleSubmit: (e: FormEvent) => void;
   isLoading: boolean;
 }
 
-export const EmployeeModal: React.FC<EmployeeModalProps> = ({
+export const EmployeeModal = ({
   isOpen,
   onClose,
   editingEmployee,
@@ -22,7 +22,7 @@ export const EmployeeModal: React.FC<EmployeeModalProps> = ({
   setEmployeeForm,
   handleSubmit,
   isLoading,
-}) => {
+}: EmployeeModalProps) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={editingEmployee ? 'Editar empleado' : 'Agregar empleado'}>
       <form onSubmit={handleSubmit} className="space-y-4">

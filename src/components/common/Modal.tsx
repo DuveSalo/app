@@ -1,4 +1,4 @@
-import React from 'react';
+import { type ReactNode } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -12,9 +12,9 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
-  children: React.ReactNode;
+  children: ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
-  footer?: React.ReactNode;
+  footer?: ReactNode;
   className?: string;
 }
 
@@ -25,7 +25,7 @@ const sizeClasses: Record<string, string> = {
   xl: 'max-w-[calc(100vw-2rem)] sm:max-w-4xl',
 };
 
-export const Modal: React.FC<ModalProps> = ({
+export const Modal = ({
   isOpen,
   onClose,
   title,
@@ -33,7 +33,7 @@ export const Modal: React.FC<ModalProps> = ({
   size = 'md',
   footer,
   className,
-}) => {
+}: ModalProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className={cn(sizeClasses[size], 'p-0 gap-0', className)}>

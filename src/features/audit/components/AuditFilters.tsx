@@ -1,4 +1,3 @@
-import React from 'react';
 import { Select } from '@/components/common/Select';
 import { DatePicker } from '@/components/common/DatePicker';
 import type { AuditFilters as AuditFiltersType, AuditAction, AuditTableName } from '../../../types/audit';
@@ -10,11 +9,11 @@ interface AuditFiltersProps {
   onClearFilters: () => void;
 }
 
-export const AuditFilters: React.FC<AuditFiltersProps> = ({
+export const AuditFilters = ({
   filters,
   onFiltersChange,
   onClearFilters,
-}) => {
+}: AuditFiltersProps) => {
   const handleFilterChange = (key: keyof AuditFiltersType, value: any) => {
     onFiltersChange({
       ...filters,

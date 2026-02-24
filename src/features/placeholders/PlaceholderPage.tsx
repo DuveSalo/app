@@ -1,9 +1,8 @@
 
-import React from 'react';
 import { Card } from '../../components/common/Card';
 import { InformationCircleIcon } from '../../components/common/Icons';
 
-const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
+const PlaceholderPage = ({ title }: { title: string }) => (
   <Card title={title} className="flex-grow">
     <div className="text-center py-10 flex flex-col flex-grow justify-center items-center">
       <InformationCircleIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />

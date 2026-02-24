@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SelfProtectionSystem } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
@@ -35,7 +35,7 @@ const FILTER_OPTIONS_SP = [
   { value: 'expired', label: 'Vencido' },
 ];
 
-const SelfProtectionSystemListPage: React.FC = () => {
+const SelfProtectionSystemListPage = () => {
   const [systems, setSystems] = useState<SelfProtectionSystem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -206,7 +206,7 @@ const SelfProtectionSystemListPage: React.FC = () => {
                 {filteredAndSortedSystems.map((sys) => {
                   const isExpanded = expandedRows.has(sys.id);
                   return (
-                    <React.Fragment key={sys.id}>
+                    <Fragment key={sys.id}>
                       <TableRow className="hover:bg-gray-50 transition-colors">
                         <TableCell>
                           <button
@@ -340,7 +340,7 @@ const SelfProtectionSystemListPage: React.FC = () => {
                           </TableCell>
                         </TableRow>
                       )}
-                    </React.Fragment>
+                    </Fragment>
                   );
                 })}
               </TableBody>

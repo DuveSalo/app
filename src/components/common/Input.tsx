@@ -1,4 +1,4 @@
-import React from 'react';
+import { forwardRef, type InputHTMLAttributes } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
@@ -18,14 +18,14 @@ const inputVariants = cva(
 );
 
 export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement>,
+  extends InputHTMLAttributes<HTMLInputElement>,
     Omit<VariantProps<typeof inputVariants>, 'hasError'> {
   label?: string;
   error?: string;
   helperText?: string;
 }
 
-export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, type = 'text', label, error, helperText, id, disabled, ...props }, ref) => {
     const hasError = !!error;
 

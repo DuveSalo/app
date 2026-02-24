@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QRDocumentType } from '../../types/index';
 import * as api from '@/lib/api/services';
@@ -15,7 +15,7 @@ interface UploadQRDocumentPageProps {
   listPath: string;
 }
 
-const UploadQRDocumentPage: React.FC<UploadQRDocumentPageProps> = ({ qrType, title, listPath }) => {
+const UploadQRDocumentPage = ({ qrType, title, listPath }: UploadQRDocumentPageProps) => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
@@ -33,7 +33,7 @@ const UploadQRDocumentPage: React.FC<UploadQRDocumentPageProps> = ({ qrType, tit
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!fileToUpload) {
       setFormError("Por favor, seleccione un archivo.");

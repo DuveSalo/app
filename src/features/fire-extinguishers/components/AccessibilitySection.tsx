@@ -1,8 +1,7 @@
-import React from 'react';
 import { Select } from '../../../components/common/Select';
 import { SectionProps } from '../types';
 
-export const AccessibilitySection: React.FC<SectionProps> = ({ formData, onChange }) => {
+export const AccessibilitySection = ({ formData, onChange }: SectionProps) => {
   return (
     <div className="space-y-4">
       <p className="text-sm text-gray-600 mb-4">Verifique la accesibilidad del extintor.</p>

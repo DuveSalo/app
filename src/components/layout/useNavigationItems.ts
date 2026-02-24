@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { createElement, useMemo, type ReactNode } from 'react';
 import {
   Home,
   FileText,
@@ -15,7 +15,7 @@ import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
 export interface NavItem {
   path: string;
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }
 
 export function useNavigationItems() {
@@ -29,12 +29,12 @@ export function useNavigationItems() {
   }, [currentUser]);
 
   const mainNavItems: NavItem[] = [
-    { path: ROUTE_PATHS.DASHBOARD, label: 'Dashboard', icon: React.createElement(Home, { className: 'w-5 h-5' }) },
-    { path: ROUTE_PATHS.CONSERVATION_CERTIFICATES, label: MODULE_TITLES.CONSERVATION_CERTIFICATES, icon: React.createElement(FileText, { className: 'w-5 h-5' }) },
-    { path: ROUTE_PATHS.SELF_PROTECTION_SYSTEMS, label: MODULE_TITLES.SELF_PROTECTION_SYSTEMS, icon: React.createElement(ShieldCheck, { className: 'w-5 h-5' }) },
-    { path: ROUTE_PATHS.FIRE_EXTINGUISHERS, label: MODULE_TITLES.FIRE_EXTINGUISHERS, icon: React.createElement(Flame, { className: 'w-5 h-5' }) },
-    { path: ROUTE_PATHS.EVENT_INFORMATION, label: MODULE_TITLES.EVENT_INFORMATION, icon: React.createElement(AlertTriangle, { className: 'w-5 h-5' }) },
-    { path: ROUTE_PATHS.ELECTRICAL_INSTALLATIONS, label: MODULE_TITLES.ELECTRICAL_INSTALLATIONS, icon: React.createElement(Zap, { className: 'w-5 h-5' }) },
+    { path: ROUTE_PATHS.DASHBOARD, label: 'Dashboard', icon: createElement(Home, { className: 'w-5 h-5' }) },
+    { path: ROUTE_PATHS.CONSERVATION_CERTIFICATES, label: MODULE_TITLES.CONSERVATION_CERTIFICATES, icon: createElement(FileText, { className: 'w-5 h-5' }) },
+    { path: ROUTE_PATHS.SELF_PROTECTION_SYSTEMS, label: MODULE_TITLES.SELF_PROTECTION_SYSTEMS, icon: createElement(ShieldCheck, { className: 'w-5 h-5' }) },
+    { path: ROUTE_PATHS.FIRE_EXTINGUISHERS, label: MODULE_TITLES.FIRE_EXTINGUISHERS, icon: createElement(Flame, { className: 'w-5 h-5' }) },
+    { path: ROUTE_PATHS.EVENT_INFORMATION, label: MODULE_TITLES.EVENT_INFORMATION, icon: createElement(AlertTriangle, { className: 'w-5 h-5' }) },
+    { path: ROUTE_PATHS.ELECTRICAL_INSTALLATIONS, label: MODULE_TITLES.ELECTRICAL_INSTALLATIONS, icon: createElement(Zap, { className: 'w-5 h-5' }) },
   ];
 
   const serviceNavItems: NavItem[] = useMemo(() => {
@@ -50,7 +50,7 @@ export function useNavigationItems() {
       .map(item => ({
         path: item.path,
         label: item.label,
-        icon: React.createElement(FolderOpen, { className: 'w-5 h-5' }),
+        icon: createElement(FolderOpen, { className: 'w-5 h-5' }),
       }));
   }, [currentCompany?.services]);
 

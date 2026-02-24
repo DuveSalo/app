@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 
@@ -13,7 +12,7 @@ interface DynamicListInputProps {
   description?: string;
 }
 
-export const DynamicListInput: React.FC<DynamicListInputProps> = ({
+export const DynamicListInput = ({
   label,
   items,
   onChange,
@@ -21,7 +20,7 @@ export const DynamicListInput: React.FC<DynamicListInputProps> = ({
   minItems = 0,
   addButtonLabel,
   description
-}) => {
+}: DynamicListInputProps) => {
   const addItem = () => {
     onChange([...items, '']);
   };

@@ -1,4 +1,5 @@
-import React from 'react';
+
+
 import {
     Home,
     FileText,
@@ -30,14 +31,15 @@ import {
     Eye,
     CreditCard,
     Receipt,
-    XCircle
+    XCircle,
+    type LucideProps,
 } from 'lucide-react';
 
 const STROKE_WIDTH = 1.5;
 
 // --- Custom App Logo ---
 // Se mantiene el icono del logo personalizado para conservar la identidad de la marca.
-export const AppLogoIcon: React.FC<{className?: string}> = ({className = "size-8"}) => (
+export const AppLogoIcon = ({className = "size-8"}: {className?: string}) => (
   <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <g clipPath="url(#clip0_6_330_logo_app_icons)">
       <path
@@ -58,38 +60,38 @@ export const AppLogoIcon: React.FC<{className?: string}> = ({className = "size-8
 // para asegurar cambios no disruptivos en la aplicación. La mayoría de los iconos
 // usaban un grosor de trazo de 1.5, por lo que se mantiene para consistencia visual.
 
-export const HomeIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <Home className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const DocumentTextIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <FileText className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const ShieldCheckIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <ShieldCheck className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const QrCodeIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <QrCode className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const InformationCircleIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <Info className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const Cog6ToothIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <Settings className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const EditIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5", ...props }) => <Edit className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const WaterDropletIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <Droplet className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const SproutIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <Sprout className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const ElectricalIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <Zap className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const TestTubeIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <TestTube className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const CloseIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <X className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const PlusIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5", ...props }) => <Plus className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const TrashIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5", ...props }) => <Trash2 className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const CheckIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5", ...props }) => <Check className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const FireIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <Flame className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const BellAlertIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <BellRing className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const ExclamationTriangleIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <AlertTriangle className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const ChevronDoubleLeftIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <ChevronsLeft className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const ChevronDoubleRightIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <ChevronsRight className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const ChevronDownIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5", ...props }) => <ChevronDown className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const UsersIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <Users className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const SearchIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <Search className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const EyeIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5", ...props }) => <Eye className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const CreditCardIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5", ...props }) => <CreditCard className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const ReceiptIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5", ...props }) => <Receipt className={className} strokeWidth={STROKE_WIDTH} {...props} />;
-export const XCircleIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5", ...props }) => <XCircle className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const HomeIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <Home className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const DocumentTextIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <FileText className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const ShieldCheckIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <ShieldCheck className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const QrCodeIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <QrCode className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const InformationCircleIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <Info className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const Cog6ToothIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <Settings className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const EditIcon = ({ className = "w-5 h-5", ...props }: LucideProps) => <Edit className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const WaterDropletIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <Droplet className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const SproutIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <Sprout className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const ElectricalIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <Zap className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const TestTubeIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <TestTube className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const CloseIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <X className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const PlusIcon = ({ className = "w-5 h-5", ...props }: LucideProps) => <Plus className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const TrashIcon = ({ className = "w-5 h-5", ...props }: LucideProps) => <Trash2 className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const CheckIcon = ({ className = "w-5 h-5", ...props }: LucideProps) => <Check className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const FireIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <Flame className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const BellAlertIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <BellRing className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const ExclamationTriangleIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <AlertTriangle className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const ChevronDoubleLeftIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <ChevronsLeft className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const ChevronDoubleRightIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <ChevronsRight className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const ChevronDownIcon = ({ className = "w-5 h-5", ...props }: LucideProps) => <ChevronDown className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const UsersIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <Users className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const SearchIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <Search className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const EyeIcon = ({ className = "w-5 h-5", ...props }: LucideProps) => <Eye className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const CreditCardIcon = ({ className = "w-5 h-5", ...props }: LucideProps) => <CreditCard className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const ReceiptIcon = ({ className = "w-5 h-5", ...props }: LucideProps) => <Receipt className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const XCircleIcon = ({ className = "w-5 h-5", ...props }: LucideProps) => <XCircle className={className} strokeWidth={STROKE_WIDTH} {...props} />;
 
 
 // --- Iconos del Dashboard ---
 // Estos iconos usaban un grosor de trazo de 2, por lo que usamos el valor por defecto de Lucide.
-export const CalendarIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <Calendar className={className} {...props} />;
-export const TrendingUpIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <TrendingUp className={className} {...props} />;
-export const AlertCircleIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <AlertCircle className={className} {...props} />;
-export const CheckCircleIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <CheckCircle className={className} {...props} />;
+export const CalendarIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <Calendar className={className} {...props} />;
+export const TrendingUpIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <TrendingUp className={className} {...props} />;
+export const AlertCircleIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <AlertCircle className={className} {...props} />;
+export const CheckCircleIcon = ({ className = "w-6 h-6", ...props }: LucideProps) => <CheckCircle className={className} {...props} />;

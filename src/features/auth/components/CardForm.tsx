@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, type FormEvent } from 'react';
 import { loadMercadoPago } from '@mercadopago/sdk-js';
 import { MP_PUBLIC_KEY } from '@/lib/mercadopago/config';
 import { Button } from '@/components/common/Button';
@@ -33,14 +33,14 @@ const inputClass =
  * MercadoPago card form using Secure Fields API (mp.fields).
  * Generates tokens WITH CVV validation, required for preapprovals/subscriptions.
  */
-export const CardForm: React.FC<CardFormProps> = ({
+export const CardForm = ({
   amount,
   onTokenReady,
   onError,
   isProcessing,
   compact = false,
   submitLabel,
-}) => {
+}: CardFormProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const [idTypes, setIdTypes] = useState<IdentificationType[]>([]);
@@ -126,7 +126,7 @@ export const CardForm: React.FC<CardFormProps> = ({
   }, []);
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault();
 
       if (!mpRef.current || submitting) return;

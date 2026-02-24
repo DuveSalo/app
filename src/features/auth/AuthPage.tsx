@@ -1,7 +1,7 @@
 
 
 
-import React, { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { Input } from '../../components/common/Input';
@@ -11,7 +11,7 @@ import { ROUTE_PATHS } from '../../constants/index';
 import { Checkbox } from '../../components/common/Checkbox';
 import { CheckIcon } from '../../components/common/Icons';
 
-const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
+const AuthPage = ({ mode }: { mode: 'login' | 'register' }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,7 +23,7 @@ const AuthPage: React.FC<{ mode: 'login' | 'register' }> = ({ mode }) => {
 
   const registrationSuccess = location.state?.registrationSuccess;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     setShowConfirmationMessage(false);

@@ -1,11 +1,11 @@
-import React from 'react';
+import { type ReactNode } from 'react';
 
 export type StatCardVariant = 'gray' | 'green' | 'yellow' | 'red';
 
 interface StatCardProps {
     label: string;
     value: number;
-    icon: React.ReactNode;
+    icon: ReactNode;
     variant: StatCardVariant;
 }
 
@@ -36,7 +36,7 @@ const VARIANT_STYLES = {
     },
 };
 
-export const StatCard: React.FC<StatCardProps> = ({ label, value, icon, variant }) => {
+export const StatCard = ({ label, value, icon, variant }: StatCardProps) => {
     const styles = VARIANT_STYLES[variant];
 
     return (

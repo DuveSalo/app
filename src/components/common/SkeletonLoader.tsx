@@ -1,17 +1,15 @@
 
-import React from 'react';
-
 interface SkeletonProps {
   className?: string;
 }
 
-export const Skeleton: React.FC<SkeletonProps> = ({ className = '' }) => {
+export const Skeleton = ({ className = '' }: SkeletonProps) => {
   return (
     <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
   );
 };
 
-export const SkeletonCard: React.FC = () => {
+export const SkeletonCard = () => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
       <div className="flex items-center justify-between">
@@ -25,7 +23,7 @@ export const SkeletonCard: React.FC = () => {
   );
 };
 
-export const SkeletonTable: React.FC<{ rows?: number }> = ({ rows = 5 }) => {
+export const SkeletonTable = ({ rows = 5 }: { rows?: number }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-200">
@@ -45,7 +43,7 @@ export const SkeletonTable: React.FC<{ rows?: number }> = ({ rows = 5 }) => {
   );
 };
 
-export const SkeletonDashboard: React.FC = () => {
+export const SkeletonDashboard = () => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -58,7 +56,7 @@ export const SkeletonDashboard: React.FC = () => {
   );
 };
 
-export const SkeletonList: React.FC<{ items?: number }> = ({ items = 5 }) => {
+export const SkeletonList = ({ items = 5 }: { items?: number }) => {
   return (
     <div className="space-y-4">
       {Array.from({ length: items }).map((_, i) => (
@@ -77,7 +75,7 @@ export const SkeletonList: React.FC<{ items?: number }> = ({ items = 5 }) => {
   );
 };
 
-export const SkeletonForm: React.FC = () => {
+export const SkeletonForm = () => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
       <Skeleton className="h-8 w-1/3" />

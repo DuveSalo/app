@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { AuditLogItem } from './AuditLogItem';
 import type { AuditLog } from '../../../types/audit';
 
@@ -8,11 +8,11 @@ interface AuditLogListProps {
   emptyMessage?: string;
 }
 
-export const AuditLogList: React.FC<AuditLogListProps> = ({
+export const AuditLogList = ({
   logs,
   isLoading = false,
   emptyMessage = 'No hay registros de auditoría disponibles',
-}) => {
+}: AuditLogListProps) => {
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
 
   const toggleDetails = (logId: string) => {

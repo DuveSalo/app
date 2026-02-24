@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Settings,
@@ -10,7 +10,7 @@ import { ROUTE_PATHS } from '../../constants/index';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { useNavigationItems } from './useNavigationItems';
 
-const Sidebar: React.FC = () => {
+const Sidebar = () => {
   const { currentUser, currentCompany, logout } = useAuth();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);

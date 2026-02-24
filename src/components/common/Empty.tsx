@@ -1,4 +1,4 @@
-import React from 'react';
+import { type HTMLAttributes } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import {
   FileX,
@@ -43,7 +43,7 @@ const presetIcons: Record<string, LucideIcon> = {
 
 type EmptySize = 'sm' | 'md' | 'lg';
 
-export interface EmptyProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface EmptyProps extends HTMLAttributes<HTMLDivElement> {
   icon?: LucideIcon | keyof typeof presetIcons;
   title?: string;
   description?: string;
@@ -55,7 +55,7 @@ export interface EmptyProps extends React.HTMLAttributes<HTMLDivElement> {
   };
 }
 
-export const Empty: React.FC<EmptyProps> = ({
+export const Empty = ({
   icon = 'inbox',
   title = 'No hay datos',
   description,
@@ -63,7 +63,7 @@ export const Empty: React.FC<EmptyProps> = ({
   size = 'md',
   className,
   ...props
-}) => {
+}: EmptyProps) => {
   const IconComponent = typeof icon === 'string' ? presetIcons[icon] || Inbox : icon;
   const currentSize = (size ?? 'md') as EmptySize;
   const iconSize = iconSizeMap[currentSize];
@@ -110,11 +110,11 @@ export const Empty: React.FC<EmptyProps> = ({
 };
 
 // Preset empty states for common use cases
-export const EmptySearch: React.FC<Omit<EmptyProps, 'icon' | 'title'> & { query?: string }> = ({
+export const EmptySearch = ({
   query,
   description,
   ...props
-}) => (
+}: Omit<EmptyProps, 'icon' | 'title'> & { query?: string }) => (
   <Empty
     icon="search"
     title="Sin resultados"
@@ -123,10 +123,10 @@ export const EmptySearch: React.FC<Omit<EmptyProps, 'icon' | 'title'> & { query?
   />
 );
 
-export const EmptyList: React.FC<Omit<EmptyProps, 'icon'>> = (props) => (
+export const EmptyList = (props: Omit<EmptyProps, 'icon'>) => (
   <Empty icon="list" {...props} />
 );
 
-export const EmptyFolder: React.FC<Omit<EmptyProps, 'icon'>> = (props) => (
+export const EmptyFolder = (props: Omit<EmptyProps, 'icon'>) => (
   <Empty icon="folder" {...props} />
 );

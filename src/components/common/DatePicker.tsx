@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, type ChangeEvent, type KeyboardEvent } from 'react';
 import { CalendarDays } from 'lucide-react';
 import { format, parse, isValid } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -20,7 +20,7 @@ export interface DatePickerProps {
   className?: string;
 }
 
-export const DatePicker: React.FC<DatePickerProps> = ({
+export const DatePicker = ({
   label,
   error,
   helperText,
@@ -32,7 +32,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   placeholder = 'dd/mm/aaaa',
   minDate,
   className,
-}) => {
+}: DatePickerProps) => {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -70,7 +70,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     setOpen(false);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
   };
 
@@ -99,7 +99,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     commitInputValue();
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       commitInputValue();

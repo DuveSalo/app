@@ -1,4 +1,5 @@
-import React from 'react';
+
+
 import {
   AlertDialog,
   AlertDialogContent,
@@ -44,7 +45,7 @@ interface ConfirmDialogProps {
   isLoading?: boolean;
 }
 
-export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
+export const ConfirmDialog = ({
   isOpen,
   onClose,
   onConfirm,
@@ -54,7 +55,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   cancelText = 'Cancelar',
   variant = 'danger',
   isLoading = false,
-}) => {
+}: ConfirmDialogProps) => {
   const styles = variantStyles[variant];
   const Icon = styles.icon;
 

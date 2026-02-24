@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, type DragEvent, type ChangeEvent } from 'react';
 import { Upload, File as FileIcon, X } from 'lucide-react';
 
 const MAX_FILE_SIZE_MB = 10;
@@ -12,17 +12,17 @@ interface FileUploadProps {
   currentFileName?: string;
 }
 
-export const FileUpload: React.FC<FileUploadProps> = ({ 
+export const FileUpload = ({
   onFileSelect, 
   accept = '.pdf',
   label = 'Subir archivo',
   currentFileName
-}) => {
+}: FileUploadProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [displayFileName, setDisplayFileName] = useState<string | null>(currentFileName || null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setDisplayFileName(currentFileName || null);
@@ -69,7 +69,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
     const files = e.dataTransfer.files;
@@ -78,7 +78,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     }
   };
 
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInput = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     handleFileChange(files && files.length > 0 ? files[0] : null);
   };

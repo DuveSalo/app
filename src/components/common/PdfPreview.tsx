@@ -1,8 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { FileText } from 'lucide-react';
 
-export const PdfPreview: React.FC<{ file: File | string | null | undefined }> = ({ file }) => {
+export const PdfPreview = ({ file }: { file: File | string | null | undefined }) => {
   const [url, setUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);

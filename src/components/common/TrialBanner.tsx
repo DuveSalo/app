@@ -1,10 +1,9 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
 import { getTrialDaysRemaining, getTrialStatus } from '../../lib/utils/trial';
 import { ROUTE_PATHS } from '../../constants/index';
 
-export const TrialBanner: React.FC = () => {
+export const TrialBanner = () => {
   const { currentCompany } = useAuth();
   const navigate = useNavigate();
 

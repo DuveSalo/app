@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, CheckCircle, TrendingUp, AlertCircle } from 'lucide-react';
 import { QRDocumentType } from '../../types/index';
@@ -35,7 +35,7 @@ const STATUS_OPTIONS = [
   { value: 'expired', label: 'Vencido' },
 ];
 
-const DashboardPage: React.FC = () => {
+const DashboardPage = () => {
   const [items, setItems] = useState<DashboardItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');

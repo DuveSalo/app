@@ -1,9 +1,9 @@
-import React from 'react';
+import { type ReactNode } from 'react';
 import Sidebar from './Sidebar';
 import MobileNav from './MobileNav';
 import { TrialBanner } from '../common/TrialBanner';
 
-const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const MainLayout = ({ children }: { children: ReactNode }) => {
   return (
     <div className="bg-gray-100 text-gray-900 antialiased min-h-screen md:h-screen flex flex-col md:flex-row overflow-hidden selection:bg-gray-200">
       {/* Mobile Navigation */}

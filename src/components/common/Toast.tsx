@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback } from 'react';
+import { createContext, useContext, useCallback, type ReactNode } from 'react';
 import { toast, Toaster } from 'sonner';
 import { CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react';
 
@@ -41,7 +41,7 @@ const toastConfig = {
   },
 };
 
-export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ToastProvider = ({ children }: { children: ReactNode }) => {
   const showToast = useCallback((msg: string, type: ToastType = 'info') => {
     const config = toastConfig[type];
 

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ConservationCertificate } from '../../types/index';
 import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
@@ -16,7 +16,7 @@ import { SkeletonForm } from '../../components/common/SkeletonLoader';
 import { PdfPreview } from '../../components/common/PdfPreview';
 import PageLayout from '../../components/layout/PageLayout';
 
-const CreateEditConservationCertificatePage: React.FC = () => {
+const CreateEditConservationCertificatePage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,7 +86,7 @@ const CreateEditConservationCertificatePage: React.FC = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {

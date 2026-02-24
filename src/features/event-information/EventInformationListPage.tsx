@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EventInformation } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
@@ -24,7 +24,7 @@ const SORT_OPTIONS_EV = [
   { value: 'description-desc', label: 'Descripción: Z-A' },
 ];
 
-const EventInformationListPage: React.FC = () => {
+const EventInformationListPage = () => {
   const [events, setEvents] = useState<EventInformation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);

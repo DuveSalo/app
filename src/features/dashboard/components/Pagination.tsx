@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 
 interface PaginationProps {
@@ -10,15 +10,15 @@ interface PaginationProps {
     onPageSizeChange: (size: number) => void;
 }
 
-export const Pagination: React.FC<PaginationProps> = ({
+export const Pagination = ({
     currentPage,
     totalPages,
     pageSize,
     totalItems,
     onPageChange,
     onPageSizeChange,
-}) => {
-    const [showPageSizeDropdown, setShowPageSizeDropdown] = React.useState(false);
+}: PaginationProps) => {
+    const [showPageSizeDropdown, setShowPageSizeDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {

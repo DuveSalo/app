@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect, type ReactNode, useState } from 'react';
 import { Search, ChevronDown, X, ArrowUpDown, Filter, Layers } from 'lucide-react';
 
 interface SortOption {
@@ -25,11 +25,13 @@ interface DashboardFiltersProps {
     statusOptions: StatusOption[];
 }
 
-const DropdownMenu: React.FC<{
+interface DropdownMenuProps {
     isOpen: boolean;
     onClose: () => void;
-    children: React.ReactNode;
-}> = ({ isOpen, onClose, children }) => {
+    children: ReactNode;
+}
+
+const DropdownMenu = ({ isOpen, onClose, children }: DropdownMenuProps) => {
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -50,7 +52,7 @@ const DropdownMenu: React.FC<{
     );
 };
 
-export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
+export const DashboardFilters = ({
     searchQuery,
     onSearchChange,
     sortBy,
@@ -62,10 +64,10 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
     typeOptions,
     sortOptions,
     statusOptions,
-}) => {
-    const [showSortDropdown, setShowSortDropdown] = React.useState(false);
-    const [showStatusDropdown, setShowStatusDropdown] = React.useState(false);
-    const [showTypeDropdown, setShowTypeDropdown] = React.useState(false);
+}: DashboardFiltersProps) => {
+    const [showSortDropdown, setShowSortDropdown] = useState(false);
+    const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+    const [showTypeDropdown, setShowTypeDropdown] = useState(false);
 
     const hasActiveFilters = !!filterStatus || !!filterType;
 

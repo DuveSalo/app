@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type MouseEvent as ReactMouseEvent } from 'react';
 import { Bell, Check, CheckCheck, Trash2, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/AuthContext';
@@ -6,7 +6,7 @@ import { Notification } from '../../types/notification';
 import * as notificationService from '../../lib/api/services/notifications';
 import { ROUTE_PATHS } from '../../constants/index';
 
-const NotificationBell: React.FC = () => {
+const NotificationBell = () => {
   const { currentCompany } = useAuth();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -51,7 +51,7 @@ const NotificationBell: React.FC = () => {
     return () => clearInterval(interval);
   }, [currentCompany?.id]);
 
-  const handleMarkAsRead = async (notificationId: string, e: React.MouseEvent) => {
+  const handleMarkAsRead = async (notificationId: string, e: ReactMouseEvent) => {
     e.stopPropagation();
     try {
       await notificationService.markAsRead(notificationId);

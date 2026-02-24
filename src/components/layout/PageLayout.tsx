@@ -1,21 +1,21 @@
-import React from 'react';
+import { type ReactNode } from 'react';
 import NotificationBell from './NotificationBell';
 
 interface PageLayoutProps {
   title: string;
   subtitle?: string;
-  headerActions?: React.ReactNode;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
+  headerActions?: ReactNode;
+  children: ReactNode;
+  footer?: ReactNode;
 }
 
-export const PageLayout: React.FC<PageLayoutProps> = ({
+export const PageLayout = ({
   title,
   subtitle,
   headerActions,
   children,
   footer
-}) => {
+}: PageLayoutProps) => {
   return (
     <div className="bg-white h-full rounded-2xl md:rounded-3xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
       {/* Header */}

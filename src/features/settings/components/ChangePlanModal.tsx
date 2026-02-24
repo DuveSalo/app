@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Modal } from '../../../components/common/Modal';
 import { Button } from '../../../components/common/Button';
 import { CheckIcon } from '../../../components/common/Icons';
@@ -39,12 +39,12 @@ function getPlanPrice(plan: Plan, provider: string): { display: string; amount: 
   return { display: plan.price + plan.priceSuffix, amount: plan.priceNumber ?? 0, currency: 'USD' };
 }
 
-export const ChangePlanModal: React.FC<ChangePlanModalProps> = ({
+export const ChangePlanModal = ({
   isOpen,
   onClose,
   subscription,
   onConfirm,
-}) => {
+}: ChangePlanModalProps) => {
   const [selectedPlanKey, setSelectedPlanKey] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');

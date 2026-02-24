@@ -1,11 +1,11 @@
 
-import React from 'react';
+import { type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckIcon } from '../common/Icons';
 
 // --- Local Sub-components to avoid creating new files ---
 
-const DecorativePanel: React.FC = () => (
+const DecorativePanel = () => (
   <div className="relative h-full w-full bg-gray-950 overflow-hidden">
     {/* Grid pattern */}
     <div className="absolute inset-0" style={{
@@ -62,7 +62,7 @@ const DecorativePanel: React.FC = () => (
   </div>
 );
 
-const WizardStepper: React.FC<{ steps: string[], currentStep: number }> = ({ steps, currentStep }) => {
+const WizardStepper = ({ steps, currentStep }: { steps: string[], currentStep: number }) => {
   return (
     <div className="w-full max-w-md mx-auto mb-8">
       <div className="relative flex items-center justify-between">
@@ -100,7 +100,7 @@ const WizardStepper: React.FC<{ steps: string[], currentStep: number }> = ({ ste
 
 
 interface AuthLayoutProps {
-    children: React.ReactNode;
+    children: ReactNode;
     variant: 'split' | 'wizard';
     title?: string;
     subtitle?: string;
@@ -108,7 +108,7 @@ interface AuthLayoutProps {
     currentStep?: number;
 }
 
-const AuthLayout: React.FC<AuthLayoutProps> = ({ children, variant, title, subtitle, wizardSteps = [], currentStep = 1 }) => {
+const AuthLayout = ({ children, variant, title, subtitle, wizardSteps = [], currentStep = 1 }: AuthLayoutProps) => {
 
     // --- Split Layout Variant (for Login) ---
     if (variant === 'split') {

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SelfProtectionSystem } from '../../types/index';
 import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
@@ -17,7 +17,7 @@ import { createLogger } from '../../lib/utils/logger';
 
 const logger = createLogger('CreateEditSelfProtectionSystemPage');
 
-const CreateEditSelfProtectionSystemPage: React.FC = () => {
+const CreateEditSelfProtectionSystemPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -101,7 +101,7 @@ const CreateEditSelfProtectionSystemPage: React.FC = () => {
     }
   }, [currentFormData.probatoryDispositionDate]);
   
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCurrentFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -140,7 +140,7 @@ const CreateEditSelfProtectionSystemPage: React.FC = () => {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!isFormComplete) {
       setFormError("Por favor, complete todos los campos requeridos en todas las secciones para guardar.");

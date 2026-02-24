@@ -1,4 +1,3 @@
-import React from 'react';
 import { ExpirationStatus } from '../../../types/expirable';
 import { ChevronRight } from 'lucide-react';
 
@@ -32,7 +31,7 @@ const getStatusBadge = (status: ExpirationStatus) => {
     );
 };
 
-export const DashboardTable: React.FC<DashboardTableProps> = ({ items, onItemClick }) => {
+export const DashboardTable = ({ items, onItemClick }: DashboardTableProps) => {
     return (
         <div className="flex-1 overflow-x-auto hidden sm:block">
             <table className="w-full text-left border-collapse">

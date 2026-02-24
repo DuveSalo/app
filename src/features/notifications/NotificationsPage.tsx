@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, Check, CheckCheck, Trash2, Filter, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { Notification, NotificationType, NotificationCategory } from '../../types/notification';
@@ -33,7 +33,7 @@ const TYPE_BADGE_LABELS: Record<string, string> = {
   info: 'Info',
 };
 
-const NotificationsPage: React.FC = () => {
+const NotificationsPage = () => {
   const { currentCompany } = useAuth();
   const { showSuccess, showError } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);

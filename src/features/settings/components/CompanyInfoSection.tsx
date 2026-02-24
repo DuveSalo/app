@@ -1,4 +1,4 @@
-import React from 'react';
+import { type Dispatch, type SetStateAction, type ChangeEvent } from 'react';
 import { QRDocumentType } from '../../../types/index';
 import { MODULE_TITLES } from '../../../constants/index';
 import { Card } from '../../../components/common/Card';
@@ -23,13 +23,13 @@ interface CompanyInfoSectionProps {
   isEditing: boolean;
   setIsEditing: (v: boolean) => void;
   companyForm: Partial<CompanyFormData>;
-  setCompanyForm: React.Dispatch<React.SetStateAction<Partial<CompanyFormData>>>;
+  setCompanyForm: Dispatch<SetStateAction<Partial<CompanyFormData>>>;
   companyFormErrors: Record<string, string>;
-  handleCompanyFormChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleCompanyFormChange: (e: ChangeEvent<HTMLInputElement>) => void;
   error: string;
 }
 
-export const CompanyInfoSection: React.FC<CompanyInfoSectionProps> = ({
+export const CompanyInfoSection = ({
   currentCompany,
   isEditing,
   setIsEditing,
@@ -38,7 +38,7 @@ export const CompanyInfoSection: React.FC<CompanyInfoSectionProps> = ({
   companyFormErrors,
   handleCompanyFormChange,
   error,
-}) => {
+}: CompanyInfoSectionProps) => {
   if (isEditing) {
     return (
       <div className="space-y-6">

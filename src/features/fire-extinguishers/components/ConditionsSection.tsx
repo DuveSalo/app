@@ -1,9 +1,8 @@
-import React from 'react';
 import { Checkbox } from '../../../components/common/Checkbox';
 import { Textarea } from '../../../components/common/Textarea';
 import { SectionProps } from '../types';
 
-export const ConditionsSection: React.FC<SectionProps> = ({ formData, onChange, onCheckChange }) => {
+export const ConditionsSection = ({ formData, onChange, onCheckChange }: SectionProps) => {
   return (
     <div className="space-y-6">
       <div>

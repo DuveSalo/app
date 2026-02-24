@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Shield, Activity, TrendingUp, Users } from 'lucide-react';
 import { PageLayout } from '../../components/layout/PageLayout';
 import { Card } from '../../components/common/Card';
@@ -12,7 +12,7 @@ import { createLogger } from '../../lib/utils/logger';
 
 const logger = createLogger('AuditPage');
 
-export const AuditPage: React.FC = () => {
+export const AuditPage = () => {
   const { currentCompany } = useAuth();
   const { showError } = useToast();
 

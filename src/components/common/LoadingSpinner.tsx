@@ -1,4 +1,3 @@
-import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -14,10 +13,10 @@ const sizeClasses = {
   xl: 'h-12 w-12',
 };
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+export const LoadingSpinner = ({
   size = 'md',
   className
-}) => {
+}: LoadingSpinnerProps) => {
   return (
     <div className={cn('flex items-center justify-center', className)}>
       <Loader2 className={cn(sizeClasses[size], 'animate-spin text-gray-600')} />
@@ -26,7 +25,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 };
 
 // Full page loading spinner
-export const PageLoader: React.FC<{ message?: string }> = ({ message }) => {
+export const PageLoader = ({ message }: { message?: string }) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
       <LoadingSpinner size="lg" />

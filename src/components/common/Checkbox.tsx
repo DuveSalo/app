@@ -1,4 +1,4 @@
-import React from 'react';
+import { forwardRef, type ChangeEvent, type ElementRef } from 'react';
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -9,14 +9,14 @@ interface CheckboxProps {
   checked?: boolean;
   defaultChecked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
   className?: string;
   name?: string;
 }
 
-export const Checkbox = React.forwardRef<
-  React.ElementRef<typeof CheckboxPrimitive.Root>,
+export const Checkbox = forwardRef<
+  ElementRef<typeof CheckboxPrimitive.Root>,
   CheckboxProps
 >(({ id, label, checked, defaultChecked, onCheckedChange, onChange, disabled, className, name }, ref) => {
   const handleCheckedChange = (newChecked: boolean) => {
@@ -30,7 +30,7 @@ export const Checkbox = React.forwardRef<
           checked: newChecked,
           type: 'checkbox',
         },
-      } as React.ChangeEvent<HTMLInputElement>;
+      } as ChangeEvent<HTMLInputElement>;
       onChange(syntheticEvent);
     }
   };

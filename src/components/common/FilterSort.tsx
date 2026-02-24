@@ -1,5 +1,5 @@
 
-import React from 'react';
+import { type ReactNode } from 'react';
 import { Search, ArrowUpDown, ChevronDown } from 'lucide-react';
 
 interface FilterSortProps {
@@ -12,10 +12,10 @@ interface FilterSortProps {
   onFilterChange?: (value: string) => void;
   filterOptions?: { value: string; label: string }[];
   searchPlaceholder?: string;
-  additionalFilters?: React.ReactNode;
+  additionalFilters?: ReactNode;
 }
 
-export const FilterSort: React.FC<FilterSortProps> = ({
+export const FilterSort = ({
   searchValue,
   onSearchChange,
   sortValue,
@@ -26,7 +26,7 @@ export const FilterSort: React.FC<FilterSortProps> = ({
   filterOptions,
   searchPlaceholder = 'Buscar...',
   additionalFilters
-}) => {
+}: FilterSortProps) => {
   return (
     <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-3 mb-4">
       {/* Search */}

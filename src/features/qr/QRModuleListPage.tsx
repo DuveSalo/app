@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QRDocument, QRDocumentType } from '../../types/index';
 import * as api from '@/lib/api/services';
@@ -20,7 +20,7 @@ interface QRModulePageProps {
   editPath: string;
 }
 
-const QRModuleListPage: React.FC<QRModulePageProps> = ({ qrType, title, uploadPath, editPath }) => {
+const QRModuleListPage = ({ qrType, title, uploadPath, editPath }: QRModulePageProps) => {
   const [documents, setDocuments] = useState<QRDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');

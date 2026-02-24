@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { useAuth } from './AuthContext';
@@ -49,7 +49,7 @@ export const mpPlansData: Record<string, { priceArs: string; priceNumberArs: num
   premium: { priceArs: 'ARS 89.000', priceNumberArs: 89000 },
 };
 
-const SubscriptionPage: React.FC = () => {
+const SubscriptionPage = () => {
   const [selectedPlanId, setSelectedPlanId] = useState<string>(plansData[1].id);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(isMpEnabled ? 'mercadopago' : 'paypal');
   const [error, setError] = useState('');

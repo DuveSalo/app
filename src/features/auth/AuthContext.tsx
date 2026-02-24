@@ -1,6 +1,6 @@
 
 
-import React, { useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Company } from '../../types/index';
 import * as api from '@/lib/api/services';
@@ -23,9 +23,9 @@ interface AuthContextType {
   updateUserDetails: (details: Partial<User>) => Promise<void>;
 }
 
-const AuthContext = React.createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentCompany, setCurrentCompany] = useState<Company | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -190,7 +190,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 };
 
 export const useAuth = (): AuthContextType => {
-  const context = React.useContext(AuthContext);
+  const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };

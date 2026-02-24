@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { useSettingsData } from './hooks/useSettingsData';
 import { CompanyInfoSection } from './components/CompanyInfoSection';
 import { EmployeeSection } from './components/EmployeeSection';
@@ -17,7 +17,7 @@ const tabs = [
   { id: 'profile', label: 'Mi Perfil' },
 ];
 
-export const SettingsPage: React.FC = () => {
+export const SettingsPage = () => {
   const data = useSettingsData();
 
   const footerContent = useMemo(() => {

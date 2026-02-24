@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ChangeEvent, type FormEvent, type MouseEvent } from 'react';
 import { useAuth } from '../../auth/AuthContext';
 import * as api from '@/lib/api/services';
 import { Employee, QRDocumentType, CompanyServices, Company } from '../../../types/index';
@@ -90,7 +90,7 @@ export const useSettingsData = () => {
     }
   };
 
-  const handleCompanyFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCompanyFormChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     let finalValue = value;
 
@@ -114,7 +114,7 @@ export const useSettingsData = () => {
     return Object.values(companyFormErrors).every(err => err === '');
   };
 
-  const handleCompanySubmit = async (e?: React.FormEvent | React.MouseEvent) => {
+  const handleCompanySubmit = async (e?: FormEvent | MouseEvent) => {
     e?.preventDefault();
     if (!currentCompany || !isCompanyFormValid()) {
       setError('Por favor, corrija los errores en el formulario.');
@@ -152,7 +152,7 @@ export const useSettingsData = () => {
     }
   };
 
-  const handleEmployeeSubmit = async (e: React.FormEvent) => {
+  const handleEmployeeSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true); setError('');
     try {
@@ -193,7 +193,7 @@ export const useSettingsData = () => {
     }
   };
 
-  const handleProfileSubmit = async (e: React.FormEvent) => {
+  const handleProfileSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);

@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import * as api from '@/lib/api/services';
@@ -13,7 +13,7 @@ import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
 import { COUNTRIES, PROVINCES_BY_COUNTRY, CITIES_BY_PROVINCE } from '../../constants/geographic-data';
 import { CheckCircleIcon } from '../../components/common/Icons';
 
-const CreateCompanyPage: React.FC = () => {
+const CreateCompanyPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     cuit: '',
@@ -52,7 +52,7 @@ const CreateCompanyPage: React.FC = () => {
   }, [formData.province]);
 
   // Check if user was just confirmed (coming from email confirmation)
-  React.useEffect(() => {
+  useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const accessToken = urlParams.get('access_token');
     const type = urlParams.get('type');
@@ -92,7 +92,7 @@ const CreateCompanyPage: React.FC = () => {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     let finalValue = value;
 
@@ -115,7 +115,7 @@ const CreateCompanyPage: React.FC = () => {
     setFormErrors(prev => ({ ...prev, [name]: errorMsg }));
   };
 
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
 
     // When country changes, reset province and city
@@ -148,7 +148,7 @@ const CreateCompanyPage: React.FC = () => {
     return allFieldsValid && !!allRequiredFieldsFilled;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
 

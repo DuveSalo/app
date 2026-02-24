@@ -1,4 +1,5 @@
-import React from 'react';
+
+
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
@@ -41,12 +42,12 @@ interface StatusBadgeProps extends VariantProps<typeof badgeVariants> {
   customLabel?: string;
 }
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({
+export const StatusBadge = ({
   status,
   className,
   showIcon = true,
   customLabel,
-}) => {
+}: StatusBadgeProps) => {
   const config = statusConfig[status];
   const Icon = config.icon;
 

@@ -1,9 +1,9 @@
-import React from 'react';
+import { type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 interface Tab {
   label: string;
-  content: React.ReactNode;
+  content: ReactNode;
   disabled?: boolean;
 }
 
@@ -14,7 +14,7 @@ interface TabsProps {
   className?: string;
 }
 
-export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabClick, className }) => {
+export const Tabs = ({ tabs, activeTab, onTabClick, className }: TabsProps) => {
   return (
     <div className={cn('flex flex-col h-full', className)}>
       <div className="border-b border-gray-200 flex-shrink-0">

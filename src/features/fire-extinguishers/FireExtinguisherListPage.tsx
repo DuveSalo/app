@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FireExtinguisherControl } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
@@ -26,7 +26,7 @@ const SORT_OPTIONS_FE = [
   { value: 'chargeExpirationDate-desc', label: 'Vencimiento de Carga (Lejano)' },
 ];
 
-const FireExtinguisherListPage: React.FC = () => {
+const FireExtinguisherListPage = () => {
   const [extinguishers, setExtinguishers] = useState<FireExtinguisherControl[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
