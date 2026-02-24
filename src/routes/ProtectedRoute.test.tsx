@@ -14,7 +14,13 @@ vi.mock('../components/common/SpinnerPage', () => ({
     SpinnerPage: () => <div data-testid="spinner">Loading...</div>,
 }));
 
+// Mock trial utils — default to 'none' (no trial)
+vi.mock('../lib/utils/trial', () => ({
+    getTrialStatus: () => 'none',
+}));
+
 // Helper to render ProtectedRoute with router
+// Uses /subscribe to match ROUTE_PATHS.SUBSCRIPTION
 const renderWithRouter = (initialPath: string = '/dashboard') => {
     return render(
         <MemoryRouter initialEntries={[initialPath]}>
@@ -25,7 +31,7 @@ const renderWithRouter = (initialPath: string = '/dashboard') => {
                         <div data-testid="create-company-page">Create Company</div>
                     </ProtectedRoute>
                 } />
-                <Route path="/subscription" element={
+                <Route path="/subscribe" element={
                     <ProtectedRoute>
                         <div data-testid="subscription-page">Subscription</div>
                     </ProtectedRoute>
@@ -78,7 +84,7 @@ describe('ProtectedRoute', () => {
         expect(screen.getByTestId('create-company-page')).toBeInTheDocument();
     });
 
-    it('should redirect to subscription when company is not subscribed', () => {
+    it('should redirect to subscription when company is not subscribed and no trial', () => {
         mockUseAuth.mockReturnValue({
             currentUser: { id: '1', email: 'test@test.com', name: 'Test' },
             currentCompany: { id: '1', name: 'Test Company', isSubscribed: false },
@@ -118,7 +124,7 @@ describe('ProtectedRoute', () => {
             isLoading: false,
         });
 
-        renderWithRouter('/subscription');
+        renderWithRouter('/subscribe');
         expect(screen.getByTestId('subscription-page')).toBeInTheDocument();
     });
 });

@@ -34,8 +34,10 @@ describe('calculateDaysUntilExpiration', () => {
     });
 
     it('should handle ISO format with time', () => {
+        // '2026-01-30T10:00:00' is 10 days + 10h from '2026-01-20T00:00:00'
+        // Math.ceil rounds the fractional day up to 11
         const result = calculateDaysUntilExpiration('2026-01-30T10:00:00');
-        expect(result).toBe(10);
+        expect(result).toBe(11);
     });
 });
 

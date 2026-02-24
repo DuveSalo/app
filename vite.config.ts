@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import path from 'path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -11,6 +12,26 @@ export default defineConfig(({ mode }) => {
     const hasLocalCerts = fs.existsSync(certPath) && fs.existsSync(keyPath);
 
     return {
+      test: {
+        globals: true,
+        environment: 'jsdom',
+        setupFiles: ['./src/test/setup.ts'],
+        include: ['src/**/*.{test,spec}.{ts,tsx}'],
+        exclude: ['node_modules', 'e2e/**', 'src/components/ui/**'],
+        coverage: {
+          provider: 'v8',
+          reporter: ['text', 'html'],
+          include: ['src/**/*.{ts,tsx}'],
+          exclude: [
+            'src/components/ui/**',
+            'src/test/**',
+            'src/vite-env.d.ts',
+            'src/types/**',
+            '**/*.test.{ts,tsx}',
+            '**/*.d.ts',
+          ],
+        },
+      },
       server: {
         port: 3000,
         host: '0.0.0.0',
