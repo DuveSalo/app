@@ -30,7 +30,6 @@ const cardVariants = cva(
 export interface CardProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof cardVariants> {
-  asChild?: boolean;
 }
 
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
@@ -46,6 +45,16 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
           className
         )}
         onClick={onClick}
+        {...(isClickable && {
+          role: 'button',
+          tabIndex: 0,
+          onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onClick?.(e as unknown as React.MouseEvent<HTMLDivElement>);
+            }
+          },
+        })}
         {...props}
       >
         {children}

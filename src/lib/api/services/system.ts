@@ -317,6 +317,13 @@ export const updateSelfProtectionSystem = async (systemData: SelfProtectionSyste
 };
 
 export const deleteSelfProtectionSystem = async (id: string): Promise<void> => {
+  // Fetch file paths before deleting the record
+  const { data: sys } = await supabase
+    .from('self_protection_systems')
+    .select('probatory_disposition_pdf_path, extension_pdf_path, drills')
+    .eq('id', id)
+    .single();
+
   const { error } = await supabase
     .from('self_protection_systems')
     .delete()
@@ -324,5 +331,18 @@ export const deleteSelfProtectionSystem = async (id: string): Promise<void> => {
 
   if (error) {
     handleSupabaseError(error);
+  }
+
+  // Clean up storage (best-effort)
+  const filesToRemove: string[] = [];
+  if (sys?.probatory_disposition_pdf_path) filesToRemove.push(sys.probatory_disposition_pdf_path);
+  if (sys?.extension_pdf_path) filesToRemove.push(sys.extension_pdf_path);
+  if (Array.isArray(sys?.drills)) {
+    for (const drill of sys.drills as Array<{ pdfPath?: string }>) {
+      if (drill.pdfPath) filesToRemove.push(drill.pdfPath);
+    }
+  }
+  if (filesToRemove.length > 0) {
+    await supabase.storage.from('self-protection-systems').remove(filesToRemove).catch(() => {});
   }
 };

@@ -14,14 +14,11 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-// Using a class component with explicit typing to work around React 19 type issues
 class ErrorBoundaryClass extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  state: ErrorBoundaryState = { hasError: false, error: null };
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    (this as any).state = {
-      hasError: false,
-      error: null
-    };
     this.handleReset = this.handleReset.bind(this);
   }
 
@@ -36,12 +33,12 @@ class ErrorBoundaryClass extends Component<ErrorBoundaryProps, ErrorBoundaryStat
   }
 
   handleReset() {
-    (this as any).setState({ hasError: false, error: null });
+    this.setState({ hasError: false, error: null });
   }
 
   render() {
-    const { hasError, error } = (this as any).state;
-    const { children, fallback } = (this as any).props;
+    const { hasError, error } = this.state;
+    const { children, fallback } = this.props;
 
     if (hasError) {
       if (fallback) {

@@ -190,20 +190,20 @@ export const createFireExtinguisher = async (
       cabinet_clean: extinguisher.cabinetClean,
       observations: extinguisher.observations,
     })
-    .select()
+    .select(FIRE_EXTINGUISHER_COLUMNS)
     .single();
 
   if (error) {
     handleSupabaseError(error);
   }
 
-  return getFireExtinguisherById(data.id);
+  return mapDbToFireExtinguisher(data);
 };
 
 export const updateFireExtinguisher = async (
   extinguisher: Omit<FireExtinguisherControl, 'createdAt' | 'updatedAt'>
 ): Promise<FireExtinguisherControl> => {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('fire_extinguishers')
     .update({
       control_date: extinguisher.controlDate,
@@ -234,13 +234,15 @@ export const updateFireExtinguisher = async (
       observations: extinguisher.observations,
       updated_at: new Date().toISOString(),
     })
-    .eq('id', extinguisher.id);
+    .eq('id', extinguisher.id)
+    .select(FIRE_EXTINGUISHER_COLUMNS)
+    .single();
 
   if (error) {
     handleSupabaseError(error);
   }
 
-  return getFireExtinguisherById(extinguisher.id);
+  return mapDbToFireExtinguisher(data);
 };
 
 export const deleteFireExtinguisher = async (id: string): Promise<void> => {

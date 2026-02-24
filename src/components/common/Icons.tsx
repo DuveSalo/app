@@ -27,7 +27,10 @@ import {
     AlertCircle,
     CheckCircle,
     Search,
-    Eye
+    Eye,
+    CreditCard,
+    Receipt,
+    XCircle
 } from 'lucide-react';
 
 const STROKE_WIDTH = 1.5;
@@ -79,6 +82,9 @@ export const ChevronDownIcon: React.FC<{ className?: string }> = ({ className = 
 export const UsersIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <Users className={className} strokeWidth={STROKE_WIDTH} {...props} />;
 export const SearchIcon: React.FC<{ className?: string }> = ({ className = "w-6 h-6", ...props }) => <Search className={className} strokeWidth={STROKE_WIDTH} {...props} />;
 export const EyeIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5", ...props }) => <Eye className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const CreditCardIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5", ...props }) => <CreditCard className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const ReceiptIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5", ...props }) => <Receipt className={className} strokeWidth={STROKE_WIDTH} {...props} />;
+export const XCircleIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5", ...props }) => <XCircle className={className} strokeWidth={STROKE_WIDTH} {...props} />;
 
 
 // --- Iconos del Dashboard ---

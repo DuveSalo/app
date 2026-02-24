@@ -4,8 +4,7 @@ export const ROUTE_PATHS = {
   REGISTER: "/register",
   CREATE_COMPANY: "/create-company",
   SUBSCRIPTION: "/subscribe",
-  SUBSCRIPTION_CHECKOUT: "/subscribe/checkout",
-  SUBSCRIPTION_CALLBACK: "/subscription/callback",
+  TRIAL_EXPIRED: "/trial-expired",
   DASHBOARD: "/dashboard",
 
   CONSERVATION_CERTIFICATES: "/conservation-certificates",

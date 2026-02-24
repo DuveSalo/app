@@ -18,11 +18,13 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabClick, classNa
   return (
     <div className={cn('flex flex-col h-full', className)}>
       <div className="border-b border-gray-200 flex-shrink-0">
-        <nav className="-mb-px flex overflow-x-auto scrollbar-hide gap-1 sm:gap-6 px-1" aria-label="Tabs">
+        <nav className="-mb-px flex overflow-x-auto scrollbar-hide gap-1 sm:gap-6 px-1" role="tablist" aria-label="Tabs">
           {tabs.map((tab, index) => (
             <button
               key={tab.label}
               type="button"
+              role="tab"
+              id={`tab-${index}`}
               disabled={tab.disabled}
               onClick={() => onTabClick(index)}
               className={cn(
@@ -33,7 +35,9 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabClick, classNa
                   ? 'border-gray-900 text-gray-900'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               )}
-              aria-current={index === activeTab ? 'page' : undefined}
+              aria-selected={index === activeTab}
+              aria-controls={`tab-panel-${index}`}
+              tabIndex={index === activeTab ? 0 : -1}
             >
               {tab.label}
             </button>

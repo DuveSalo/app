@@ -1,4 +1,4 @@
-# SafetyGuard Pro - Interface Design System
+# Escuela Segura - Interface Design System
 
 ## Direction & Feel
 Professional safety compliance SaaS. Clean, structured, data-dense. Inspired by Attio/Linear - subtle layering, gray-dominant palette with semantic status colors.

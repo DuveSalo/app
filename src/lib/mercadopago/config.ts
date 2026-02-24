@@ -1,30 +1,6 @@
-// Mercado Pago SDK configuration
-import { initMercadoPago } from '@mercadopago/sdk-react';
-import { env } from '../env';
+import { env } from '@/lib/env';
 
-let initialized = false;
+export const MP_PUBLIC_KEY = env.VITE_MP_PUBLIC_KEY;
 
-export const initializeMercadoPago = (): boolean => {
-  if (initialized) return true;
-
-  const publicKey = env.VITE_MERCADOPAGO_PUBLIC_KEY;
-
-  if (!publicKey) {
-    console.error('[MercadoPago] VITE_MERCADOPAGO_PUBLIC_KEY is not configured');
-    return false;
-  }
-
-  try {
-    initMercadoPago(publicKey, {
-      locale: 'es-AR',
-    });
-    initialized = true;
-    console.log('[MercadoPago] SDK initialized successfully');
-    return true;
-  } catch (error) {
-    console.error('[MercadoPago] Failed to initialize SDK:', error);
-    return false;
-  }
-};
-
-export const isMercadoPagoInitialized = () => initialized;
+/** Whether MercadoPago is configured (Public Key provided) */
+export const isMpEnabled = !!MP_PUBLIC_KEY;

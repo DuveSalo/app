@@ -1,2 +1,1 @@
-export { MercadoPagoProvider, useMercadoPago } from './MercadoPagoProvider';
-export { initializeMercadoPago, isMercadoPagoInitialized } from './config';
+export { MP_PUBLIC_KEY, isMpEnabled } from './config';

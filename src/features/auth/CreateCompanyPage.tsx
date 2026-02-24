@@ -189,7 +189,7 @@ const CreateCompanyPage: React.FC = () => {
     }
   };
   
-  const wizardSteps = ['Cuenta', 'Empresa', 'Suscripción'];
+  const wizardSteps = ['Cuenta', 'Empresa', 'Suscripcion'];
 
   return (
     <AuthLayout variant="wizard" wizardSteps={wizardSteps} currentStep={2}>
@@ -278,7 +278,7 @@ const CreateCompanyPage: React.FC = () => {
                 Volver
               </Button>
               <Button type="submit" loading={isLoading} size="lg" className="w-full sm:w-auto" disabled={isLoading || !isFormValid()}>
-                Continuar a Suscripción
+                Continuar
               </Button>
             </div>
         </form>

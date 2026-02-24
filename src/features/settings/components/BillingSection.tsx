@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { Button } from '../../../components/common/Button';
-import { CheckIcon, CreditCardIcon, ReceiptIcon, XCircleIcon } from '../../../components/common/Icons';
+import { CheckIcon, ReceiptIcon, XCircleIcon } from '../../../components/common/Icons';
 import { paypalScriptOptions } from '../../../lib/paypal/config';
 import { plansData, mpPlansData, type PaymentMethod } from '../../auth/SubscriptionPage';
 import { isMpEnabled } from '../../../lib/mercadopago/config';
 import { CardForm } from '../../auth/components/CardForm';
+import { ChangePlanModal } from './ChangePlanModal';
 import * as api from '../../../lib/api/services';
 import type { Subscription, PaymentTransaction } from '../../../types/subscription';
 
@@ -18,6 +19,7 @@ interface BillingSectionProps {
   onReactivate: () => Promise<void>;
   onSubscriptionChange: () => Promise<void>;
   onMpChangePlan: (newPlanKey: string) => Promise<void>;
+  onPaypalChangePlan: (newPlanKey: string) => Promise<void>;
   onMpCreateSubscription: (data: { planKey: string; cardTokenId: string; payerEmail: string }) => Promise<void>;
   userEmail?: string;
   trialEndsAt?: string;
@@ -71,6 +73,7 @@ export const BillingSection: React.FC<BillingSectionProps> = ({
   onReactivate,
   onSubscriptionChange,
   onMpChangePlan,
+  onPaypalChangePlan,
   onMpCreateSubscription,
   userEmail,
   trialEndsAt,
@@ -78,6 +81,7 @@ export const BillingSection: React.FC<BillingSectionProps> = ({
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [showPlanSelection, setShowPlanSelection] = useState(false);
+  const [showChangePlanModal, setShowChangePlanModal] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState(plansData[1].id);
   const [planError, setPlanError] = useState('');
   const [isActivating, setIsActivating] = useState(false);
@@ -118,78 +122,66 @@ export const BillingSection: React.FC<BillingSectionProps> = ({
     }
   };
 
-  // ── Plan selector (shared between section 1 and no-subscription state) ──
+  // ── Plan selector (for new subscriptions only) ──
   const renderPlanSelector = () => (
     <>
       {/* Plan cards */}
       <div className="space-y-2 mb-5">
-        {plansData.map((plan) => {
-          const isCurrentPlan = subscription?.status === 'active' && subscription?.planKey === plan.id;
-          return (
-            <div
-              key={plan.id}
-              onClick={() => { if (!isCurrentPlan) { setSelectedPlanId(plan.id); setPlanError(''); } }}
-              className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                isCurrentPlan
-                  ? 'border-gray-200 bg-gray-50 opacity-60 cursor-default'
-                  : selectedPlanId === plan.id
-                    ? 'border-gray-900 ring-1 ring-gray-900 bg-white'
-                    : 'border-gray-200 hover:border-gray-300 bg-white'
-              }`}
-            >
-              {/* Radio */}
-              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                isCurrentPlan
-                  ? 'border-gray-300 bg-gray-300'
-                  : selectedPlanId === plan.id ? 'border-gray-900 bg-gray-900' : 'border-gray-300'
-              }`}>
-                {(selectedPlanId === plan.id && !isCurrentPlan) && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-white" />
+        {plansData.map((plan) => (
+          <div
+            key={plan.id}
+            onClick={() => { setSelectedPlanId(plan.id); setPlanError(''); }}
+            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+              selectedPlanId === plan.id
+                ? 'border-gray-900 ring-1 ring-gray-900 bg-white'
+                : 'border-gray-200 hover:border-gray-300 bg-white'
+            }`}
+          >
+            {/* Radio */}
+            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+              selectedPlanId === plan.id ? 'border-gray-900 bg-gray-900' : 'border-gray-300'
+            }`}>
+              {selectedPlanId === plan.id && (
+                <div className="w-1.5 h-1.5 rounded-full bg-white" />
+              )}
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-900">{plan.name}</span>
+                {plan.tag && (
+                  <span className="text-xs font-semibold tracking-wide rounded-full bg-gray-900 text-white px-2 py-0.5">
+                    {plan.tag}
+                  </span>
                 )}
               </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-900">{plan.name}</span>
-                  {isCurrentPlan && (
-                    <span className="text-xs font-medium text-gray-500 bg-gray-200 px-1.5 py-0.5 rounded">
-                      Actual
-                    </span>
-                  )}
-                  {plan.tag && !isCurrentPlan && (
-                    <span className="text-xs font-semibold tracking-wide rounded-full bg-gray-900 text-white px-2 py-0.5">
-                      {plan.tag}
-                    </span>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5">
-                  {plan.features.map((f, i) => (
-                    <span key={i} className="text-xs text-gray-500 flex items-center gap-0.5">
-                      <CheckIcon className="w-3 h-3 text-emerald-500 flex-shrink-0" />
-                      {f}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Price */}
-              <div className="text-right flex-shrink-0">
-                {paymentMethod === 'mercadopago' ? (
-                  <>
-                    <span className="text-lg font-semibold text-gray-900">{mpPlansData[plan.id]?.priceArs}</span>
-                    <span className="text-xs text-gray-500">/mes</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-lg font-semibold text-gray-900">{plan.price}</span>
-                    <span className="text-xs text-gray-500">{plan.priceSuffix}</span>
-                  </>
-                )}
+              <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5">
+                {plan.features.map((f, i) => (
+                  <span key={i} className="text-xs text-gray-500 flex items-center gap-0.5">
+                    <CheckIcon className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+                    {f}
+                  </span>
+                ))}
               </div>
             </div>
-          );
-        })}
+
+            {/* Price */}
+            <div className="text-right flex-shrink-0">
+              {paymentMethod === 'mercadopago' ? (
+                <>
+                  <span className="text-lg font-semibold text-gray-900">{mpPlansData[plan.id]?.priceArs}</span>
+                  <span className="text-xs text-gray-500">/mes</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-lg font-semibold text-gray-900">{plan.price}</span>
+                  <span className="text-xs text-gray-500">{plan.priceSuffix}</span>
+                </>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Payment Method Selector (for new subscriptions) */}
@@ -233,32 +225,6 @@ export const BillingSection: React.FC<BillingSectionProps> = ({
           </div>
         )}
 
-        {/* MP Plan Change (active MP subscription) */}
-        {!needsSubscription && isMpSubscription && (
-          <Button
-            type="button"
-            className="w-full"
-            onClick={async () => {
-              console.log('[MP] BillingSection: Changing plan to:', selectedPlanId);
-              setPlanError('');
-              setIsMpProcessing(true);
-              try {
-                await onMpChangePlan(selectedPlanId);
-                setShowPlanSelection(false);
-              } catch (err) {
-                console.error('[MP] BillingSection: Plan change error:', err);
-                setPlanError('Error al cambiar de plan. Intente nuevamente.');
-              } finally {
-                setIsMpProcessing(false);
-              }
-            }}
-            disabled={isLoading || isMpProcessing || selectedPlanId === subscription?.planKey}
-            loading={isMpProcessing}
-          >
-            Confirmar cambio de plan
-          </Button>
-        )}
-
         {/* MP New Subscription (CardForm) */}
         {needsSubscription && paymentMethod === 'mercadopago' && (
           <CardForm
@@ -286,8 +252,8 @@ export const BillingSection: React.FC<BillingSectionProps> = ({
           />
         )}
 
-        {/* PayPal Buttons */}
-        {((needsSubscription && paymentMethod === 'paypal') || (!needsSubscription && !isMpSubscription)) && (
+        {/* PayPal Buttons (new subscription only) */}
+        {needsSubscription && paymentMethod === 'paypal' && (
           <PayPalScriptProvider options={paypalScriptOptions}>
             <PayPalButtons
               key={selectedPlanId}
@@ -383,10 +349,10 @@ export const BillingSection: React.FC<BillingSectionProps> = ({
               </span>
             )}
           </div>
-          {canChangePlan && !showPlanSelection && (
+          {canChangePlan && (
             <button
               type="button"
-              onClick={() => setShowPlanSelection(true)}
+              onClick={() => setShowChangePlanModal(true)}
               className="text-sm font-medium text-gray-900 hover:text-gray-700 transition-colors"
             >
               Cambiar plan
@@ -395,7 +361,7 @@ export const BillingSection: React.FC<BillingSectionProps> = ({
         </div>
 
         {/* Current plan info */}
-        {subscription && !needsSubscription && !showPlanSelection && (
+        {subscription && !needsSubscription && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
@@ -426,24 +392,10 @@ export const BillingSection: React.FC<BillingSectionProps> = ({
           </>
         )}
 
-        {/* Plan selector (change plan or new subscription) */}
-        {showPlanSelection && (
+        {/* Plan selector (new subscription only) */}
+        {showPlanSelection && needsSubscription && (
           <div>
-            {!needsSubscription && (
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs text-gray-500">Selecciona un nuevo plan</p>
-                <button
-                  type="button"
-                  onClick={() => { setShowPlanSelection(false); setPlanError(''); }}
-                  className="text-xs text-gray-500 hover:text-gray-700"
-                >
-                  Cancelar
-                </button>
-              </div>
-            )}
-            {needsSubscription && (
-              <p className="text-xs text-gray-500 mb-3">Selecciona un plan para suscribirte</p>
-            )}
+            <p className="text-xs text-gray-500 mb-3">Selecciona un plan para suscribirte</p>
             {renderPlanSelector()}
           </div>
         )}
@@ -548,7 +500,7 @@ export const BillingSection: React.FC<BillingSectionProps> = ({
                     try {
                       await api.mpManageSubscription({
                         action: 'change_card',
-                        companyId,
+                        mpPreapprovalId: subscription!.mpPreapprovalId!,
                         cardTokenId: data.token,
                       });
                       setShowChangePayment(false);
@@ -743,6 +695,22 @@ export const BillingSection: React.FC<BillingSectionProps> = ({
             </p>
           )}
         </div>
+      )}
+
+      {/* Change Plan Modal */}
+      {subscription && canChangePlan && (
+        <ChangePlanModal
+          isOpen={showChangePlanModal}
+          onClose={() => setShowChangePlanModal(false)}
+          subscription={subscription}
+          onConfirm={async (newPlanKey) => {
+            if (subscription.paymentProvider === 'mercadopago') {
+              await onMpChangePlan(newPlanKey);
+            } else {
+              await onPaypalChangePlan(newPlanKey);
+            }
+          }}
+        />
       )}
     </div>
   );

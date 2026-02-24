@@ -1,7 +1,15 @@
 // Database to domain type mappers
+import { z } from 'zod';
 import type { Company, Employee, ConservationCertificate, SelfProtectionSystem, QRDocument, QRDocumentType, EventInformation, Drill } from '../../types';
 import type { Tables } from '../../types/database.types';
 import { toCompanyServices, toPaymentMethods, toStringArray, toBooleanRecord } from '../utils/typeGuards';
+
+const DrillSchema = z.object({
+  date: z.string(),
+  pdfUrl: z.string().optional(),
+  pdfName: z.string().optional(),
+});
+const DrillsSchema = z.array(DrillSchema).catch([]);
 
 /**
  * Maps database company row to domain Company type
@@ -26,7 +34,8 @@ export const mapCompanyFromDb = (
     phone: data.phone || '',
     isSubscribed: data.is_subscribed || false,
     selectedPlan: data.selected_plan || undefined,
-    subscriptionStatus: data.subscription_status as 'active' | 'canceled' | 'expired' | undefined,
+    trialEndsAt: data.trial_ends_at || undefined,
+    subscriptionStatus: data.subscription_status as Company['subscriptionStatus'],
     subscriptionRenewalDate: data.subscription_renewal_date || undefined,
     services: toCompanyServices(data.services),
     paymentMethods: toPaymentMethods(data.payment_methods),
@@ -78,7 +87,7 @@ export const mapSystemFromDb = (data: Tables<'self_protection_systems'>): SelfPr
     extensionPdfName: data.extension_pdf_name || undefined,
     extensionPdfUrl: data.extension_pdf_url || undefined,
     expirationDate: data.expiration_date,
-    drills: (data.drills as unknown as Drill[]) || [],
+    drills: DrillsSchema.parse(data.drills) as Drill[],
     intervener: data.intervener,
     registrationNumber: data.registration_number,
   };

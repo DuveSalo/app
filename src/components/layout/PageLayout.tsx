@@ -37,7 +37,7 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
       </div>
 
       {/* Body */}
-      <div className="flex-1 px-4 py-2 sm:px-5 sm:py-2 md:px-6 md:py-3 min-h-0 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-300 [scrollbar-width:thin] [scrollbar-color:rgb(229,231,235)_transparent]">
+      <div className="flex-1 px-4 py-2 sm:px-5 sm:py-2 md:px-6 md:py-3 min-h-0 overflow-y-auto scrollbar-subtle">
         {children}
       </div>
 

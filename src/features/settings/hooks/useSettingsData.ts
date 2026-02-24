@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../auth/AuthContext';
 import * as api from '@/lib/api/services';
 import { Employee, QRDocumentType, CompanyServices, Company } from '../../../types/index';
-import type { PaymentTransaction } from '../../../lib/api/services/subscription';
+import type { Subscription, PaymentTransaction } from '../../../types/subscription';
 import { useToast } from '../../../components/common/Toast';
 
 export interface CompanyFormData {
@@ -17,16 +17,14 @@ export interface CompanyFormData {
 }
 
 export const useSettingsData = () => {
-  const { currentUser, currentCompany, refreshCompany, updateUserDetails, logout, changePlan, cancelSubscription, pauseSubscription } = useAuth();
-  const { showSuccess, showError, showWarning } = useToast();
+  const { currentUser, currentCompany, refreshCompany, updateUserDetails, logout } = useAuth();
+  const { showSuccess, showWarning } = useToast();
 
   const [activeTab, setActiveTab] = useState('company');
   const [isEditingCompany, setIsEditingCompany] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [showEmployeeModal, setShowEmployeeModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  const [showBillingModal, setShowBillingModal] = useState(false);
-  const [billingAction, setBillingAction] = useState<'change' | 'cancel' | 'pause'>('change');
 
   const [companyForm, setCompanyForm] = useState<Partial<CompanyFormData>>({});
   const [companyFormErrors, setCompanyFormErrors] = useState({
@@ -35,12 +33,12 @@ export const useSettingsData = () => {
   const [employeeForm, setEmployeeForm] = useState<Omit<Employee, 'id'>>({ name: '', email: '', role: '' });
   const [profileForm, setProfileForm] = useState({ name: '', email: '' });
 
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [payments, setPayments] = useState<PaymentTransaction[]>([]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [isPasswordResetLoading, setIsPasswordResetLoading] = useState(false);
   const [error, setError] = useState('');
-  const [newSelectedPlanId, setNewSelectedPlanId] = useState<string>('');
-  const [paymentHistory, setPaymentHistory] = useState<PaymentTransaction[]>([]);
-  const [isLoadingPayments, setIsLoadingPayments] = useState(false);
 
   useEffect(() => {
     if (currentCompany) {
@@ -54,7 +52,6 @@ export const useSettingsData = () => {
         province: currentCompany.province,
         country: currentCompany.country,
       });
-      setNewSelectedPlanId(currentCompany.selectedPlan || '');
       setCompanyFormErrors({ name: '', cuit: '', address: '', postalCode: '', city: '', province: '', country: '' });
     }
   }, [currentCompany]);
@@ -65,15 +62,17 @@ export const useSettingsData = () => {
     }
   }, [currentUser]);
 
+  // Fetch subscription and payment data
   useEffect(() => {
-    if (activeTab === 'billing' && paymentHistory.length === 0) {
-      setIsLoadingPayments(true);
-      api.getPaymentHistory()
-        .then(setPaymentHistory)
-        .catch(() => setPaymentHistory([]))
-        .finally(() => setIsLoadingPayments(false));
+    if (currentCompany) {
+      api.getActiveSubscription(currentCompany.id)
+        .then(setSubscription)
+        .catch(console.error);
+      api.getPaymentHistory(currentCompany.id, 5)
+        .then(setPayments)
+        .catch(console.error);
     }
-  }, [activeTab]);
+  }, [currentCompany]);
 
   const validateCompanyField = (name: string, value: string): string => {
     switch (name) {
@@ -106,9 +105,9 @@ export const useSettingsData = () => {
       }
     }
 
-    setCompanyForm(prev => ({...prev, [name]: finalValue}));
+    setCompanyForm(prev => ({ ...prev, [name]: finalValue }));
     const errorMsg = validateCompanyField(name, finalValue);
-    setCompanyFormErrors(prev => ({...prev, [name]: errorMsg}));
+    setCompanyFormErrors(prev => ({ ...prev, [name]: errorMsg }));
   };
 
   const isCompanyFormValid = () => {
@@ -236,40 +235,6 @@ export const useSettingsData = () => {
     setShowEmployeeModal(true);
   };
 
-  const handleBillingAction = async () => {
-    setIsLoading(true); setError('');
-    try {
-      if (billingAction === 'change') {
-        if (!newSelectedPlanId || newSelectedPlanId === currentCompany?.selectedPlan) {
-          setShowBillingModal(false);
-          return;
-        }
-        const initPoint = await changePlan(newSelectedPlanId);
-        setShowBillingModal(false);
-        if (initPoint) {
-          window.location.href = initPoint;
-          return;
-        }
-        await refreshCompany();
-      } else if (billingAction === 'pause') {
-        await pauseSubscription();
-        setShowBillingModal(false);
-        await refreshCompany();
-        showSuccess('Suscripcion pausada correctamente');
-      } else {
-        await cancelSubscription();
-        setShowBillingModal(false);
-        await refreshCompany();
-        showSuccess('Suscripcion cancelada correctamente');
-      }
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : `Error al ${billingAction === 'change' ? 'cambiar de plan' : billingAction === 'pause' ? 'pausar' : 'cancelar'} la suscripcion`;
-      setError(message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleCancelCompanyEdit = () => {
     if (currentCompany) {
       setCompanyForm({
@@ -294,6 +259,178 @@ export const useSettingsData = () => {
     }
     setIsEditingProfile(false);
     setError('');
+  };
+
+  // Subscription handlers (provider-aware)
+  const handleCancelSubscription = async () => {
+    if (!subscription) return;
+    console.debug('[MP] useSettingsData: Cancel subscription', {
+      provider: subscription.paymentProvider,
+      mpId: subscription.mpPreapprovalId,
+      paypalId: subscription.paypalSubscriptionId,
+    });
+    setIsLoading(true);
+    setError('');
+    try {
+      if (subscription.paymentProvider === 'mercadopago' && subscription.mpPreapprovalId) {
+        console.debug('[MP] useSettingsData: Cancelling via MercadoPago');
+        await api.mpManageSubscription({
+          action: 'cancel',
+          mpPreapprovalId: subscription.mpPreapprovalId,
+        });
+      } else if (subscription.paypalSubscriptionId) {
+        await api.manageSubscription({
+          action: 'cancel',
+          subscriptionId: subscription.paypalSubscriptionId,
+          reason: 'Cancelacion solicitada por el usuario',
+        });
+      }
+      await refreshCompany();
+      const updated = await api.getActiveSubscription(currentCompany!.id);
+      setSubscription(updated);
+      showSuccess('Suscripcion cancelada');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al cancelar la suscripcion';
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReactivateSubscription = async () => {
+    if (!subscription) return;
+    console.debug('[MP] useSettingsData: Reactivate subscription', {
+      provider: subscription.paymentProvider,
+      mpId: subscription.mpPreapprovalId,
+    });
+    setIsLoading(true);
+    setError('');
+    try {
+      if (subscription.paymentProvider === 'mercadopago' && subscription.mpPreapprovalId) {
+        console.debug('[MP] useSettingsData: Reactivating via MercadoPago');
+        await api.mpManageSubscription({
+          action: 'reactivate',
+          mpPreapprovalId: subscription.mpPreapprovalId,
+        });
+      } else if (subscription.paypalSubscriptionId) {
+        await api.manageSubscription({
+          action: 'reactivate',
+          subscriptionId: subscription.paypalSubscriptionId,
+          reason: 'Reactivacion solicitada por el usuario',
+        });
+      }
+      await refreshCompany();
+      const updated = await api.getActiveSubscription(currentCompany!.id);
+      setSubscription(updated);
+      showSuccess('Suscripcion reactivada');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al reactivar la suscripcion';
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleMpChangePlan = async (newPlanKey: string) => {
+    if (!subscription?.mpPreapprovalId || !currentCompany) return;
+    console.debug('[MP] useSettingsData: Change plan', {
+      currentPlan: subscription.planKey,
+      newPlan: newPlanKey,
+      mpPreapprovalId: subscription.mpPreapprovalId,
+    });
+    setIsLoading(true);
+    setError('');
+    try {
+      await api.mpManageSubscription({
+        action: 'change_plan',
+        mpPreapprovalId: subscription.mpPreapprovalId,
+        newPlanKey,
+      });
+      await refreshCompany();
+      const updated = await api.getActiveSubscription(currentCompany.id);
+      setSubscription(updated);
+      const updatedPayments = await api.getPaymentHistory(currentCompany.id, 5);
+      setPayments(updatedPayments);
+      showSuccess('Plan actualizado');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al cambiar de plan';
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleMpCreateSubscription = async (data: { planKey: string; cardTokenId: string; payerEmail: string }) => {
+    if (!currentCompany) return;
+    console.debug('[MP] useSettingsData: Create subscription', {
+      planKey: data.planKey,
+      companyId: currentCompany.id,
+      hasToken: !!data.cardTokenId,
+      email: data.payerEmail,
+    });
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await api.mpCreateSubscription({
+        planKey: data.planKey,
+        companyId: currentCompany.id,
+        cardTokenId: data.cardTokenId,
+        payerEmail: data.payerEmail,
+      });
+      console.debug('[MP] useSettingsData: Create subscription result:', result);
+      await refreshCompany(true);
+      const updated = await api.getActiveSubscription(currentCompany.id);
+      setSubscription(updated);
+      const updatedPayments = await api.getPaymentHistory(currentCompany.id, 5);
+      setPayments(updatedPayments);
+      showSuccess('Suscripcion creada');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al crear la suscripcion';
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePaypalChangePlan = async (newPlanKey: string) => {
+    if (!subscription?.paypalSubscriptionId || !currentCompany) return;
+    setIsLoading(true);
+    setError('');
+    try {
+      // PayPal plan change: create-subscription edge function cancels old + creates new
+      const result = await api.createSubscription({
+        planKey: newPlanKey,
+        companyId: currentCompany.id,
+      });
+      // Activate the new subscription (PayPal requires server-side activation)
+      await api.activateSubscription({
+        subscriptionId: result.subscriptionId,
+        companyId: currentCompany.id,
+        oldPlanName: subscription.planName,
+      });
+      await refreshCompany(true);
+      const updated = await api.getActiveSubscription(currentCompany.id);
+      setSubscription(updated);
+      const updatedPayments = await api.getPaymentHistory(currentCompany.id, 5);
+      setPayments(updatedPayments);
+      showSuccess('Plan actualizado');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al cambiar de plan';
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubscriptionChange = async () => {
+    if (!currentCompany) return;
+    await refreshCompany(true);
+    const updated = await api.getActiveSubscription(currentCompany.id);
+    setSubscription(updated);
+    const updatedPayments = await api.getPaymentHistory(currentCompany.id, 5);
+    setPayments(updatedPayments);
+    showSuccess('Suscripcion actualizada');
   };
 
   return {
@@ -333,15 +470,14 @@ export const useSettingsData = () => {
     handlePasswordReset,
     isPasswordResetLoading,
     // Billing
-    showBillingModal,
-    setShowBillingModal,
-    billingAction,
-    setBillingAction,
-    handleBillingAction,
-    newSelectedPlanId,
-    setNewSelectedPlanId,
-    paymentHistory,
-    isLoadingPayments,
+    subscription,
+    payments,
+    handleCancelSubscription,
+    handleReactivateSubscription,
+    handleSubscriptionChange,
+    handleMpChangePlan,
+    handlePaypalChangePlan,
+    handleMpCreateSubscription,
     // Shared
     isLoading,
     error,

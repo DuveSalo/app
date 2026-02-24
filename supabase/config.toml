@@ -14,11 +14,26 @@ major_version = 17
 [functions.send-expiration-emails]
 verify_jwt = false
 
+[functions.create-subscription]
+verify_jwt = true
+
+[functions.activate-subscription]
+verify_jwt = true
+
 [functions.manage-subscription]
 verify_jwt = true
 
-[functions.webhook-mercadopago]
+[functions.webhook-paypal]
 verify_jwt = false
 
 [functions.cron-check-subscriptions]
+verify_jwt = false
+
+[functions.mp-create-subscription]
+verify_jwt = true
+
+[functions.mp-manage-subscription]
+verify_jwt = false
+
+[functions.webhook-mercadopago]
 verify_jwt = false

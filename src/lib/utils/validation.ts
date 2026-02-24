@@ -84,17 +84,6 @@ export const validatePastDate = (date: string): { valid: boolean; error?: string
   return { valid: true };
 };
 
-// Input sanitization
-export const sanitizeInput = (input: string): string => {
-  return input.trim().replace(/<[^>]*>/g, '');
-};
-
-export const sanitizeHtml = (html: string): string => {
-  const tempDiv = document.createElement('div');
-  tempDiv.textContent = html;
-  return tempDiv.textContent || '';
-};
-
 // Email validation
 export const validateEmail = (email: string): { valid: boolean; error?: string } => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

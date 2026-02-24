@@ -5,7 +5,8 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_ANON_KEY: string;
   readonly VITE_GEMINI_API_KEY?: string;
   readonly VITE_LOG_LEVEL?: 'debug' | 'info' | 'warn' | 'error';
-  readonly VITE_MERCADOPAGO_PUBLIC_KEY?: string;
+  readonly VITE_PAYPAL_CLIENT_ID: string;
+  readonly VITE_MP_PUBLIC_KEY?: string;
 }
 
 interface ImportMeta {

@@ -264,6 +264,13 @@ export const updateQRDocument = async (id: string, docData: Partial<QRDocumentCr
 };
 
 export const deleteQRDocument = async (id: string): Promise<void> => {
+  // Fetch file path before deleting the record
+  const { data: doc } = await supabase
+    .from('qr_documents')
+    .select('pdf_file_path')
+    .eq('id', id)
+    .single();
+
   const { error } = await supabase
     .from('qr_documents')
     .delete()
@@ -271,5 +278,10 @@ export const deleteQRDocument = async (id: string): Promise<void> => {
 
   if (error) {
     handleSupabaseError(error);
+  }
+
+  // Clean up storage (best-effort)
+  if (doc?.pdf_file_path) {
+    await supabase.storage.from('qr-documents').remove([doc.pdf_file_path]).catch(() => {});
   }
 };

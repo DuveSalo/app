@@ -1,65 +1,55 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Project
 
-## Project Overview
-
-SafetyGuard Pro is a safety compliance management SaaS application built with React 19, TypeScript 5.8, and Vite 6.2. It uses Supabase for backend (PostgreSQL, Auth, Storage) and Tailwind CSS with a custom Attio-inspired design system.
+Escuela Segura — safety compliance management SaaS for schools (React + Vite + Supabase).
 
 ## Commands
 
 ```bash
-npm run dev              # Start dev server on port 3000
-npm run build            # Production build
-npm run test             # Run tests in watch mode
-npm run test:run         # Single test run
-npm run test:coverage    # Generate coverage report
-npm run format           # Format with Prettier
+npm run dev / build / test / test:run / test:coverage / format
 ```
 
 ## Architecture
 
-### Feature-Based Structure
-- `src/features/` - Domain modules (auth, dashboard, fire-extinguishers, conservation-certificates, etc.)
-- `src/components/common/` - Shared reusable components
-- `src/components/ui/` - Base styled components (shadcn/ui)
-- `src/lib/api/services/` - API service layer with Supabase
-- `src/types/` - TypeScript types including database.types.ts (auto-generated from Supabase)
+- **Features**: `src/features/{name}/` — domain modules with `components/`, `hooks/`, `types.ts`
+- **Common UI**: `src/components/common/` (Button, Input, Select, Card, Table, etc.)
+- **shadcn/ui**: `src/components/ui/` — base components, do NOT modify
+- **Layouts**: PageLayout (all main pages), AuthLayout (split for login, wizard for onboarding)
+- **API services**: `src/lib/api/services/` — one file per entity, prefer explicit `.select()` columns, `mapXFromDb` mappers
+- **Edge Functions**: `supabase/functions/` — PayPal billing lifecycle (see deep dives)
+- **Types**: `src/types/` + auto-generated `database.types.ts`
 
-### Key Files
-- `src/App.tsx` - Main router with HashRouter
-- `src/routes/routes.config.ts` - Centralized route definitions with lazy loading
-- `src/routes/ProtectedRoute.tsx` - Multi-level auth guard (user → company → subscription)
-- `src/features/auth/AuthContext.tsx` - Global authentication state
-- `src/lib/supabase/client.ts` - Main Supabase client
+## Key Files
 
-### Authentication Flow
-HashRouter with Google OAuth → AuthContext manages state → ProtectedRoute guards routes → Onboarding: Login → Create Company → Subscription → Dashboard
+- `src/App.tsx` — HashRouter with `React.lazy()` routes
+- `src/routes/ProtectedRoute.tsx` — 3-level guard: user → company → subscription
+- `src/features/auth/AuthContext.tsx` — global auth state
+- `src/lib/env.ts` — Zod-validated env config (always import from here, not `import.meta.env`)
 
-### Path Aliases
-Use `@/*` for imports from `src/` (e.g., `@/components/ui/Button`)
+## Auth Flow
+
+Google OAuth → AuthContext → ProtectedRoute → Onboarding: Login → Create Company → Subscribe (PayPal) → Dashboard
 
 ## Environment Variables
-```
-VITE_SUPABASE_URL
-VITE_SUPABASE_ANON_KEY
-VITE_GEMINI_API_KEY
-```
 
-## Database
-Supabase with migrations in `/supabase/migrations/`. Key tables: users, companies, employees, conservation_certificates, fire_extinguishers, self_protection_systems, qr_documents, events, notifications, audit_logs.
-
-## Testing
-Vitest with jsdom, React Testing Library. Mocks configured for matchMedia, IntersectionObserver, ResizeObserver.
+```
+VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_PAYPAL_CLIENT_ID
+VITE_GEMINI_API_KEY (optional), VITE_LOG_LEVEL (optional: debug|info|warn|error)
+```
 
 ## Design System
-Custom Tailwind config. Use `gray-*` for all neutral colors (NEVER `slate-*`).
-Status colors: `emerald` (success), `amber` (warning), `red` (danger), `blue` (info).
-See `.interface-design/system.md` for full design system reference.
-IMPORTANT: Do NOT use semantic tokens like `text-content-primary`, `bg-surface-primary` — they don't exist in the Tailwind config.
 
-## Feature Structure Convention
-Use `src/features/fire-extinguishers/` as the canonical pattern:
-- `components/` - Feature-specific UI components
-- `hooks/` - Feature-specific hooks
-- `types.ts` - Feature-specific types (when needed beyond src/types/)
+Use `gray-*` for all neutral colors (NEVER `slate-*`). The Tailwind config defines semantic tokens (`content`, `surface`, `borderClr`, etc.) but feature code should use `gray-*` directly for consistency.
+Status colors: `emerald` (success), `amber` (warning), `red` (danger), `blue` (info).
+See `.interface-design/system.md` for the full reference.
+
+## Conventions
+
+- Canonical feature pattern: `src/features/fire-extinguishers/`
+- Path alias: `@/*` → `src/*`
+
+## Deep Dives
+
+- [Architecture & service layer](.claude/docs/architecture.md)
+- [Edge Functions & PayPal billing](.claude/docs/supabase-edge-functions.md)

@@ -111,6 +111,12 @@
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-400;
   }
+
+  ::-webkit-scrollbar-button {
+    display: none;
+    height: 0;
+    width: 0;
+  }
 }
 
 /* ==============================================
@@ -129,6 +135,29 @@
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Subtle scrollbar utility */
+  .scrollbar-subtle {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(229, 231, 235) transparent;
+  }
+
+  .scrollbar-subtle::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-subtle::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-subtle::-webkit-scrollbar-thumb {
+    background: rgb(229, 231, 235);
+    border-radius: 9999px;
+  }
+
+  .scrollbar-subtle:hover::-webkit-scrollbar-thumb {
+    background: rgb(209, 213, 219);
   }
 
   /* Touch-friendly tap highlight */

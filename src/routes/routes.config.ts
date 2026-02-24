@@ -13,8 +13,7 @@ export const LazyPages = {
     AuthCallbackPage: React.lazy(() => import('../features/auth/AuthCallbackPage')),
     CreateCompanyPage: React.lazy(() => import('../features/auth/CreateCompanyPage')),
     SubscriptionPage: React.lazy(() => import('../features/auth/SubscriptionPage')),
-    SubscriptionCheckoutPage: React.lazy(() => import('../features/auth/SubscriptionCheckoutPage')),
-    PaymentCallbackPage: React.lazy(() => import('../features/auth/PaymentCallbackPage')),
+    TrialExpiredPage: React.lazy(() => import('../features/auth/TrialExpiredPage')),
 
     // Main pages
     DashboardPage: React.lazy(() => import('../features/dashboard/DashboardPage')),

@@ -237,6 +237,13 @@ export const updateCertificate = async (certData: ConservationCertificate): Prom
 };
 
 export const deleteCertificate = async (id: string): Promise<void> => {
+  // Fetch file path before deleting the record
+  const { data: cert } = await supabase
+    .from('conservation_certificates')
+    .select('pdf_file_path')
+    .eq('id', id)
+    .single();
+
   const { error } = await supabase
     .from('conservation_certificates')
     .delete()
@@ -244,5 +251,10 @@ export const deleteCertificate = async (id: string): Promise<void> => {
 
   if (error) {
     handleSupabaseError(error);
+  }
+
+  // Clean up storage (best-effort, don't fail the delete if this errors)
+  if (cert?.pdf_file_path) {
+    await supabase.storage.from('certificates').remove([cert.pdf_file_path]).catch(() => {});
   }
 };

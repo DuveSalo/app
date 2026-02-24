@@ -6,6 +6,7 @@ import { User, Company } from '../../types/index';
 import * as api from '@/lib/api/services';
 import { ROUTE_PATHS } from '../../constants/index';
 import { createLogger } from '../../lib/utils/logger';
+import { getTrialStatus } from '../../lib/utils/trial';
 
 const logger = createLogger('AuthContext');
 
@@ -19,9 +20,6 @@ interface AuthContextType {
   logout: () => Promise<void>;
   setCompany: (company: Company) => void;
   refreshCompany: (silent?: boolean) => Promise<void>;
-  changePlan: (newPlanId: string) => Promise<string | undefined>;
-  cancelSubscription: () => Promise<void>;
-  pauseSubscription: () => Promise<void>;
   updateUserDetails: (details: Partial<User>) => Promise<void>;
 }
 
@@ -69,14 +67,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         const company = await api.getCompanyByUserId(user.id);
         setCurrentCompany(company);
-        if (company.isSubscribed) {
+        const trialStatus = getTrialStatus(company);
+        if (company.isSubscribed || trialStatus === 'active') {
           navigate(ROUTE_PATHS.DASHBOARD);
+        } else if (trialStatus === 'expired') {
+          navigate(ROUTE_PATHS.TRIAL_EXPIRED);
         } else {
           navigate(ROUTE_PATHS.SUBSCRIPTION);
         }
       } catch {
         setCurrentCompany(null);
-        navigate(ROUTE_PATHS.CREATE_COMPANY); 
+        navigate(ROUTE_PATHS.CREATE_COMPANY);
       }
     } catch (error) {
       setCurrentUser(null);
@@ -86,7 +87,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(false);
     }
   };
-  
+
   const registerUser = async (name: string, email: string, pass: string) => {
     setIsLoading(true);
     try {
@@ -98,27 +99,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Redirect to create company page (they don't have a company yet)
       navigate(ROUTE_PATHS.CREATE_COMPANY);
     } catch (error: unknown) {
-        setCurrentUser(null);
-        setCurrentCompany(null);
-        // Check if the error is due to email confirmation requirement
-        const errorMessage = error instanceof Error ? error.message : '';
-        if (errorMessage.includes('EMAIL_CONFIRMATION_REQUIRED') || errorMessage.includes('confirma tu email') || errorMessage.includes('email confirmation')) {
-          // Re-throw with a clear message about email confirmation
-          throw new Error('EMAIL_CONFIRMATION_REQUIRED');
-        }
-        throw error;
+      setCurrentUser(null);
+      setCurrentCompany(null);
+      // Check if the error is due to email confirmation requirement
+      const errorMessage = error instanceof Error ? error.message : '';
+      if (errorMessage.includes('EMAIL_CONFIRMATION_REQUIRED') || errorMessage.includes('confirma tu email') || errorMessage.includes('email confirmation')) {
+        // Re-throw with a clear message about email confirmation
+        throw new Error('EMAIL_CONFIRMATION_REQUIRED');
+      }
+      throw error;
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
   const logoutUser = async () => {
-    await api.logout();
+    try {
+      await api.logout();
+    } catch (error) {
+      logger.error('Error during logout', error);
+    }
     setCurrentUser(null);
     setCurrentCompany(null);
     navigate(ROUTE_PATHS.LOGIN);
   };
-  
+
   const setCompanyContext = (company: Company) => {
     setCurrentCompany(company);
   };
@@ -138,62 +143,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const changePlanContext = async (newPlanId: string): Promise<string | undefined> => {
-    if (!currentCompany) throw new Error("No company found.");
-    setIsLoading(true);
-    try {
-      const { company, initPoint } = await api.changeSubscriptionPlan(newPlanId);
-      setCurrentCompany(company);
-      return initPoint;
-    } catch (error) {
-      logger.error("Error changing subscription plan", error, { companyId: currentCompany.id, newPlanId });
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const cancelSubscriptionContext = async () => {
-    if (!currentCompany) throw new Error("No company found.");
-    setIsLoading(true);
-    try {
-      const updatedCompany = await api.cancelSubscription();
-      setCurrentCompany(updatedCompany);
-    } catch (error) {
-      logger.error("Error cancelling subscription", error, { companyId: currentCompany.id });
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const pauseSubscriptionContext = async () => {
-    if (!currentCompany) throw new Error("No company found.");
-    setIsLoading(true);
-    try {
-      const updatedCompany = await api.pauseSubscription();
-      setCurrentCompany(updatedCompany);
-    } catch (error) {
-      logger.error("Error pausing subscription", error, { companyId: currentCompany.id });
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
   const updateUserDetailsContext = async (details: Partial<User>) => {
     if (!currentUser) throw new Error("No user is logged in.");
     setIsLoading(true);
     try {
-        const updatedUser = await api.updateUser(details);
-        setCurrentUser(updatedUser);
-        // Also refresh company data in case the user name is used as an employee name
-        await refreshCompanyData();
+      const updatedUser = await api.updateUser(details);
+      setCurrentUser(updatedUser);
+      // Also refresh company data in case the user name is used as an employee name
+      await refreshCompanyData();
     } catch (error) {
-        logger.error("Error updating user details", error, { userId: currentUser.id });
-        throw error;
+      logger.error("Error updating user details", error, { userId: currentUser.id });
+      throw error;
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -220,9 +182,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       logout: logoutUser,
       setCompany: setCompanyContext,
       refreshCompany: refreshCompanyData,
-      changePlan: changePlanContext,
-      cancelSubscription: cancelSubscriptionContext,
-      pauseSubscription: pauseSubscriptionContext,
       updateUserDetails: updateUserDetailsContext,
     }}>
       {children}

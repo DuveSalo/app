@@ -5,7 +5,6 @@ import { EmployeeSection } from './components/EmployeeSection';
 import { BillingSection } from './components/BillingSection';
 import { ProfileSection } from './components/ProfileSection';
 import { EmployeeModal } from './components/EmployeeModal';
-import { BillingModal } from './components/BillingModal';
 import { Button } from '../../components/common/Button';
 import { EditIcon } from '../../components/common/Icons';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
@@ -14,7 +13,7 @@ import PageLayout from '../../components/layout/PageLayout';
 const tabs = [
   { id: 'company', label: 'Empresa' },
   { id: 'employees', label: 'Empleados' },
-  { id: 'billing', label: 'Facturación' },
+  { id: 'billing', label: 'Facturacion' },
   { id: 'profile', label: 'Mi Perfil' },
 ];
 
@@ -59,7 +58,7 @@ export const SettingsPage: React.FC = () => {
 
   return (
     <PageLayout title="Configuración" footer={footerContent}>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col">
         <div className="border-b border-gray-200 flex-shrink-0 overflow-x-auto">
           <nav className="-mb-px flex space-x-2 sm:space-x-6 min-w-max">
             {tabs.map((tab) => (
@@ -72,7 +71,7 @@ export const SettingsPage: React.FC = () => {
           </nav>
         </div>
 
-        <div className="flex-grow pt-6 min-h-0">
+        <div className="pt-6">
           {data.activeTab === 'company' && (
             <CompanyInfoSection
               currentCompany={data.currentCompany}
@@ -96,11 +95,18 @@ export const SettingsPage: React.FC = () => {
           )}
           {data.activeTab === 'billing' && (
             <BillingSection
-              currentCompany={data.currentCompany}
-              paymentHistory={data.paymentHistory}
-              isLoadingPayments={data.isLoadingPayments}
-              setBillingAction={data.setBillingAction}
-              setShowBillingModal={data.setShowBillingModal}
+              companyId={data.currentCompany.id}
+              subscription={data.subscription}
+              payments={data.payments}
+              isLoading={data.isLoading}
+              onCancel={data.handleCancelSubscription}
+              onReactivate={data.handleReactivateSubscription}
+              onSubscriptionChange={data.handleSubscriptionChange}
+              onMpChangePlan={data.handleMpChangePlan}
+              onPaypalChangePlan={data.handlePaypalChangePlan}
+              onMpCreateSubscription={data.handleMpCreateSubscription}
+              userEmail={data.currentUser.email}
+              trialEndsAt={data.currentCompany.trialEndsAt}
             />
           )}
           {data.activeTab === 'profile' && (
@@ -126,18 +132,6 @@ export const SettingsPage: React.FC = () => {
         setEmployeeForm={data.setEmployeeForm}
         handleSubmit={data.handleEmployeeSubmit}
         isLoading={data.isLoading}
-      />
-
-      <BillingModal
-        isOpen={data.showBillingModal}
-        onClose={() => data.setShowBillingModal(false)}
-        billingAction={data.billingAction}
-        currentCompany={data.currentCompany}
-        newSelectedPlanId={data.newSelectedPlanId}
-        setNewSelectedPlanId={data.setNewSelectedPlanId}
-        handleBillingAction={data.handleBillingAction}
-        isLoading={data.isLoading}
-        error={data.error}
       />
     </PageLayout>
   );

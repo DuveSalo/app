@@ -5,6 +5,7 @@ import { ROUTE_PATHS } from '../../constants/index';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import * as api from '@/lib/api/services';
 import { createLogger } from '../../lib/utils/logger';
+import { getTrialStatus } from '../../lib/utils/trial';
 
 const logger = createLogger('AuthCallbackPage');
 
@@ -33,8 +34,11 @@ const AuthCallbackPage: React.FC = () => {
         const user = session.user;
         try {
           const company = await api.getCompanyByUserId(user.id);
-          if (company.isSubscribed) {
+          const trialStatus = getTrialStatus(company);
+          if (company.isSubscribed || trialStatus === 'active') {
             navigate(ROUTE_PATHS.DASHBOARD);
+          } else if (trialStatus === 'expired') {
+            navigate(ROUTE_PATHS.TRIAL_EXPIRED);
           } else {
             navigate(ROUTE_PATHS.SUBSCRIPTION);
           }

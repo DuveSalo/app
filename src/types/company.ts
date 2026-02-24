@@ -52,9 +52,10 @@ export interface Company {
   employees: Employee[];
   isSubscribed?: boolean;
   selectedPlan?: string;
+  trialEndsAt?: string;
   services?: CompanyServices;
   subscriptionRenewalDate?: string;
-  subscriptionStatus?: 'active' | 'authorized' | 'pending' | 'paused' | 'canceled' | 'expired';
+  subscriptionStatus?: 'active' | 'pending' | 'approval_pending' | 'suspended' | 'canceled' | 'expired';
   paymentMethods?: PaymentMethod[];
 }
 
@@ -68,75 +69,3 @@ export interface Plan {
   tag?: string;
 }
 
-// Mercado Pago types
-export type SubscriptionStatus = 'pending' | 'authorized' | 'paused' | 'cancelled' | 'expired';
-export type MPPaymentStatus = 'approved' | 'pending' | 'rejected' | 'refunded' | 'cancelled';
-
-export interface Subscription {
-  readonly id: string;
-  companyId: string;
-  mpPreapprovalId?: string;
-  mpPayerId?: string;
-  planId: string;
-  planName: string;
-  amount: number;
-  currency: string;
-  status: SubscriptionStatus;
-  startDate?: string;
-  endDate?: string;
-  nextPaymentDate?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface PaymentTransaction {
-  readonly id: string;
-  subscriptionId?: string;
-  companyId: string;
-  mpPaymentId?: string;
-  mpOrderId?: string;
-  amount: number;
-  currency: string;
-  status: MPPaymentStatus;
-  statusDetail?: string;
-  paymentMethod?: string;
-  paymentType?: string;
-  installments: number;
-  dateCreated: string;
-  dateApproved?: string;
-  createdAt: string;
-}
-
-// CardPayment Brick response data
-export interface CardPaymentData {
-  token: string;
-  payment_method_id: string;
-  issuer_id: string;
-  installments: number;
-  payer: {
-    email: string;
-    identification: {
-      type: string;
-      number: string;
-    };
-  };
-}
-
-// Request to create subscription (sent to Edge Function)
-export interface CreateSubscriptionRequest {
-  planId: string;
-  planName: string;
-  amount: number;
-  payerEmail: string;
-  cardToken: string;
-  paymentMethodId?: string;
-  issuerId?: string;
-}
-
-// Response from create-subscription Edge Function
-export interface CreateSubscriptionResponse {
-  success: boolean;
-  subscription?: Subscription;
-  mpStatus?: string;
-  error?: string;
-}

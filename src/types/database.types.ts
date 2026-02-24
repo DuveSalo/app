@@ -81,6 +81,7 @@ export type Database = {
           services: Json | null
           subscription_renewal_date: string | null
           subscription_status: string | null
+          trial_ends_at: string | null
           updated_at: string | null
           user_id: string
         }
@@ -105,6 +106,7 @@ export type Database = {
           services?: Json | null
           subscription_renewal_date?: string | null
           subscription_status?: string | null
+          trial_ends_at?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -129,6 +131,7 @@ export type Database = {
           services?: Json | null
           subscription_renewal_date?: string | null
           subscription_status?: string | null
+          trial_ends_at?: string | null
           updated_at?: string | null
           user_id?: string
         }

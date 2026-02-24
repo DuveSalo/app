@@ -1,112 +1,175 @@
-
 import { supabase } from '../../supabase/client';
-import { AuthError } from '../../utils/errors';
+import type {
+  Subscription,
+  PaymentTransaction,
+  SubscriptionStatus,
+  PaymentProvider,
+  CreateSubscriptionRequest,
+  CreateSubscriptionResponse,
+  ActivateSubscriptionRequest,
+  ActivateSubscriptionResponse,
+  ManageSubscriptionRequest,
+  ManageSubscriptionResponse,
+  MpCreateSubscriptionRequest,
+  MpCreateSubscriptionResponse,
+  MpManageSubscriptionRequest,
+  MpManageSubscriptionResponse,
+} from '../../../types/subscription';
 
-/** Get company ID from the current session in a single query (avoids N+1) */
-async function getSessionCompanyId(): Promise<string> {
+// DB row to domain mapper
+function mapSubscriptionFromDb(data: Record<string, unknown>): Subscription {
+  return {
+    id: data.id as string,
+    companyId: data.company_id as string,
+    paymentProvider: (data.payment_provider as PaymentProvider) || 'paypal',
+    paypalSubscriptionId: (data.paypal_subscription_id as string) || null,
+    paypalPlanId: (data.paypal_plan_id as string) || null,
+    mpPreapprovalId: (data.mp_preapproval_id as string) || null,
+    mpPlanId: (data.mp_plan_id as string) || null,
+    planKey: data.plan_key as string,
+    planName: data.plan_name as string,
+    amount: Number(data.amount),
+    currency: (data.currency as string) || 'USD',
+    status: data.status as SubscriptionStatus,
+    subscriberEmail: (data.subscriber_email as string) || null,
+    currentPeriodStart: (data.current_period_start as string) || null,
+    currentPeriodEnd: (data.current_period_end as string) || null,
+    nextBillingTime: (data.next_billing_time as string) || null,
+    activatedAt: (data.activated_at as string) || null,
+    cancelledAt: (data.cancelled_at as string) || null,
+    suspendedAt: (data.suspended_at as string) || null,
+    failedPaymentsCount: (data.failed_payments_count as number) || 0,
+    createdAt: data.created_at as string,
+    updatedAt: data.updated_at as string,
+  };
+}
+
+function mapTransactionFromDb(data: Record<string, unknown>): PaymentTransaction {
+  return {
+    id: data.id as string,
+    subscriptionId: (data.subscription_id as string) || null,
+    companyId: data.company_id as string,
+    paypalTransactionId: data.paypal_transaction_id as string,
+    grossAmount: Number(data.gross_amount),
+    feeAmount: data.fee_amount ? Number(data.fee_amount) : null,
+    netAmount: data.net_amount ? Number(data.net_amount) : null,
+    currency: (data.currency as string) || 'USD',
+    status: data.status as PaymentTransaction['status'],
+    paidAt: (data.paid_at as string) || null,
+    createdAt: data.created_at as string,
+  };
+}
+
+/**
+ * Create a PayPal subscription via Edge Function.
+ */
+export async function createSubscription(
+  params: CreateSubscriptionRequest,
+): Promise<CreateSubscriptionResponse> {
+  const { data, error } = await supabase.functions.invoke('create-subscription', {
+    body: params,
+  });
+  if (error) throw new Error(error.message);
+  return data as CreateSubscriptionResponse;
+}
+
+/**
+ * Activate a subscription after PayPal approval.
+ */
+export async function activateSubscription(
+  params: ActivateSubscriptionRequest,
+): Promise<ActivateSubscriptionResponse> {
+  const { data, error } = await supabase.functions.invoke('activate-subscription', {
+    body: params,
+  });
+  if (error) throw new Error(error.message);
+  return data as ActivateSubscriptionResponse;
+}
+
+/**
+ * Manage subscription lifecycle (cancel, suspend, reactivate).
+ */
+export async function manageSubscription(
+  params: ManageSubscriptionRequest,
+): Promise<ManageSubscriptionResponse> {
+  const { data, error } = await supabase.functions.invoke('manage-subscription', {
+    body: params,
+  });
+  if (error) throw new Error(error.message);
+  return data as ManageSubscriptionResponse;
+}
+
+// --- MercadoPago functions ---
+
+/**
+ * Create a MercadoPago subscription with card_token_id via Edge Function.
+ */
+export async function mpCreateSubscription(
+  params: MpCreateSubscriptionRequest,
+): Promise<MpCreateSubscriptionResponse> {
+  const { data, error } = await supabase.functions.invoke('mp-create-subscription', {
+    body: params,
+  });
+  if (error) throw new Error(error.message);
+  return data as MpCreateSubscriptionResponse;
+}
+
+/**
+ * Manage MercadoPago subscription (upgrade, downgrade, cancel, pause, reactivate, change card).
+ */
+export async function mpManageSubscription(
+  params: MpManageSubscriptionRequest,
+): Promise<MpManageSubscriptionResponse> {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) throw new AuthError("Usuario no autenticado");
+  if (!session) throw new Error('No hay sesión activa');
 
-  const { data, error } = await supabase
-    .from('companies')
-    .select('id')
-    .eq('user_id', session.user.id)
-    .single();
-
-  if (error || !data) throw new AuthError("Empresa no encontrada");
-  return data.id;
+  const { data, error } = await supabase.functions.invoke('mp-manage-subscription', {
+    body: params,
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
+  if (error) throw new Error(error.message);
+  return data as MpManageSubscriptionResponse;
 }
 
-export interface SubscriptionRecord {
-  id: string;
-  companyId: string;
-  mpPreapprovalId: string | null;
-  planId: string;
-  planName: string;
-  amount: number;
-  status: string;
-  startDate: string | null;
-  endDate: string | null;
-  nextPaymentDate: string | null;
-  createdAt: string;
-}
+// --- Shared functions ---
 
-export interface PaymentTransaction {
-  id: string;
-  subscriptionId: string | null;
-  companyId: string;
-  mpPaymentId: string | null;
-  amount: number;
-  currency: string;
-  status: string;
-  statusDetail: string | null;
-  paymentMethod: string | null;
-  paymentType: string | null;
-  dateCreated: string;
-  dateApproved: string | null;
-}
-
-export const getActiveSubscription = async (): Promise<SubscriptionRecord | null> => {
-  const companyId = await getSessionCompanyId();
-
+/**
+ * Get the active (or most recent) subscription for a company.
+ */
+export async function getActiveSubscription(
+  companyId: string,
+): Promise<Subscription | null> {
   const { data, error } = await supabase
     .from('subscriptions')
-    .select('id, company_id, mp_preapproval_id, plan_id, plan_name, amount, status, start_date, end_date, next_payment_date, created_at')
+    .select('*')
     .eq('company_id', companyId)
-    .in('status', ['pending', 'authorized', 'paused'])
+    .in('status', ['active', 'suspended', 'cancelled', 'approval_pending'])
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  if (error) {
-    console.error('Error fetching active subscription:', error);
-    return null;
-  }
-
+  if (error) throw new Error(error.message);
   if (!data) return null;
 
-  return {
-    id: data.id,
-    companyId: data.company_id,
-    mpPreapprovalId: data.mp_preapproval_id,
-    planId: data.plan_id,
-    planName: data.plan_name,
-    amount: data.amount,
-    status: data.status,
-    startDate: data.start_date,
-    endDate: data.end_date,
-    nextPaymentDate: data.next_payment_date,
-    createdAt: data.created_at,
-  };
-};
+  return mapSubscriptionFromDb(data as Record<string, unknown>);
+}
 
-export const getPaymentHistory = async (): Promise<PaymentTransaction[]> => {
-  const companyId = await getSessionCompanyId();
-
+/**
+ * Get payment history for a company.
+ */
+export async function getPaymentHistory(
+  companyId: string,
+  limit = 5,
+): Promise<PaymentTransaction[]> {
   const { data, error } = await supabase
     .from('payment_transactions')
-    .select('id, subscription_id, company_id, mp_payment_id, amount, currency, status, status_detail, payment_method, payment_type, date_created, date_approved')
+    .select('*')
     .eq('company_id', companyId)
-    .order('date_created', { ascending: false })
-    .limit(20);
+    .order('created_at', { ascending: false })
+    .limit(limit);
 
-  if (error) {
-    console.error('Error fetching payment history:', error);
-    return [];
-  }
+  if (error) throw new Error(error.message);
+  if (!data) return [];
 
-  return (data || []).map(t => ({
-    id: t.id,
-    subscriptionId: t.subscription_id,
-    companyId: t.company_id,
-    mpPaymentId: t.mp_payment_id,
-    amount: t.amount,
-    currency: t.currency || 'ARS',
-    status: t.status,
-    statusDetail: t.status_detail,
-    paymentMethod: t.payment_method,
-    paymentType: t.payment_type,
-    dateCreated: t.date_created,
-    dateApproved: t.date_approved,
-  }));
-};
+  return data.map((row) => mapTransactionFromDb(row as Record<string, unknown>));
+}

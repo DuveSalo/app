@@ -49,6 +49,9 @@ Thumbs.db
 *.temp
 .cache
 
+# Design files
+*.pen
+
 # Agent/test tooling
 .agent/
 .agents/
