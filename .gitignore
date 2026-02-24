@@ -52,6 +52,12 @@ Thumbs.db
 # Design files
 *.pen
 
+# Testing artifacts
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/coverage/
+
 # Agent/test tooling
 .agent/
 .agents/
