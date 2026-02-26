@@ -1,6 +1,6 @@
 # Supabase Edge Functions
 
-Deno-based Edge Functions in `supabase/functions/`. Handle the PayPal subscription lifecycle.
+Deno-based Edge Functions in `supabase/functions/`. Handle the MercadoPago subscription lifecycle.
 
 ## Security
 
@@ -12,57 +12,60 @@ Edge Functions use `service_role` key via `_shared/supabase-admin.ts`, which **b
 |------|---------|
 | `cors.ts` | CORS headers (`Access-Control-Allow-Origin: *`) |
 | `supabase-admin.ts` | Service-role Supabase client (bypasses RLS) |
-| `paypal-auth.ts` | `PayPalError` class, `getPayPalConfig()`, `getAccessToken()` with caching, `getAuthHeaders()`, `paypalFetch()` with retry (3x, exponential backoff for 5xx/429) |
-| `paypal-plans.ts` | Plan metadata (basic $25, standard $49, premium $89), `getPayPalPlanId()` reads env var per plan key |
+| `mp-auth.ts` | `MercadoPagoError` class, `getMpConfig()`, `getMpHeaders()`, `mpFetch()` with retry (3x, exponential backoff for 5xx/429) |
+| `mp-plans.ts` | Plan metadata (basico ARS 25000, profesional ARS 49000, enterprise ARS 89000), `isValidMpPlanKey()` |
+| `resend.ts` | Email sending via Resend API |
+| `email-templates.ts` | HTML email templates for subscription events |
 
 ## Edge Functions
 
-### create-subscription
+### mp-create-subscription
 - **Auth**: JWT required
-- Cancels existing active subscription if changing plans
-- Creates PayPal subscription via API, inserts DB record with status `pending`
-- Returns `{ subscriptionId }` for client-side PayPal JS SDK approval popup
+- Creates MercadoPago subscription (preapproval) with card_token_id
+- Charges immediately — subscription is active if first payment succeeds
+- Inserts DB record, updates company `is_subscribed` and `selected_plan`
+- Returns `{ success, subscriptionId, status }`
 
-### activate-subscription
+### mp-manage-subscription
 - **Auth**: JWT required
-- Called after user approves on PayPal. Verifies subscription status with PayPal API
-- If `ACTIVE`: updates subscription + company records (`is_subscribed`, `selected_plan`)
-- If `APPROVAL_PENDING`: sets status to `approval_pending`
-- Idempotent (checks if already active before updating)
+- Actions: `change_plan`, `change_card`, `cancel`, `pause`, `reactivate`
+- Calls MercadoPago PUT `/preapproval/{id}`, updates local DB + company records
+- Syncs `next_billing_time` from MP API response after every action
+- Sends email notifications for each action type
 
-### manage-subscription
-- **Auth**: JWT required
-- Actions: `cancel`, `suspend`, `reactivate`
-- Calls PayPal API endpoint, updates local DB + company records
-
-### webhook-paypal
-- **Auth**: No JWT (PayPal webhook callback)
-- Verifies webhook signature with PayPal API
-- Idempotent: logs events in `paypal_webhook_log`, skips if already processed
-- Handles: `BILLING.SUBSCRIPTION.ACTIVATED/CANCELLED/SUSPENDED/EXPIRED`, `PAYMENT.SALE.COMPLETED/REFUNDED`
+### webhook-mercadopago
+- **Auth**: No JWT (MercadoPago webhook callback)
+- Verifies webhook signature with HMAC-SHA256
+- Idempotent: logs events in `mp_webhook_log`, skips if already processed
+- Handles: `subscription_preapproval` (status sync), `subscription_authorized_payment` (payment recording)
+- Updates `next_billing_time` after recording payments
 
 ### cron-check-subscriptions
 - **Auth**: `service_role` key (CRON job, no user context)
-- Syncs active subscriptions with PayPal API
+- Syncs active MercadoPago subscriptions with API
+- Updates `next_billing_time` from preapproval state
 - Revokes access for cancelled subscriptions past grace period
+
+### send-expiration-emails
+- Sends expiration notification emails
 
 ## Client-Side Integration
 
-- `src/lib/paypal/config.ts` — PayPal JS SDK script provider options
-- `src/lib/paypal/PayPalProvider.tsx` — wraps children with `@paypal/react-paypal-js`
+- `src/lib/mercadopago/config.ts` — MercadoPago public key config
+- `src/features/auth/components/CardForm.tsx` — Secure Fields card form
 - `src/lib/api/services/subscription.ts` — calls Edge Functions via `supabase.functions.invoke()`
 - `src/types/subscription.ts` — `Subscription`, `PaymentTransaction`, request/response types
 
 ## Edge Function Environment Variables (Supabase Secrets)
 
 ```
-PAYPAL_MODE                 # "sandbox" or "live"
-PAYPAL_CLIENT_ID
-PAYPAL_CLIENT_SECRET
-PAYPAL_WEBHOOK_ID
-PAYPAL_PLAN_ID_BASIC
-PAYPAL_PLAN_ID_STANDARD
-PAYPAL_PLAN_ID_PREMIUM
+MP_MODE                     # "sandbox" or "production"
+MP_ACCESS_TOKEN             # MercadoPago access token
+MP_WEBHOOK_SECRET           # Webhook signing secret
+MP_PLAN_ID_BASICO
+MP_PLAN_ID_PROFESIONAL
+MP_PLAN_ID_ENTERPRISE
+RESEND_API_KEY              # Resend email API key
 SUPABASE_URL                # Auto-provided by Supabase
 SUPABASE_ANON_KEY           # Auto-provided
 SUPABASE_SERVICE_ROLE_KEY   # Auto-provided

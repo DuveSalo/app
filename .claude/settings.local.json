@@ -31,7 +31,12 @@
       "mcp__context7__get-library-docs",
       "WebFetch(domain:www.mercadopago.com.co)",
       "WebFetch(domain:www.mercadopago.com.ar)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "mcp__TestSprite__testsprite_bootstrap",
+      "mcp__TestSprite__testsprite_generate_code_summary"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\david\\OneDrive\\Escritorio\\app\\testsprite_tests\\tmp"
     ]
   },
   "enableAllProjectMcpServers": true,

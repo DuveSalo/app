@@ -6,6 +6,26 @@
       "sourceType": "github",
       "computedHash": "84584c37f5759255ec20b3d8df7cc5d9096e99fd603dde722f239503de793b6d"
     },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "computedHash": "25872a21881a950edc3db1f3329664d60405d539660ce05b3265db2de06a7dfd"
+    },
+    "next-best-practices": {
+      "source": "vercel-labs/next-skills",
+      "sourceType": "github",
+      "computedHash": "c31ddd68ba5798a79a516c619b1e1fc4408cc4876ad600fefa4f5add4425719d"
+    },
+    "playwright-cli": {
+      "source": "microsoft/playwright-cli",
+      "sourceType": "github",
+      "computedHash": "d0c9769e2df40ba1f51660294e6833566cec8a0f8c6a6ef5eb922afe3f573ef6"
+    },
+    "pnpm": {
+      "source": "antfu/skills",
+      "sourceType": "github",
+      "computedHash": "d473204df25defd08a7d47b55c6d124b41ebde440b774995952b65223d0d8d6f"
+    },
     "react-email": {
       "source": "resend/react-email",
       "sourceType": "github",
@@ -20,6 +40,16 @@
       "source": "resend/design-skills",
       "sourceType": "github",
       "computedHash": "3118857ac1c7456b5fa3514fd6a867faf22027abeac4ef00d6abaf88994d7745"
+    },
+    "vite": {
+      "source": "antfu/skills",
+      "sourceType": "github",
+      "computedHash": "f406fceb1b9020cd759a728d8424de7ffd8dfe5874bd97be2724571741e54852"
+    },
+    "vitest": {
+      "source": "antfu/skills",
+      "sourceType": "github",
+      "computedHash": "0efd9cf8c56aada060d418d009cfe621a7915d0c73a958fe611985bc0c2fa4b8"
     }
   }
 }

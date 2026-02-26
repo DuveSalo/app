@@ -31,11 +31,11 @@ If you discover a security vulnerability in Escuela Segura, please report it res
 ### Data Protection
 - All client-server communication over HTTPS
 - Environment variables validated at startup with Zod schemas
-- Sensitive keys (PayPal secrets, service_role) stored exclusively in Supabase Edge Function secrets
+- Sensitive keys (MercadoPago secrets, service_role) stored exclusively in Supabase Edge Function secrets
 - Content Security Policy (CSP) headers restrict resource loading
 
 ### Payment Security
-- PayPal SDK handles all payment card data — PCI compliance delegated to PayPal
+- MercadoPago Secure Fields handles all payment card data — PCI compliance delegated to MercadoPago
 - Webhook signatures verified before processing payment events
 - Idempotent webhook handling prevents duplicate processing
 

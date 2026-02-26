@@ -2,7 +2,6 @@
  * Edge Function: mp-create-subscription
  * Creates a MercadoPago subscription (preapproval) with card_token_id.
  *
- * Unlike PayPal (which requires a separate activation step after user approval),
  * MercadoPago with card_token_id creates and charges in a single step.
  * The subscription is immediately active if the first payment succeeds.
  */

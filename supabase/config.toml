@@ -14,23 +14,14 @@ major_version = 17
 [functions.send-expiration-emails]
 verify_jwt = false
 
-[functions.create-subscription]
-verify_jwt = true
-
-[functions.activate-subscription]
-verify_jwt = true
-
-[functions.manage-subscription]
-verify_jwt = true
-
-[functions.webhook-paypal]
-verify_jwt = false
-
 [functions.cron-check-subscriptions]
 verify_jwt = false
 
 [functions.mp-create-subscription]
 verify_jwt = true
+
+[functions.mp-get-subscription-status]
+verify_jwt = false
 
 [functions.mp-manage-subscription]
 verify_jwt = false

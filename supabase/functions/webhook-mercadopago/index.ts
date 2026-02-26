@@ -329,6 +329,15 @@ Deno.serve(async (req) => {
                 paid_at: dateCreated || new Date().toISOString(),
               });
 
+              // Update next_billing_time from preapproval state
+              const preapproval = await fetchPreapprovalState(preapprovalId);
+              if (preapproval?.next_payment_date) {
+                await supabaseAdmin
+                  .from('subscriptions')
+                  .update({ next_billing_time: preapproval.next_payment_date })
+                  .eq('mp_preapproval_id', preapprovalId);
+              }
+
               // Send payment receipt email
               if (paymentStatus === 'approved') {
                 const info = await getMpSubscriberInfo(preapprovalId);

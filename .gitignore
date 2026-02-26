@@ -58,6 +58,11 @@ Thumbs.db
 /playwright/.cache/
 /coverage/
 
+# Next.js
+.next
+out
+next-env.d.ts
+
 # Agent/test tooling
 .agent/
 .agents/

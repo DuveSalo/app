@@ -1,7 +1,7 @@
 /**
  * MercadoPago plan ID mapping and metadata.
  * Plan IDs (preapproval_plan) are created via API/script and stored as env secrets.
- * Mirrors the structure of paypal-plans.ts.
+ * Plan keys match the frontend plansData definitions.
  */
 
 export interface MpPlanMetadata {

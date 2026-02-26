@@ -1,85 +1,18 @@
 /**
  * Edge Function: cron-check-subscriptions
- * Daily CRON job to sync subscription states with PayPal and MercadoPago.
+ * Daily CRON job to sync subscription states with MercadoPago.
  *
  * - Checks active subscriptions whose period may have ended
  * - Revokes access for cancelled subscriptions past their grace period
- * - Syncs stale subscription data with PayPal and MercadoPago APIs
+ * - Syncs stale subscription data with MercadoPago API
  */
 
-import {
-  getAuthHeaders,
-  getPayPalConfig,
-} from '../_shared/paypal-auth.ts';
 import {
   getMpConfig,
   getMpHeaders,
   mpFetch,
 } from '../_shared/mp-auth.ts';
 import { supabaseAdmin } from '../_shared/supabase-admin.ts';
-
-async function syncPayPalSubscription(
-  sub: { paypal_subscription_id: string; company_id: string },
-  config: { baseUrl: string },
-) {
-  const headers = await getAuthHeaders();
-  const response = await fetch(
-    `${config.baseUrl}/v1/billing/subscriptions/${sub.paypal_subscription_id}`,
-    { headers },
-  );
-
-  if (!response.ok) {
-    const debugId = response.headers.get('paypal-debug-id');
-    console.error(
-      `Failed to fetch PayPal subscription ${sub.paypal_subscription_id}: HTTP ${response.status}` +
-      (debugId ? ` (debug-id: ${debugId})` : ''),
-    );
-    return { synced: false, revoked: false };
-  }
-
-  const paypalSub = await response.json();
-
-  if (paypalSub.status === 'ACTIVE') {
-    await supabaseAdmin
-      .from('subscriptions')
-      .update({
-        next_billing_time: paypalSub.billing_info?.next_billing_time || null,
-      })
-      .eq('paypal_subscription_id', sub.paypal_subscription_id);
-    return { synced: true, revoked: false };
-  }
-
-  if (
-    paypalSub.status === 'CANCELLED' ||
-    paypalSub.status === 'EXPIRED' ||
-    paypalSub.status === 'SUSPENDED'
-  ) {
-    const statusMap: Record<string, string> = {
-      CANCELLED: 'cancelled',
-      EXPIRED: 'expired',
-      SUSPENDED: 'suspended',
-    };
-
-    await supabaseAdmin
-      .from('subscriptions')
-      .update({ status: statusMap[paypalSub.status] })
-      .eq('paypal_subscription_id', sub.paypal_subscription_id)
-      .eq('status', 'active'); // Optimistic lock: only update if still active
-
-    if (paypalSub.status !== 'SUSPENDED') {
-      await supabaseAdmin
-        .from('companies')
-        .update({
-          is_subscribed: false,
-          subscription_status: paypalSub.status === 'CANCELLED' ? 'canceled' : 'expired',
-        })
-        .eq('id', sub.company_id);
-    }
-    return { synced: false, revoked: true };
-  }
-
-  return { synced: false, revoked: false };
-}
 
 async function syncMpSubscription(
   sub: { mp_preapproval_id: string; company_id: string },
@@ -145,45 +78,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    const paypalConfig = getPayPalConfig();
     const mpConfig = getMpConfig();
     const now = new Date().toISOString();
     let synced = 0;
     let revoked = 0;
 
-    // 1a. Check active PayPal subscriptions that may need syncing
-    const { data: activeSubscriptions } = await supabaseAdmin
-      .from('subscriptions')
-      .select('paypal_subscription_id, company_id, next_billing_time')
-      .eq('status', 'active')
-      .eq('payment_provider', 'paypal')
-      .not('paypal_subscription_id', 'is', null);
-
-    if (activeSubscriptions) {
-      for (const sub of activeSubscriptions) {
-        if (sub.next_billing_time && new Date(sub.next_billing_time) > new Date()) {
-          continue;
-        }
-
-        try {
-          const result = await syncPayPalSubscription(sub, paypalConfig);
-          if (result.synced) synced++;
-          if (result.revoked) revoked++;
-        } catch (err) {
-          console.error(
-            `Error syncing PayPal subscription ${sub.paypal_subscription_id}:`,
-            err,
-          );
-        }
-      }
-    }
-
-    // 1b. Check active MercadoPago subscriptions that may need syncing
+    // 1. Check active MercadoPago subscriptions that may need syncing
     const { data: activeMpSubscriptions } = await supabaseAdmin
       .from('subscriptions')
       .select('mp_preapproval_id, company_id, next_billing_time')
       .eq('status', 'active')
-      .eq('payment_provider', 'mercadopago')
       .not('mp_preapproval_id', 'is', null);
 
     if (activeMpSubscriptions) {

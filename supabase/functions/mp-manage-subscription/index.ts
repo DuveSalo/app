@@ -102,7 +102,6 @@ Deno.serve(async (req) => {
       .from('subscriptions')
       .select('id, company_id, mp_preapproval_id, status, plan_key, plan_name, amount, currency, subscriber_email, current_period_end')
       .eq('mp_preapproval_id', mpPreapprovalId)
-      .eq('payment_provider', 'mercadopago')
       .single();
 
     if (subError || !subscription) {
@@ -235,6 +234,12 @@ Deno.serve(async (req) => {
       },
     );
     console.log('[MP] mp-manage-subscription: MP API response:', mpResult);
+
+    // Sync next_billing_time from MP response for relevant actions
+    const mpResponse = mpResult as Record<string, unknown>;
+    if (mpResponse.next_payment_date) {
+      dbUpdates.next_billing_time = mpResponse.next_payment_date;
+    }
 
     // Update DB if we have changes
     if (Object.keys(dbUpdates).length > 0) {

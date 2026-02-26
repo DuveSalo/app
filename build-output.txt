@@ -1,0 +1,58 @@
+﻿
+> escuela-segura-monorepo@ build C:\Users\david\OneDrive\Escritorio\app
+> pnpm -r run build
+
+
+> web@1.0.0 build C:\Users\david\OneDrive\Escritorio\app\apps\web
+> next build
+
+Ôû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 6.4s
+  Running TypeScript ...
+node.exe : Failed to compile.
+En 
+C:\Users\david\AppData\Roaming\npm\pnpm.ps1: 
+24 Carácter: 5
++     & "node$exe"  
+"$basedir/node_modules/pnpm/bin/pnpm.cjs" 
+$args
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ( 
+   Failed to compile.:String) [], RemoteExce  
+  ption
+    + FullyQualifiedErrorId : NativeCommandEr 
+   ror
+ 
+
+./src/lib/api/auditApi.ts:8:10
+Type error: Module 
+'"../../types/database.types"' has no 
+exported member 'Tables'.
+
+[0m [90m  6 |[39m   
+[33mAuditStats[39m[33m,[39m
+ [90m  7 |[39m } [36mfrom[39m 
+[32m'../../types/audit'[39m[33m;[39m
+[31m[1m>[22m[39m[90m  8 |[39m 
+[36mimport[39m { 
+[33mTables[39m[33m,[39m [33mJson[39m } 
+[36mfrom[39m [32m'../../types/database.type
+s'[39m[33m;[39m
+ [90m    |[39m          [31m[1m^[22m[39m
+ [90m  9 |[39m [36mimport[39m { 
+createLogger } [36mfrom[39m 
+[32m'../utils/logger'[39m[33m;[39m
+ [90m 10 |[39m
+ [90m 11 |[39m [36mconst[39m logger 
+[33m=[39m createLogger([32m'AuditAPI'[39m)
+[33m;[39m[0m
+Next.js build worker exited with code: 1 and 
+signal: null
+C:\Users\david\OneDrive\Escritorio\app\apps\web:
+ÔÇëERR_PNPM_RECURSIVE_RUN_FIRST_FAILÔÇë web@1.0.0 build: `next build`
+Exit status 1
+ÔÇëELIFECYCLEÔÇë Command failed with exit code 1.

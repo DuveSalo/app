@@ -10,6 +10,13 @@
       "headers": {
         "Authorization": "Bearer TEST-4136674109911942-013008-66aad7c14b3606f606eed57ed201810d-488274178"
       }
+    },
+    "TestSprite": {
+      "command": "npx",
+      "args": ["@testsprite/testsprite-mcp@latest"],
+      "env": {
+        "API_KEY": "sk-user-Wpq08uG6UuEw1frYPv1x4-Ozrib7bpDXgQtC09HUomTEs-25OwA0W84M_myhJDm8ObuYJ0gDH-2-9ETORskgnWBnkM-ddYBwaPUoN-JBQ6ONmbmOu9Oe4Ng8foa2eyNYWD8"
+      }
     }
   }
 }

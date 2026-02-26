@@ -8,12 +8,12 @@ This is the **root-level** instruction file. Each major directory has its own `A
 
 | Component | Location | Tech Stack |
 |-----------|----------|------------|
-| Auth & Onboarding | `src/features/auth/AGENTS.md` | React, Supabase Auth, PayPal SDK |
+| Auth & Onboarding | `src/features/auth/AGENTS.md` | React, Supabase Auth, MercadoPago SDK |
 | Dashboard | `src/features/dashboard/AGENTS.md` | React, Charts, Data aggregation |
 | Fire Extinguishers | `src/features/fire-extinguishers/AGENTS.md` | Canonical CRUD feature |
 | Settings | `src/features/settings/AGENTS.md` | User/Company/Billing management |
 | API Services | `src/lib/AGENTS.md` | Supabase client, services, utils |
-| Edge Functions | `supabase/AGENTS.md` | Deno, PayPal webhooks, CRON |
+| Edge Functions | `supabase/AGENTS.md` | Deno, MercadoPago webhooks, CRON |
 
 **Rule**: Always read the nearest `AGENTS.md` before modifying files in that directory.
 
@@ -52,7 +52,6 @@ src/
 │   ├── api/services/      # One file per domain entity
 │   ├── api/mappers.ts     # DB → domain mappers
 │   ├── supabase/          # Supabase client config
-│   ├── paypal/            # PayPal SDK provider + config
 │   ├── mercadopago/       # MercadoPago SDK config
 │   ├── hooks/             # Shared hooks (useForm, useEntityForm)
 │   ├── utils/             # Errors, validation, logger, helpers
@@ -74,7 +73,7 @@ src/
 ### Environment & Config
 - **Always** import env from `@/lib/env`, NEVER from `import.meta.env` directly.
 - **Zod validates** all environment variables at startup — add new vars to `src/lib/env.ts` schema.
-- Sensitive keys (PayPal secrets, service_role) belong in Supabase Edge Function secrets, NEVER in client code.
+- Sensitive keys (MercadoPago secrets, service_role) belong in Supabase Edge Function secrets, NEVER in client code.
 
 ### API Layer
 - One service file per entity in `src/lib/api/services/`.
@@ -97,7 +96,7 @@ src/
 
 ```
 Google OAuth → AuthContext → ProtectedRoute → Onboarding
-Login → Create Company → Subscribe (PayPal) → Dashboard
+Login → Create Company → Subscribe (MercadoPago) → Dashboard
 ```
 
 Guard levels in `ProtectedRoute.tsx`:
@@ -111,7 +110,7 @@ Guard levels in `ProtectedRoute.tsx`:
 - **Input validation**: Zod schemas at environment boundaries. Sanitize all user-generated content before rendering with `dangerouslySetInnerHTML` (prefer avoiding it entirely).
 - **XSS prevention**: React escapes by default. Never use `dangerouslySetInnerHTML` unless absolutely necessary. If needed, sanitize with DOMPurify.
 - **CSRF**: Supabase uses PKCE auth flow — no CSRF tokens needed for API calls.
-- **Secrets**: Client-side code may only access `VITE_*` env vars. PayPal/MercadoPago secrets live exclusively in Supabase Edge Function environment.
+- **Secrets**: Client-side code may only access `VITE_*` env vars. MercadoPago secrets live exclusively in Supabase Edge Function environment.
 - **RLS**: Supabase Row-Level Security is enabled on all tables. Edge Functions use `service_role` for cross-user ops only after validating JWT.
 - **Content Security Policy**: Defined in `index.html` meta tag. Update when adding new external resources.
 - See `SECURITY.md` for vulnerability disclosure policy.
@@ -152,5 +151,5 @@ Types: feat, fix, refactor, style, docs, test, chore, perf
 ## Deep Dives
 
 - [Architecture & service layer](.claude/docs/architecture.md)
-- [Edge Functions & PayPal billing](.claude/docs/supabase-edge-functions.md)
+- [Edge Functions & MercadoPago billing](.claude/docs/supabase-edge-functions.md)
 - [Design system reference](.interface-design/system.md)

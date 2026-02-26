@@ -1,9 +1,28 @@
 # Architecture
 
-## Directory Structure
+## Monorepo Structure
+
+pnpm workspace monorepo:
+
+```
+escuela-segura-monorepo/
+├── apps/
+│   └── web/                # Next.js 16 app
+│       ├── src/app/        # Next.js App Router (landing, legal pages, SEO)
+│       │   ├── layout.tsx  # Root layout (metadata, fonts, JSON-LD)
+│       │   ├── page.tsx    # Landing page (SSR)
+│       │   └── app/[[...slug]]/  # Client-only catch-all → SPA dashboard
+│       └── src/            # Shared app code (see below)
+├── packages/               # Shared packages (future)
+├── supabase/               # Edge Functions + config
+└── pnpm-workspace.yaml
+```
+
+## App Source Directory (`apps/web/src/`)
 
 ```
 src/
+├── app/                # Next.js App Router pages
 ├── features/           # Domain modules (one folder per feature)
 │   ├── auth/           # Login, onboarding, subscription
 │   ├── dashboard/
@@ -17,13 +36,14 @@ src/
 │   └── audit/
 ├── components/
 │   ├── common/         # Shared UI (Button, Input, Select, Card, Table, etc.)
+│   ├── landing/        # Landing page components (Header, Footer, sections)
 │   ├── layout/         # PageLayout, AuthLayout, MainLayout, Sidebar, MobileNav
 │   └── ui/             # shadcn/ui base — do NOT modify
 ├── lib/
 │   ├── api/services/   # One file per domain entity
 │   ├── api/mappers.ts  # Shared DB→domain mappers
 │   ├── supabase/       # Supabase client
-│   ├── paypal/         # PayPal provider + config
+│   ├── mercadopago/    # MercadoPago SDK config
 │   ├── utils/          # Error classes, helpers
 │   └── env.ts          # Zod-validated environment config
 ├── routes/             # Route config + ProtectedRoute guard
@@ -69,12 +89,20 @@ Validated at startup via Zod in `src/lib/env.ts`. Feature code must import from 
 
 ```ts
 import { env } from '@/lib/env';
-// Never: import.meta.env.VITE_SUPABASE_URL
+// Never: process.env.NEXT_PUBLIC_SUPABASE_URL
 ```
+
+Variables use `NEXT_PUBLIC_` prefix (Next.js convention).
 
 ## Routing
 
-- **HashRouter** with `React.lazy()` for all page components
+Two routing layers:
+
+1. **Next.js App Router** — landing page (`/`), legal pages (`/privacidad`, `/terminos`), SEO (sitemap, robots)
+2. **React Router SPA** — dashboard at `/app/*`, mounted via client-only catch-all `src/app/app/[[...slug]]/`
+
+SPA routing:
+- **BrowserRouter** (basename `/app`) with `React.lazy()` for all page components
 - Route definitions: `src/routes/routes.config.ts` (LazyPages object, QR_MODULE_ROUTES, PLACEHOLDER_ROUTES)
 - Route paths: `src/constants/routes.ts` (ROUTE_PATHS, MODULE_TITLES)
 - **ProtectedRoute** — 3-level guard:

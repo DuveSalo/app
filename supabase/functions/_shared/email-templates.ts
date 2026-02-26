@@ -89,7 +89,7 @@ function formatDate(dateStr: string): string {
 
 // ─── Templates ───────────────────────────────────────────────
 
-/** Sent when a subscription is activated (PayPal or MP). */
+/** Sent when a subscription is activated. */
 export function subscriptionActivatedEmail(
   name: string,
   planName: string,

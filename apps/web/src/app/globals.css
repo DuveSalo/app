@@ -1,0 +1,249 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: #F8F7F4;
+  --color-foreground: #1C1917;
+  --font-sans: 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+
+  /* Border Radius — generous, warm */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --radius-3xl: 28px;
+  --radius-4xl: 32px;
+  --radius: 10px;
+
+  /* Neutral Palette — warm stone tones */
+  --color-neutral-50: #FAFAF8;
+  --color-neutral-100: #F1F0EC;
+  --color-neutral-200: #E3E1DB;
+  --color-neutral-300: #CCC9C1;
+  --color-neutral-400: #A8A29E;
+  --color-neutral-500: #78716C;
+  --color-neutral-600: #57534E;
+  --color-neutral-700: #44403C;
+  --color-neutral-800: #292524;
+  --color-neutral-900: #1C1917;
+  --color-neutral-950: #0C0A09;
+
+  /* Semantic Colors */
+  --color-success: #15803D;
+  --color-warning: #B45309;
+  --color-danger: #B91C1C;
+
+  /* Landing page color tokens — warm stone palette */
+  --color-warm-50: #FAFAF8;
+  --color-warm-100: #F1F0EC;
+  --color-warm-200: #E3E1DB;
+  --color-warm-300: #CCC9C1;
+  --color-warm-400: #A8A29E;
+  --color-warm-500: #78716C;
+  --color-warm-600: #57534E;
+  --color-warm-700: #44403C;
+  --color-warm-800: #292524;
+  --color-warm-900: #1C1917;
+  --color-warm-950: #0C0A09;
+
+  /* Brand — deep teal (trust, safety, distinctive) */
+  --color-brand-50: #F0FAF7;
+  --color-brand-100: #D4F1E8;
+  --color-brand-200: #A8E2D1;
+  --color-brand-300: #6ECDB3;
+  --color-brand-400: #3BB091;
+  --color-brand-500: #239178;
+  --color-brand-600: #1A7562;
+  --color-brand-700: #1A5C52;
+  --color-brand-800: #184A43;
+  --color-brand-900: #143D38;
+  --color-brand-950: #0A2420;
+
+  /* Shadows — real depth with warm tone */
+  --shadow-xs: 0 1px 2px rgba(28,25,23,0.03);
+  --shadow-sm: 0 1px 3px rgba(28,25,23,0.05), 0 1px 2px rgba(28,25,23,0.03);
+  --shadow: 0 2px 8px rgba(28,25,23,0.06), 0 1px 2px rgba(28,25,23,0.04);
+  --shadow-md: 0 4px 12px rgba(28,25,23,0.07), 0 2px 4px rgba(28,25,23,0.04);
+  --shadow-lg: 0 8px 24px rgba(28,25,23,0.09), 0 4px 8px rgba(28,25,23,0.04);
+  --shadow-xl: 0 16px 40px rgba(28,25,23,0.12), 0 8px 16px rgba(28,25,23,0.06);
+  --shadow-card: 0 1px 3px rgba(28,25,23,0.04), 0 1px 2px rgba(28,25,23,0.03);
+  --shadow-card-hover: 0 4px 12px rgba(28,25,23,0.08), 0 2px 4px rgba(28,25,23,0.04);
+  --shadow-dropdown: 0 8px 24px rgba(28,25,23,0.12), 0 4px 8px rgba(28,25,23,0.06);
+  --shadow-inner: inset 0 1px 2px rgba(28,25,23,0.06);
+  --shadow-ring: 0 0 0 3px rgba(26,92,82,0.15);
+  --shadow-ring-accent: 0 0 0 3px rgba(194,89,10,0.15);
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-fade-in-up: fade-in-up 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-scale-in: scale-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-slide-in-right: slide-in-right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-slide-up: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-pulse-soft: pulse-soft 2s ease-in-out infinite;
+  --animate-spin: spin 1s linear infinite;
+  --animate-shimmer: shimmer 2s linear infinite;
+}
+
+/* Keyframes */
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  0% { opacity: 0; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-in-right {
+  0% { opacity: 0; transform: translateX(-8px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-up {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* CSS Variables — for shadcn/ui compatibility */
+:root {
+  --radius: 10px;
+  --background: #F8F7F4;
+  --foreground: #1C1917;
+  --card: #ffffff;
+  --card-foreground: #1C1917;
+  --popover: #ffffff;
+  --popover-foreground: #1C1917;
+  --primary: #1A5C52;
+  --primary-foreground: #ffffff;
+  --secondary: #F1F0EC;
+  --secondary-foreground: #1C1917;
+  --muted: #F1F0EC;
+  --muted-foreground: #78716C;
+  --accent: #F0FAF7;
+  --accent-foreground: #1A5C52;
+  --destructive: #B91C1C;
+  --destructive-foreground: #ffffff;
+  --border: #E3E1DB;
+  --input: #E3E1DB;
+  --ring: #1A5C52;
+}
+
+/* Base Styles */
+@layer base {
+  * {
+    @apply border-neutral-200;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+/* Scrollbar Styles */
+html {
+  scroll-behavior: smooth;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CCC9C1;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A8A29E;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+  height: 0;
+  width: 0;
+}
+
+/* Custom Scrollbar Utility */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #CCC9C1 transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #CCC9C1;
+  border-radius: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #A8A29E;
+}
+
+/* Utility Classes */
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility tap-highlight-none {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 640px) {
+
+  button,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"] {
+    min-height: 48px;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}

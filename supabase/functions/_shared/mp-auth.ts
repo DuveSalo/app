@@ -2,7 +2,6 @@
  * MercadoPago API authentication and utilities.
  * Shared across all MercadoPago-related Edge Functions.
  *
- * Unlike PayPal (which uses OAuth client_credentials flow),
  * MercadoPago uses a static Access Token — no token refresh needed.
  */
 
@@ -48,7 +47,7 @@ export function getMpHeaders(
 
 /**
  * Wrapper for MercadoPago API calls with retry for 5xx and 429 errors.
- * Mirrors the paypalFetch pattern.
+ * Retries 3x with exponential backoff.
  */
 export async function mpFetch<T>(
   url: string,
