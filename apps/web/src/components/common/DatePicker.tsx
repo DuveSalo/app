@@ -130,19 +130,19 @@ export const DatePicker = ({
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
               className={cn(
-                'flex w-full h-9 rounded-md border bg-white px-3 text-sm font-medium transition-colors pr-10',
+                'flex w-full h-10 rounded-md border bg-white px-3 text-sm transition-colors duration-150 pr-9',
                 'placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0',
                 'disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-500',
                 hasError
-                  ? 'border-red-600 text-red-900 focus-visible:ring-red-600/20 focus-visible:border-red-600'
-                  : 'border-neutral-200 text-neutral-900 focus-visible:ring-neutral-900/20 focus-visible:border-neutral-300 hover:border-neutral-300',
+                  ? 'border-red-600 text-red-900 focus-visible:ring-red-600/10 focus-visible:border-red-600'
+                  : 'border-neutral-200 text-neutral-900 focus-visible:ring-neutral-900/10 focus-visible:border-neutral-300 hover:border-neutral-300',
               )}
             />
             <PopoverTrigger asChild>
               <button
                 type="button"
                 disabled={disabled}
-                className="absolute right-0 top-0 h-full px-3 flex items-center text-neutral-400 hover:text-neutral-600 disabled:pointer-events-none"
+                className="absolute right-0 top-0 h-full px-2.5 flex items-center text-neutral-400 hover:text-neutral-600 transition-colors duration-150 disabled:pointer-events-none"
                 tabIndex={-1}
               >
                 <CalendarDays className="h-4 w-4" />
@@ -150,7 +150,7 @@ export const DatePicker = ({
             </PopoverTrigger>
           </div>
         </PopoverAnchor>
-        <PopoverContent className="w-auto p-0 rounded-md" align="start">
+        <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"
             selected={selectedDate}
@@ -162,10 +162,10 @@ export const DatePicker = ({
         </PopoverContent>
       </Popover>
       {error && (
-        <p className="mt-1.5 text-xs text-red-600">{error}</p>
+        <p className="mt-1 text-xs text-red-600">{error}</p>
       )}
       {helperText && !error && (
-        <p className="mt-1.5 text-xs text-neutral-500">{helperText}</p>
+        <p className="mt-1 text-xs text-neutral-500">{helperText}</p>
       )}
     </div>
   );

@@ -1,8 +1,8 @@
 import { type Dispatch, type SetStateAction, type ChangeEvent } from 'react';
 import { QRDocumentType } from '../../../types/index';
 import { MODULE_TITLES } from '../../../constants/index';
-import { Card } from '../../../components/common/Card';
-import { Button } from '../../../components/common/Button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '../../../components/common/Input';
 import { ChipGroup } from '../../../components/common/ChipGroup';
 import { EditIcon } from '../../../components/common/Icons';
@@ -83,51 +83,53 @@ export const CompanyInfoSection = ({
           Editar informacion
         </Button>
       </div>
-      <Card>
-        <div className="space-y-4">
-          <div>
-            <p className="text-sm font-medium text-neutral-900 mb-1">Nombre de la empresa</p>
-            <p className="text-sm text-neutral-900">{currentCompany.name}</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-neutral-200 pt-4">
+      <Card className="py-4">
+        <CardContent>
+          <div className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-neutral-900 mb-1">CUIT</p>
-              <p className="text-sm text-neutral-900">{currentCompany.cuit}</p>
+              <p className="text-sm font-medium text-neutral-900 mb-1">Nombre de la empresa</p>
+              <p className="text-sm text-neutral-900">{currentCompany.name}</p>
             </div>
-            <div>
-              <p className="text-sm font-medium text-neutral-900 mb-1">Codigo Postal</p>
-              <p className="text-sm text-neutral-900">{currentCompany.postalCode}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-neutral-200 pt-4">
+              <div>
+                <p className="text-sm font-medium text-neutral-900 mb-1">CUIT</p>
+                <p className="text-sm text-neutral-900">{currentCompany.cuit}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-neutral-900 mb-1">Codigo Postal</p>
+                <p className="text-sm text-neutral-900">{currentCompany.postalCode}</p>
+              </div>
+            </div>
+            <div className="border-t border-neutral-200 pt-4">
+              <p className="text-sm font-medium text-neutral-900 mb-1">Direccion</p>
+              <p className="text-sm text-neutral-900">{currentCompany.address}</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-neutral-200 pt-4">
+              <div>
+                <p className="text-sm font-medium text-neutral-900 mb-1">Ciudad</p>
+                <p className="text-sm text-neutral-900">{currentCompany.city}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-neutral-900 mb-1">Provincia</p>
+                <p className="text-sm text-neutral-900">{currentCompany.province}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-neutral-900 mb-1">Pais</p>
+                <p className="text-sm text-neutral-900">{currentCompany.country}</p>
+              </div>
+            </div>
+            <div className="border-t border-neutral-200 pt-4">
+              <p className="text-sm font-medium text-neutral-900 mb-3">Servicios Contratados</p>
+              <div className="flex flex-wrap gap-2">
+                {currentCompany.services && Object.entries(currentCompany.services).filter(([_, enabled]) => enabled).map(([service]) => (
+                  <span key={service} className="inline-flex items-center px-3 py-1.5 text-sm font-medium bg-neutral-100 text-neutral-900 border border-neutral-200">
+                    {serviceValueToLabelMap.get(service as QRDocumentType)}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
-          <div className="border-t border-neutral-200 pt-4">
-            <p className="text-sm font-medium text-neutral-900 mb-1">Direccion</p>
-            <p className="text-sm text-neutral-900">{currentCompany.address}</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-neutral-200 pt-4">
-            <div>
-              <p className="text-sm font-medium text-neutral-900 mb-1">Ciudad</p>
-              <p className="text-sm text-neutral-900">{currentCompany.city}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-neutral-900 mb-1">Provincia</p>
-              <p className="text-sm text-neutral-900">{currentCompany.province}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-neutral-900 mb-1">Pais</p>
-              <p className="text-sm text-neutral-900">{currentCompany.country}</p>
-            </div>
-          </div>
-          <div className="border-t border-neutral-200 pt-4">
-            <p className="text-sm font-medium text-neutral-900 mb-3">Servicios Contratados</p>
-            <div className="flex flex-wrap gap-2">
-              {currentCompany.services && Object.entries(currentCompany.services).filter(([_, enabled]) => enabled).map(([service]) => (
-                <span key={service} className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-gray-100 text-neutral-900 border border-neutral-200">
-                  {serviceValueToLabelMap.get(service as QRDocumentType)}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
+        </CardContent>
       </Card>
     </div>
   );

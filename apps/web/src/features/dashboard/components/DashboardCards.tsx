@@ -12,19 +12,19 @@ const STATUS_BADGE = {
         label: 'Vigente',
         icon: CircleCheck,
         classes: 'bg-emerald-50 border-emerald-200 text-emerald-700',
-        iconClass: 'text-emerald-600',
+        iconClass: 'text-emerald-700',
     },
     expiring: {
         label: 'Por vencer',
         icon: Clock4,
         classes: 'bg-amber-50 border-amber-200 text-amber-700',
-        iconClass: 'text-amber-600',
+        iconClass: 'text-amber-700',
     },
     expired: {
         label: 'Vencido',
         icon: CircleX,
         classes: 'bg-red-50 border-red-200 text-red-700',
-        iconClass: 'text-red-600',
+        iconClass: 'text-red-700',
     },
 };
 
@@ -32,7 +32,7 @@ const StatusBadge = ({ status }: { status: ExpirationStatus }) => {
     const config = STATUS_BADGE[status];
     const Icon = config.icon;
     return (
-        <div className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 ${config.classes}`}>
+        <div className={`inline-flex items-center gap-1.5 border px-2 py-0.5 rounded-md ${config.classes}`}>
             <Icon className={`h-3.5 w-3.5 ${config.iconClass}`} />
             <span className="text-xs font-medium">
                 {config.label}
@@ -43,15 +43,15 @@ const StatusBadge = ({ status }: { status: ExpirationStatus }) => {
 
 export const DashboardCards = ({ items, onItemClick }: DashboardCardsProps) => {
     return (
-        <div className="flex-1 overflow-y-auto sm:hidden">
-            <div className="divide-y divide-neutral-200">
+        <div className="flex-1 overflow-y-auto custom-scrollbar sm:hidden bg-white rounded-lg border border-neutral-200 shadow-sm">
+            <div className="divide-y divide-neutral-100">
                 {items.map((item) => (
                     <div
                         key={item.id}
                         onClick={() => onItemClick(item)}
-                        className="flex items-center cursor-pointer gap-3 px-4 py-3.5 hover:bg-neutral-50 transition-colors"
+                        className="flex items-center cursor-pointer gap-3 px-4 py-3 hover:bg-neutral-50/50 transition-colors"
                     >
-                        <div className="flex-1 min-w-0 flex flex-col gap-2">
+                        <div className="flex-1 min-w-0 flex flex-col gap-1.5">
                             <div className="flex items-center flex-wrap gap-2">
                                 <span className="text-sm font-medium text-neutral-900 truncate">
                                     {item.name}

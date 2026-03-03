@@ -5,20 +5,20 @@ const STATUS_CONFIG = {
   valid: {
     label: 'Vigente',
     icon: CircleCheck,
-    classes: 'bg-brand-50 text-brand-800 border-brand-200',
-    iconClass: 'text-brand-600',
+    classes: 'bg-[#ecfdf5] text-green-700 border-[#a7f3d0]',
+    iconClass: 'text-green-700',
   },
   expiring: {
     label: 'Por vencer',
     icon: Clock4,
-    classes: 'bg-amber-50 text-amber-800 border-amber-200',
-    iconClass: 'text-amber-600',
+    classes: 'bg-amber-50 text-amber-700 border-amber-200',
+    iconClass: 'text-amber-700',
   },
   expired: {
     label: 'Vencido',
     icon: CircleX,
-    classes: 'bg-red-50 text-red-800 border-red-200',
-    iconClass: 'text-red-600',
+    classes: 'bg-red-50 text-red-700 border-red-200',
+    iconClass: 'text-red-700',
   },
 };
 
@@ -41,7 +41,7 @@ export const StatusBadge = ({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium',
+        'inline-flex items-center gap-1.5 py-0.5 px-2 rounded-md border text-xs font-medium',
         config.classes,
         className
       )}

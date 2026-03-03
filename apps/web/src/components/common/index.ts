@@ -1,8 +1,7 @@
 // Barrel export file for common components
-// Usage: import { Button, Card, Input } from '@/components/common'
+// Usage: import { Input, Checkbox } from '@/components/common'
+// Note: Button and Card live in @/components/ui/ (shadcn)
 
-export { Button } from './Button';
-export { Card } from './Card';
 export { Checkbox } from './Checkbox';
 export { ChipGroup } from './ChipGroup';
 export { DatePicker } from './DatePicker';

@@ -46,10 +46,11 @@ export const Checkbox = forwardRef<
         onCheckedChange={handleCheckedChange}
         disabled={disabled}
         className={cn(
-          'peer h-[18px] w-[18px] shrink-0 rounded-md border border-neutral-300 bg-white transition-all duration-200 shadow-xs',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-700/15 focus-visible:ring-offset-1',
+          'peer h-4 w-4 shrink-0 rounded-sm border border-neutral-300 bg-white',
+          'transition-colors duration-150',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/10',
           'disabled:cursor-not-allowed disabled:opacity-50',
-          'data-[state=checked]:bg-brand-700 data-[state=checked]:border-brand-700 data-[state=checked]:text-white',
+          'data-[state=checked]:bg-neutral-900 data-[state=checked]:border-neutral-900 data-[state=checked]:text-white',
           'hover:border-neutral-400'
         )}
       >
@@ -61,7 +62,7 @@ export const Checkbox = forwardRef<
         <label
           htmlFor={id}
           className={cn(
-            'text-sm text-neutral-700 font-medium cursor-pointer select-none',
+            'text-sm font-medium text-neutral-900 cursor-pointer select-none',
             'peer-disabled:cursor-not-allowed peer-disabled:opacity-50'
           )}
         >

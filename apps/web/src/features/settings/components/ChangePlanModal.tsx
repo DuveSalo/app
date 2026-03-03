@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Modal } from '../../../components/common/Modal';
-import { Button } from '../../../components/common/Button';
+import { Button } from '@/components/ui/button';
 import { CheckIcon } from '../../../components/common/Icons';
 import { plansData } from '../../auth/SubscriptionPage';
 import type { Subscription } from '../../../types/subscription';
@@ -79,11 +79,11 @@ export const ChangePlanModal = ({
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Cambiar plan" size="md">
-      <div className="space-y-5">
+      <div className="space-y-4">
         {/* Current plan */}
         <div>
           <p className="text-sm font-medium text-neutral-900 mb-2">Plan actual</p>
-          <div className="flex items-center justify-between p-3 rounded-md bg-neutral-100 border border-neutral-200">
+          <div className="flex items-center justify-between p-3 bg-neutral-100 border border-neutral-200">
             <div>
               <p className="text-sm font-medium text-neutral-900">{currentPlan?.name ?? subscription.planName}</p>
               <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5">
@@ -113,14 +113,14 @@ export const ChangePlanModal = ({
                 <div
                   key={plan.id}
                   onClick={() => { setSelectedPlanKey(plan.id); setError(''); }}
-                  className={`flex items-center gap-3 p-3 rounded-md border cursor-pointer transition-all ${
+                  className={`flex items-center gap-3 p-3 border cursor-pointer transition-all ${
                     isSelected
                       ? 'border-neutral-900 ring-1 ring-neutral-900 bg-white'
                       : 'border-neutral-200 hover:border-neutral-300 bg-white'
                   }`}
                 >
                   <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                    isSelected ? 'border-neutral-900 bg-neutral-900' : 'border-gray-300'
+                    isSelected ? 'border-neutral-900 bg-neutral-900' : 'border-neutral-300'
                   }`}>
                     {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                   </div>
@@ -128,7 +128,7 @@ export const ChangePlanModal = ({
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-neutral-900">{plan.name}</span>
                       {plan.tag && (
-                        <span className="text-xs font-medium rounded-md bg-neutral-900 text-white px-2 py-0.5">
+                        <span className="text-xs font-medium bg-neutral-900 text-white px-2 py-0.5">
                           {plan.tag}
                         </span>
                       )}
@@ -153,7 +153,7 @@ export const ChangePlanModal = ({
 
         {/* Change summary */}
         {newPlan && currentPlan && (
-          <div className="rounded-md border border-neutral-200 bg-neutral-100 p-4 space-y-3">
+          <div className="border border-neutral-200 bg-neutral-100 p-4 space-y-3">
             <p className="text-sm font-medium text-neutral-900">Resumen del cambio</p>
 
             <div className="flex items-center justify-between text-sm">

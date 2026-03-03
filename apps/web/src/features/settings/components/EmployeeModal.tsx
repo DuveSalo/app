@@ -2,7 +2,7 @@ import { type Dispatch, type SetStateAction, type FormEvent } from 'react';
 import { Employee } from '../../../types/index';
 import { Modal } from '../../../components/common/Modal';
 import { Input } from '../../../components/common/Input';
-import { Button } from '../../../components/common/Button';
+import { Button } from '@/components/ui/button';
 
 interface EmployeeModalProps {
   isOpen: boolean;

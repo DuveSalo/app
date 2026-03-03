@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, type FormEvent } from 'react';
 import { loadMercadoPago } from '@mercadopago/sdk-js';
 import { MP_PUBLIC_KEY } from '@/lib/mercadopago/config';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/ui/button';
 
 interface CardFormProps {
   amount: number;
@@ -27,7 +27,7 @@ interface IdentificationType {
 }
 
 const inputClass =
-  'w-full h-10 border border-neutral-200 rounded-md px-3 text-sm text-neutral-900 placeholder:text-gray-400 bg-white focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-shadow';
+  'w-full h-10 border border-neutral-200 px-3 text-sm text-neutral-900 placeholder:text-neutral-400 bg-white focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-shadow';
 
 /**
  * MercadoPago card form using Secure Fields API (mp.fields).
@@ -192,7 +192,7 @@ export const CardForm = ({
     <div>
       {isLoading && (
         <div className="flex items-center justify-center py-8">
-          <div className="w-6 h-6 border-2 border-gray-300 border-t-neutral-900 rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-neutral-300 border-t-neutral-900 rounded-full animate-spin" />
           <span className="ml-2 text-sm text-neutral-500">Cargando formulario...</span>
         </div>
       )}
@@ -207,7 +207,7 @@ export const CardForm = ({
           <label className="block text-sm font-medium text-neutral-900 mb-1">Numero de tarjeta</label>
           <div
             id="mp-card-number"
-            className="h-10 border border-neutral-200 rounded-md px-3 bg-white [&_iframe]:!h-full"
+            className="h-10 border border-neutral-200 px-3 bg-white [&_iframe]:!h-full"
           />
         </div>
 
@@ -217,14 +217,14 @@ export const CardForm = ({
             <label className="block text-sm font-medium text-neutral-900 mb-1">Vencimiento</label>
             <div
               id="mp-expiration-date"
-              className="h-10 border border-neutral-200 rounded-md px-3 bg-white [&_iframe]:!h-full"
+              className="h-10 border border-neutral-200 px-3 bg-white [&_iframe]:!h-full"
             />
           </div>
           <div className="col-span-1">
             <label className="block text-sm font-medium text-neutral-900 mb-1">CVV</label>
             <div
               id="mp-security-code"
-              className="h-10 border border-neutral-200 rounded-md px-3 bg-white [&_iframe]:!h-full"
+              className="h-10 border border-neutral-200 px-3 bg-white [&_iframe]:!h-full"
             />
           </div>
           <div className="col-span-2">

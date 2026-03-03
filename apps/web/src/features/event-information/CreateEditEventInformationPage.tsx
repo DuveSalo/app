@@ -6,7 +6,7 @@ import * as api from '@/lib/api/services';
 import { useAuth } from '../auth/AuthContext';
 import { Input } from '../../components/common/Input';
 import { DatePicker } from '../../components/common/DatePicker';
-import { Button } from '../../components/common/Button';
+import { Button } from '@/components/ui/button';
 import { Textarea } from '../../components/common/Textarea';
 import { Checkbox } from '../../components/common/Checkbox';
 import { DynamicListInput } from './components/DynamicListInput';
@@ -172,7 +172,7 @@ const CreateEditEventInformationPage = () => {
       >
         Descargar PDF
       </Button>
-      <Button form="event-form" type="submit" loading={isSubmitting} variant="primary">{id ? "Actualizar" : "Guardar"}</Button>
+      <Button form="event-form" type="submit" loading={isSubmitting}>{id ? "Actualizar" : "Guardar"}</Button>
     </>
   );
 
@@ -180,8 +180,8 @@ const CreateEditEventInformationPage = () => {
     <PageLayout title={pageTitle} footer={footerActions}>
       <div className="h-full overflow-y-auto custom-scrollbar">
         <div className="max-w-2xl space-y-6">
-          <div className="p-4 bg-blue-50 border-l-4 border-blue-500 rounded-md">
-            <p className="text-sm text-neutral-900 font-light">
+          <div className="p-4 bg-blue-50 border-l-4 border-blue-500">
+            <p className="text-sm text-neutral-900">
               Por favor, asegúrese de que el informe sea objetivo y no tenga la intención de señalar responsables.
               Este documento será presentado a la autoridad competente (UERESGP) para la implementación
               de medidas de seguridad en todas las escuelas.

@@ -1,15 +1,35 @@
 {
   "version": 1,
   "skills": {
+    "claude-md-improver": {
+      "source": "anthropics/claude-plugins-official",
+      "sourceType": "github",
+      "computedHash": "7b765125563b4e1490c925f72da35dcd004151e1469b9b680b3af7fa5f0b94e6"
+    },
+    "design-md": {
+      "source": "google-labs-code/stitch-skills",
+      "sourceType": "github",
+      "computedHash": "44af3e6e89a42a765d9cebf943f1e2ff3cdf43d1958341eb43fb7b74116f6691"
+    },
     "email-best-practices": {
       "source": "resend/email-best-practices",
       "sourceType": "github",
       "computedHash": "84584c37f5759255ec20b3d8df7cc5d9096e99fd603dde722f239503de793b6d"
     },
+    "enhance-prompt": {
+      "source": "google-labs-code/stitch-skills",
+      "sourceType": "github",
+      "computedHash": "28c47bcbc0e8d81f48fbbbe41d227efe4018a32c5d4674b0d052a70d215072d3"
+    },
     "find-skills": {
       "source": "vercel-labs/skills",
       "sourceType": "github",
       "computedHash": "25872a21881a950edc3db1f3329664d60405d539660ce05b3265db2de06a7dfd"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "computedHash": "516bd2154eb843a8240e43d5b285229129853114ad7075a5e141e1c08e408c84"
     },
     "next-best-practices": {
       "source": "vercel-labs/next-skills",
@@ -31,6 +51,16 @@
       "sourceType": "github",
       "computedHash": "5abde077d6f10a25727a52f8d3ad5bf8c56e8ab17c277e3de32a0a3c32bf6f06"
     },
+    "react:components": {
+      "source": "google-labs-code/stitch-skills",
+      "sourceType": "github",
+      "computedHash": "0c5e494ae2092c57a893874e6d288de3706a224385c7d26dc4769d9db3aaaa12"
+    },
+    "remotion": {
+      "source": "google-labs-code/stitch-skills",
+      "sourceType": "github",
+      "computedHash": "b3c84d4942732bcd17b47de0a89f9561c460d718b81e0970521077e809d3b990"
+    },
     "resend": {
       "source": "resend/resend-skills",
       "sourceType": "github",
@@ -40,6 +70,16 @@
       "source": "resend/design-skills",
       "sourceType": "github",
       "computedHash": "3118857ac1c7456b5fa3514fd6a867faf22027abeac4ef00d6abaf88994d7745"
+    },
+    "shadcn-ui": {
+      "source": "google-labs-code/stitch-skills",
+      "sourceType": "github",
+      "computedHash": "119a14a004bd30fa99d386df599bd0db8d057cca146f7ee08349daed48b2ea55"
+    },
+    "stitch-loop": {
+      "source": "google-labs-code/stitch-skills",
+      "sourceType": "github",
+      "computedHash": "0199f82746e181b8a40b5638351a16ae8335390b5de4018d2d45aa648f6bf952"
     },
     "vite": {
       "source": "antfu/skills",

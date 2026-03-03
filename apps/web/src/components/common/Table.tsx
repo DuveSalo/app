@@ -21,7 +21,7 @@ export const TableHeader = forwardRef<
 >(({ className, ...props }, ref) => (
   <thead
     ref={ref}
-    className={cn('bg-neutral-50/60 [&_tr]:border-b [&_tr]:border-neutral-200', className)}
+    className={cn('sticky top-0 z-10 bg-neutral-50', className)}
     {...props}
   />
 ));
@@ -45,7 +45,7 @@ export const TableFooter = forwardRef<
 >(({ className, ...props }, ref) => (
   <tfoot
     ref={ref}
-    className={cn('border-t border-neutral-200 bg-neutral-50 font-medium [&>tr]:last:border-b-0', className)}
+    className={cn('border-t border-neutral-200 bg-neutral-50/50', className)}
     {...props}
   />
 ));
@@ -58,7 +58,7 @@ export const TableRow = forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'h-12 border-b border-neutral-200 transition-colors hover:bg-brand-50/30',
+      'h-11 border-b border-neutral-200 last:border-b-0 transition-colors hover:bg-neutral-50',
       className
     )}
     {...props}
@@ -73,7 +73,7 @@ export const TableHead = forwardRef<
   <th
     ref={ref}
     className={cn(
-      'h-10 px-4 text-left align-middle text-xs font-semibold text-neutral-500 uppercase tracking-wider [&:has([role=checkbox])]:pr-0',
+      'h-11 px-4 text-left align-middle text-xs font-medium text-neutral-500 border-b border-neutral-200 [&:has([role=checkbox])]:pr-0',
       className
     )}
     {...props}
@@ -88,7 +88,7 @@ export const TableCell = forwardRef<
   <td
     ref={ref}
     className={cn(
-      'px-4 py-3 align-middle text-sm font-normal text-neutral-700 [&:has([role=checkbox])]:pr-0',
+      'px-4 py-2 align-middle text-sm text-neutral-900 [&:has([role=checkbox])]:pr-0',
       className
     )}
     {...props}
@@ -102,7 +102,7 @@ export const TableCaption = forwardRef<
 >(({ className, ...props }, ref) => (
   <caption
     ref={ref}
-    className={cn('mt-4 text-sm text-neutral-500', className)}
+    className={cn('mt-3 text-xs text-neutral-500', className)}
     {...props}
   />
 ));

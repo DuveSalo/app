@@ -4,7 +4,7 @@ import { SectionProps } from '../types';
 export const AccessibilitySection = ({ formData, onChange }: SectionProps) => {
   return (
     <div className="space-y-4">
-      <p className="text-sm font-light text-neutral-500">Verifique la accesibilidad del extintor.</p>
+      <p className="text-sm text-neutral-500">Verifique la accesibilidad del extintor.</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Select
           label="Esta obstruida su visibilidad?"

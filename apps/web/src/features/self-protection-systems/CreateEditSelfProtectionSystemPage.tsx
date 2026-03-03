@@ -5,7 +5,7 @@ import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
 import * as api from '@/lib/api/services';
 import { Input } from '../../components/common/Input';
 import { DatePicker } from '../../components/common/DatePicker';
-import { Button } from '../../components/common/Button';
+import { Button } from '@/components/ui/button';
 import { FileUpload } from '../../components/common/FileUpload';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { PdfPreview } from '../../components/common/PdfPreview';
@@ -193,7 +193,7 @@ const CreateEditSelfProtectionSystemPage = () => {
         return (
           <>
             <Button type="button" variant="outline" onClick={handleBack} disabled={isSubmitting}>Atrás</Button>
-            <Button type="submit" form="sps-form" loading={isSubmitting} variant="primary" disabled={!isFormComplete}>
+            <Button type="submit" form="sps-form" loading={isSubmitting} disabled={!isFormComplete}>
               {id ? "Actualizar" : "Guardar"}
             </Button>
           </>
@@ -217,7 +217,7 @@ const CreateEditSelfProtectionSystemPage = () => {
                 <DatePicker id="probatoryDispositionDate" label="Fecha Disposición Aprobatoria" value={currentFormData.probatoryDispositionDate || ''} onChange={(value) => setCurrentFormData(prev => ({ ...prev, probatoryDispositionDate: value }))} required/>
 
                 {id && currentFormData.probatoryDispositionPdfUrl && !currentFormData.probatoryDispositionPdf && (
-                  <div className="p-3 bg-neutral-50 rounded-md border border-neutral-200">
+                  <div className="p-3 bg-neutral-50 border border-neutral-200">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <p className="text-sm font-medium text-neutral-900">PDF actual:</p>
@@ -225,7 +225,7 @@ const CreateEditSelfProtectionSystemPage = () => {
                       </div>
                       <button
                         type="button"
-                        className="inline-flex items-center justify-center px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-md transition-colors"
+                        className="inline-flex items-center justify-center px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
                         onClick={() => window.open(currentFormData.probatoryDispositionPdfUrl, '_blank')}
                         title="Ver PDF actual"
                       >
@@ -242,7 +242,7 @@ const CreateEditSelfProtectionSystemPage = () => {
                 <DatePicker id="extensionDate" label="Fecha Extensión" value={currentFormData.extensionDate || ''} onChange={(value) => setCurrentFormData(prev => ({ ...prev, extensionDate: value }))} disabled />
 
                 {id && currentFormData.extensionPdfUrl && !currentFormData.extensionPdf && (
-                  <div className="p-3 bg-neutral-50 rounded-md border border-neutral-200">
+                  <div className="p-3 bg-neutral-50 border border-neutral-200">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <p className="text-sm font-medium text-neutral-900">PDF actual:</p>
@@ -250,7 +250,7 @@ const CreateEditSelfProtectionSystemPage = () => {
                       </div>
                       <button
                         type="button"
-                        className="inline-flex items-center justify-center px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-md transition-colors"
+                        className="inline-flex items-center justify-center px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
                         onClick={() => window.open(currentFormData.extensionPdfUrl, '_blank')}
                         title="Ver PDF actual"
                       >
@@ -275,7 +275,7 @@ const CreateEditSelfProtectionSystemPage = () => {
             <div className="space-y-4">
                 <p className="text-xs text-neutral-500">Registre la información de los 4 simulacros requeridos. Se requiere la fecha de los 4 simulacros para continuar.</p>
                 {currentFormData.drills.map((drill, index) => (
-                  <div key={index} className="p-4 rounded-md border border-neutral-200 bg-neutral-50">
+                  <div key={index} className="p-4 border border-neutral-200 bg-neutral-50">
                     <div className="flex justify-between items-center mb-3">
                         <h4 className="text-sm font-medium text-neutral-900">Simulacro {index + 1}</h4>
                         <Button
@@ -294,7 +294,7 @@ const CreateEditSelfProtectionSystemPage = () => {
                       <DatePicker label="Fecha" id={`drillDate-${index}`} value={drill.date} onChange={(value) => handleDrillChange(index, 'date', value)} required/>
 
                       {id && drill.pdfUrl && !drill.pdfFile && (
-                        <div className="p-3 bg-neutral-50 rounded-md border border-neutral-200">
+                        <div className="p-3 bg-neutral-50 border border-neutral-200">
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <p className="text-sm font-medium text-neutral-900">PDF actual:</p>
@@ -302,7 +302,7 @@ const CreateEditSelfProtectionSystemPage = () => {
                             </div>
                             <button
                               type="button"
-                              className="inline-flex items-center justify-center px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-md transition-colors"
+                              className="inline-flex items-center justify-center px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
                               onClick={() => window.open(drill.pdfUrl, '_blank')}
                               title="Ver PDF actual"
                             >

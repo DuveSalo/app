@@ -3,12 +3,12 @@ import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const chipVariants = cva(
-  'flex items-center justify-center px-3.5 py-1.5 text-sm font-medium border rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/20',
+  'flex items-center justify-center h-7 rounded-md px-3 text-xs font-medium border transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/10',
   {
     variants: {
       isSelected: {
         true: 'bg-neutral-900 border-neutral-900 text-white',
-        false: 'bg-white border-neutral-200 text-neutral-700 hover:border-neutral-400',
+        false: 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50',
       },
     },
   }
@@ -31,7 +31,7 @@ const Chip = ({ label, isSelected, onSelect, disabled }: ChipProps) => (
       disabled && 'opacity-50 cursor-not-allowed'
     )}
   >
-    {isSelected && <Check className="w-3.5 h-3.5 mr-1.5" strokeWidth={2.5} />}
+    {isSelected && <Check className="w-3 h-3 mr-1.5" strokeWidth={2.5} />}
     {label}
   </button>
 );
@@ -65,11 +65,11 @@ export const ChipGroup = ({
   return (
     <div className={cn('w-full', className)}>
       {label && (
-        <label className="block text-sm font-medium text-neutral-900 mb-2">
+        <label className="block text-sm font-medium text-neutral-900 mb-1.5">
           {label}
         </label>
       )}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {options.map((option) => (
           <Chip
             key={option}

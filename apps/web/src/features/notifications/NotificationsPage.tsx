@@ -93,13 +93,13 @@ const NotificationsPage = () => {
         return <StatusBadge status="expired" />;
       case 'info':
         return (
-          <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-md">
+          <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200">
             Info
           </span>
         );
       case 'system':
         return (
-          <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-neutral-500 bg-neutral-50 border border-neutral-200 rounded-md">
+          <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-neutral-500 bg-neutral-50 border border-neutral-200">
             Sistema
           </span>
         );
@@ -112,7 +112,7 @@ const NotificationsPage = () => {
     <button
       type="button"
       onClick={handleMarkAllAsRead}
-      className="flex items-center gap-2 h-9 px-5 border border-neutral-200 rounded-md text-sm font-medium text-neutral-900 hover:bg-neutral-50 transition-colors focus:outline-none"
+      className="flex items-center gap-2 h-9 px-5 border border-neutral-200 text-sm font-medium text-neutral-900 hover:bg-neutral-50 transition-colors focus:outline-none"
     >
       <CheckCheck className="w-4 h-4 text-neutral-400" />
       Marcar todo como leido
@@ -132,10 +132,10 @@ const NotificationsPage = () => {
             <button
               key={btn.value}
               onClick={() => setFilter(btn.value)}
-              className={`px-4 py-2 text-sm rounded-md transition-colors focus:outline-none ${
+              className={`px-4 py-2 text-sm transition-colors focus:outline-none ${
                 filter === btn.value
                   ? 'bg-neutral-900 text-white font-medium'
-                  : 'text-neutral-500 font-light border border-neutral-200 hover:bg-neutral-50'
+                  : 'text-neutral-500 border border-neutral-200 hover:bg-neutral-50'
               }`}
             >
               {btn.label}
@@ -149,7 +149,7 @@ const NotificationsPage = () => {
             <div className="flex items-center justify-center py-20"><LoadingSpinner size="lg" /></div>
           ) : notifications.length === 0 ? (
             <div className="flex items-center justify-center py-16">
-              <p className="text-sm font-light text-neutral-500">
+              <p className="text-sm text-neutral-500">
                 {filter === 'all' ? 'No hay notificaciones' : filter === 'unread' ? 'No hay notificaciones sin leer' : 'No hay notificaciones leidas'}
               </p>
             </div>
@@ -159,7 +159,7 @@ const NotificationsPage = () => {
                 <div
                   key={notification.id}
                   onClick={() => !notification.isRead && handleMarkAsRead(notification.id)}
-                  className={`flex items-center justify-between cursor-pointer transition-colors rounded-md ${!notification.isRead ? 'bg-neutral-50 hover:bg-neutral-100' : 'hover:bg-neutral-50'}`}
+                  className={`flex items-center justify-between cursor-pointer transition-colors ${!notification.isRead ? 'bg-neutral-50 hover:bg-neutral-100' : 'hover:bg-neutral-50'}`}
                 >
                   <div className="flex items-start gap-4 flex-1 min-w-0 px-5 py-4 border-b border-neutral-200">
                     {/* Unread dot */}
@@ -171,15 +171,15 @@ const NotificationsPage = () => {
 
                     {/* Info */}
                     <div className="flex flex-col gap-1 flex-1 min-w-0">
-                      <span className={`text-sm text-neutral-900 ${!notification.isRead ? 'font-bold' : 'font-light'}`}>
+                      <span className={`text-sm text-neutral-900 ${!notification.isRead ? 'font-bold' : 'font-normal'}`}>
                         {notification.title}
                       </span>
-                      <span className="text-sm font-light text-neutral-500">
+                      <span className="text-sm text-neutral-500">
                         {notification.message}
                       </span>
                       <div className="flex items-center gap-3 mt-1">
                         {getNotificationBadge(notification.type)}
-                        <span className="text-xs font-light text-neutral-400">
+                        <span className="text-xs text-neutral-400">
                           {formatRelativeTime(notification.createdAt)}
                         </span>
                       </div>

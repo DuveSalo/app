@@ -10,6 +10,7 @@ import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { FilterSort } from '../../components/common/FilterSort';
 import PageLayout from '../../components/layout/PageLayout';
+import { SplitPaneLayout } from '../../components/layout/SplitPaneLayout';
 import { formatDateLocal } from '../../lib/utils/dateUtils';
 
 const SORT_OPTIONS = [
@@ -26,6 +27,7 @@ const FireExtinguisherListPage = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('controlDate-desc');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { showSuccess, showError } = useToast();
   const { currentCompany } = useAuth();
@@ -48,6 +50,7 @@ const FireExtinguisherListPage = () => {
   const handleDelete = async () => {
     if (!deleteId) return;
     setIsDeleting(true);
+    if (selectedId === deleteId) setSelectedId(null);
     try {
       await api.deleteFireExtinguisher(deleteId);
       showSuccess("Extintor eliminado correctamente");
@@ -80,11 +83,15 @@ const FireExtinguisherListPage = () => {
     return result;
   }, [extinguishers, searchQuery, sortBy]);
 
+  useEffect(() => {
+    if (filtered.length > 0 && !selectedId) setSelectedId(filtered[0].id);
+  }, [filtered, selectedId]);
+
   const headerActions = (
     <button
       type="button"
       onClick={() => navigate(ROUTE_PATHS.NEW_FIRE_EXTINGUISHER)}
-      className="flex items-center h-9 px-5 gap-2 bg-neutral-900 text-white text-sm font-medium rounded-md focus:outline-none hover:bg-neutral-800 transition-colors"
+      className="flex items-center h-9 px-5 gap-2 bg-neutral-900 text-white text-sm font-medium focus:outline-none hover:bg-neutral-900 transition-colors"
     >
       <Plus className="w-4 h-4" />
       Nuevo Control
@@ -101,7 +108,7 @@ const FireExtinguisherListPage = () => {
           <button
             type="button"
             onClick={() => navigate(ROUTE_PATHS.NEW_FIRE_EXTINGUISHER)}
-            className="flex items-center h-9 px-5 gap-2 bg-neutral-900 text-white text-sm font-medium rounded-md focus:outline-none hover:bg-neutral-800 transition-colors"
+            className="flex items-center h-9 px-5 gap-2 bg-neutral-900 text-white text-sm font-medium focus:outline-none hover:bg-neutral-900 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Registrar primer control
@@ -113,81 +120,115 @@ const FireExtinguisherListPage = () => {
             <FilterSort searchValue={searchQuery} onSearchChange={setSearchQuery} sortValue={sortBy} onSortChange={setSortBy} sortOptions={SORT_OPTIONS} searchPlaceholder="Buscar por N° extintor, ubicación o tipo..." />
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar rounded-md border border-neutral-200">
-            {/* Desktop Table */}
-            <table className="hidden sm:table w-full">
-              <thead>
-                <tr className="h-11 bg-neutral-50 border-b border-neutral-200">
-                  <th className="text-left px-5 text-xs font-medium text-neutral-900">N° Extintor</th>
-                  <th className="text-left px-4 text-xs font-medium text-neutral-900 w-[120px]">Tipo</th>
-                  <th className="text-left px-4 text-xs font-medium text-neutral-900 w-[120px]">Ubicación</th>
-                  <th className="text-left px-4 text-xs font-medium text-neutral-900 w-[130px]">Fecha Control</th>
-                  <th className="text-left px-4 text-xs font-medium text-neutral-900 w-[130px]">Venc. Carga</th>
-                  <th className="text-left px-4 text-xs font-medium text-neutral-900 w-[100px]">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((ext) => (
-                  <tr key={ext.id} className="h-13 border-b border-neutral-200 hover:bg-neutral-50 transition-colors">
-                    <td className="px-5">
-                      <span className="text-sm text-neutral-900">{ext.extinguisherNumber}</span>
-                    </td>
-                    <td className="px-4 w-[120px]">
-                      <span className="text-sm text-neutral-500">{ext.type}</span>
-                    </td>
-                    <td className="px-4 w-[120px]">
-                      <span className="text-sm text-neutral-500">Puesto {ext.positionNumber}</span>
-                    </td>
-                    <td className="px-4 w-[130px]">
-                      <span className="text-sm text-neutral-500">{formatDateLocal(ext.controlDate)}</span>
-                    </td>
-                    <td className="px-4 w-[130px]">
-                      <span className="text-sm text-neutral-500">{formatDateLocal(ext.chargeExpirationDate)}</span>
-                    </td>
-                    <td className="px-4 w-[100px]">
-                      <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          className="text-neutral-400 hover:text-neutral-700 transition-colors focus:outline-none"
-                          onClick={() => navigate(`${ROUTE_PATHS.FIRE_EXTINGUISHERS}/${ext.id}/edit`)}
-                          title="Editar"
-                        >
-                          <Pencil className="w-[18px] h-[18px]" />
-                        </button>
-                        <button
-                          type="button"
-                          className="text-neutral-400 hover:text-neutral-700 transition-colors focus:outline-none"
-                          onClick={() => setDeleteId(ext.id)}
-                          title="Eliminar"
-                        >
-                          <Trash2 className="w-[18px] h-[18px]" />
-                        </button>
+          {/* ── Desktop: Split Pane ── */}
+          <div className="hidden sm:flex flex-1 min-h-0">
+            <SplitPaneLayout
+              items={filtered}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              listLabel="Extintores"
+              renderListItem={(ext, isSelected) => (
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className={`text-sm ${isSelected ? 'font-semibold text-neutral-900' : 'font-medium text-neutral-900'}`}>
+                      N° {ext.extinguisherNumber}
+                    </h3>
+                    <span className="text-[10px] font-medium text-neutral-400 uppercase">{ext.type}</span>
+                  </div>
+                  <p className="text-xs text-neutral-500">
+                    Puesto {ext.positionNumber} · {formatDateLocal(ext.controlDate)}
+                  </p>
+                </div>
+              )}
+              renderDetail={(ext) => (
+                <>
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-10">
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="bg-neutral-50 text-neutral-600 text-[10px] font-bold px-2 py-0.5 tracking-wide uppercase">
+                          {ext.type}
+                        </span>
+                        <span className="text-neutral-400 text-xs tracking-wider">
+                          N° {ext.extinguisherNumber}
+                        </span>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* Mobile Cards */}
-            <div className="sm:hidden">
-              {filtered.map((ext) => (
-                <div
-                  key={ext.id}
-                  onClick={() => navigate(`${ROUTE_PATHS.FIRE_EXTINGUISHERS}/${ext.id}/edit`)}
-                  className="flex items-center cursor-pointer hover:bg-neutral-50 transition-colors p-3 gap-3 border-b border-neutral-200"
-                >
-                  <div className="flex-1 min-w-0 flex flex-col gap-2">
-                    <span className="text-sm text-neutral-900">{ext.extinguisherNumber} — {ext.type}</span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-neutral-500">Puesto {ext.positionNumber}</span>
-                      <span className="text-xs text-neutral-500">{formatDateLocal(ext.controlDate)}</span>
+                      <h2 className="text-2xl font-bold text-neutral-900 tracking-tight">
+                        Control de Extintor
+                      </h2>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => navigate(`${ROUTE_PATHS.FIRE_EXTINGUISHERS}/${ext.id}/edit`)}
+                        className="p-2 border border-neutral-200 hover:bg-neutral-50 text-neutral-500"
+                        title="Editar"
+                      >
+                        <Pencil className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteId(ext.id)}
+                        className="p-2 border border-neutral-200 hover:bg-neutral-50 text-red-600"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-neutral-300 flex-shrink-0" />
+
+                  {/* Metadata Grid */}
+                  <div className="grid grid-cols-3 gap-8 mb-12">
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-neutral-500">Ubicación</p>
+                      <p className="text-sm text-neutral-900">Puesto {ext.positionNumber}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-neutral-500">Fecha de Control</p>
+                      <p className="text-sm text-neutral-900">{formatDateLocal(ext.controlDate)}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-neutral-500">Venc. Carga</p>
+                      <p className="text-sm text-neutral-900">{formatDateLocal(ext.chargeExpirationDate)}</p>
+                    </div>
+                  </div>
+
+                  {/* Additional Details */}
+                  <div className="grid grid-cols-3 gap-8">
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-neutral-500">Venc. Presión Hidráulica</p>
+                      <p className="text-sm text-neutral-900">{formatDateLocal(ext.hydraulicPressureExpirationDate)}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-neutral-500">Año de Fabricación</p>
+                      <p className="text-sm text-neutral-900">{ext.manufacturingYear || '—'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-neutral-500">Color Etiqueta</p>
+                      <p className="text-sm text-neutral-900">{ext.tagColor || '—'}</p>
+                    </div>
+                  </div>
+                </>
+              )}
+            />
+          </div>
+
+          {/* ── Mobile Cards ── */}
+          <div className="sm:hidden min-h-0 overflow-y-auto custom-scrollbar border border-neutral-200">
+            {filtered.map((ext) => (
+              <div
+                key={ext.id}
+                onClick={() => navigate(`${ROUTE_PATHS.FIRE_EXTINGUISHERS}/${ext.id}/edit`)}
+                className="flex items-center cursor-pointer hover:bg-neutral-50 transition-colors p-3 gap-3 border-b border-neutral-200"
+              >
+                <div className="flex-1 min-w-0 flex flex-col gap-2">
+                  <span className="text-sm text-neutral-900">{ext.extinguisherNumber} — {ext.type}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-neutral-500">Puesto {ext.positionNumber}</span>
+                    <span className="text-xs text-neutral-500">{formatDateLocal(ext.controlDate)}</span>
+                  </div>
                 </div>
-              ))}
-            </div>
+                <ChevronRight className="w-4 h-4 text-neutral-300 flex-shrink-0" />
+              </div>
+            ))}
           </div>
 
           {filtered.length === 0 && extinguishers.length > 0 && (

@@ -1,7 +1,7 @@
 import { type Dispatch, type SetStateAction, type FormEvent } from 'react';
-import { Card } from '../../../components/common/Card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '../../../components/common/Input';
-import { Button } from '../../../components/common/Button';
+import { Button } from '@/components/ui/button';
 import type { User } from '../../../types/index';
 
 interface ProfileSectionProps {
@@ -49,27 +49,31 @@ export const ProfileSection = ({
   return (
     <div className="space-y-6">
       <h2 className="text-base font-medium text-neutral-900">Mi Perfil</h2>
-      <Card>
-        <div className="space-y-3">
-          <div>
-            <p className="text-sm font-medium text-neutral-900 mb-1">Nombre completo</p>
-            <p className="text-sm text-neutral-900">{currentUser.name}</p>
+      <Card className="py-4">
+        <CardContent>
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm font-medium text-neutral-900 mb-1">Nombre completo</p>
+              <p className="text-sm text-neutral-900">{currentUser.name}</p>
+            </div>
+            <div className="border-t border-neutral-200 pt-3">
+              <p className="text-sm font-medium text-neutral-900 mb-1">Email</p>
+              <p className="text-sm text-neutral-900">{currentUser.email}</p>
+            </div>
           </div>
-          <div className="border-t border-neutral-200 pt-3">
-            <p className="text-sm font-medium text-neutral-900 mb-1">Email</p>
-            <p className="text-sm text-neutral-900">{currentUser.email}</p>
-          </div>
-        </div>
+        </CardContent>
       </Card>
 
-      <Card>
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium text-neutral-900">Seguridad de la Cuenta</h3>
-          <p className="text-sm text-neutral-500">Para cambiar su contrasena, le enviaremos un enlace seguro a su correo electronico.</p>
-          <Button type="button" variant="outline" onClick={handlePasswordReset} loading={isPasswordResetLoading} className="mt-2">
-            Enviar enlace para restablecer contrasena
-          </Button>
-        </div>
+      <Card className="py-4">
+        <CardContent>
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-neutral-900">Seguridad de la Cuenta</h3>
+            <p className="text-sm text-neutral-500">Para cambiar su contrasena, le enviaremos un enlace seguro a su correo electronico.</p>
+            <Button type="button" variant="outline" onClick={handlePasswordReset} loading={isPasswordResetLoading} className="mt-2">
+              Enviar enlace para restablecer contrasena
+            </Button>
+          </div>
+        </CardContent>
       </Card>
     </div>
   );

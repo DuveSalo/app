@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Shield, Activity, TrendingUp, Users } from 'lucide-react';
 import { PageLayout } from '../../components/layout/PageLayout';
-import { Card } from '../../components/common/Card';
+import { Card, CardContent } from '@/components/ui/card';
 import { AuditLogList } from './components/AuditLogList';
 import { AuditFilters } from './components/AuditFilters';
 import { useAuth } from '../auth/AuthContext';
@@ -91,44 +91,52 @@ export const AuditPage = () => {
         {/* Stats */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 flex-shrink-0">
-            <Card>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-neutral-600">Total de Registros</p>
-                  <p className="text-2xl font-bold text-neutral-900">{stats.totalLogs}</p>
+            <Card className="py-4">
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-neutral-500">Total de Registros</p>
+                    <p className="text-2xl font-bold text-neutral-900">{stats.totalLogs}</p>
+                  </div>
+                  <Activity className="w-8 h-8 text-blue-500" />
                 </div>
-                <Activity className="w-8 h-8 text-blue-500" />
-              </div>
+              </CardContent>
             </Card>
 
-            <Card>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-neutral-600">Creaciones</p>
-                  <p className="text-2xl font-bold text-emerald-600">{stats.insertCount}</p>
+            <Card className="py-4">
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-neutral-500">Creaciones</p>
+                    <p className="text-2xl font-bold text-emerald-600">{stats.insertCount}</p>
+                  </div>
+                  <TrendingUp className="w-8 h-8 text-emerald-500" />
                 </div>
-                <TrendingUp className="w-8 h-8 text-emerald-500" />
-              </div>
+              </CardContent>
             </Card>
 
-            <Card>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-neutral-600">Actualizaciones</p>
-                  <p className="text-2xl font-bold text-blue-600">{stats.updateCount}</p>
+            <Card className="py-4">
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-neutral-500">Actualizaciones</p>
+                    <p className="text-2xl font-bold text-blue-600">{stats.updateCount}</p>
+                  </div>
+                  <Activity className="w-8 h-8 text-blue-500" />
                 </div>
-                <Activity className="w-8 h-8 text-blue-500" />
-              </div>
+              </CardContent>
             </Card>
 
-            <Card>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-neutral-600">Usuarios Activos</p>
-                  <p className="text-2xl font-bold text-indigo-600">{stats.uniqueUsers}</p>
+            <Card className="py-4">
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-neutral-500">Usuarios Activos</p>
+                    <p className="text-2xl font-bold text-indigo-600">{stats.uniqueUsers}</p>
+                  </div>
+                  <Users className="w-8 h-8 text-indigo-500" />
                 </div>
-                <Users className="w-8 h-8 text-indigo-500" />
-              </div>
+              </CardContent>
             </Card>
           </div>
         )}
@@ -143,27 +151,27 @@ export const AuditPage = () => {
         </div>
 
         {/* Log list */}
-        <div className="flex-1 min-h-0 overflow-y-auto mb-4">
+        <div className="min-h-0 overflow-y-auto mb-4">
           <AuditLogList logs={logs} isLoading={isLoading} />
         </div>
 
         {/* Pagination */}
         {logs.length >= pageSize && (
-          <div className="flex items-center justify-between bg-white border border-neutral-200 rounded-md p-4 flex-shrink-0">
+          <div className="flex items-center justify-between bg-white border border-neutral-200 p-4 flex-shrink-0">
             <button
               onClick={handlePrevPage}
               disabled={currentPage === 0}
-              className="px-4 py-2 text-sm font-medium text-neutral-900 bg-white border border-neutral-200 rounded-md hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-neutral-900 bg-white border border-neutral-200 hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Anterior
             </button>
-            <span className="text-sm text-neutral-600">
+            <span className="text-sm text-neutral-500">
               Pagina {currentPage + 1}
             </span>
             <button
               onClick={handleNextPage}
               disabled={logs.length < pageSize}
-              className="px-4 py-2 text-sm font-medium text-neutral-900 bg-white border border-neutral-200 rounded-md hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-neutral-900 bg-white border border-neutral-200 hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Siguiente
             </button>

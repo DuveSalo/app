@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, type DragEvent, type ChangeEvent } from 'react';
 import { Upload, File as FileIcon, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -42,7 +43,7 @@ export const FileUpload = ({
 
   const validateFile = (file: File): string | null => {
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      return `El archivo excede el tamaño máximo de ${MAX_FILE_SIZE_MB}MB.`;
+      return `El archivo excede el tamano maximo de ${MAX_FILE_SIZE_MB}MB.`;
     }
     if (!isValidFileType(file)) {
       return `Tipo de archivo no permitido. Formatos aceptados: ${accept}`;
@@ -94,7 +95,7 @@ export const FileUpload = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-neutral-900 mb-2">
+        <label className="block text-sm font-medium text-neutral-900 mb-1.5">
           {label}
         </label>
       )}
@@ -104,15 +105,20 @@ export const FileUpload = ({
           onDrop={handleDrop}
           onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
           onDragLeave={() => setIsDragOver(false)}
-          className={`border-2 border-dashed rounded-md py-10 px-6 text-center transition-colors ${isDragOver ? 'border-neutral-400 bg-neutral-50' : 'border-neutral-300 hover:border-neutral-400 hover:bg-neutral-50'}`}
+          className={cn(
+            'rounded-lg border border-dashed py-8 px-6 text-center transition-colors duration-150',
+            isDragOver
+              ? 'border-neutral-400 bg-neutral-50'
+              : 'border-neutral-300 hover:border-neutral-400 hover:bg-neutral-50'
+          )}
         >
-          <div className="w-10 h-10 rounded-md border border-neutral-200 bg-neutral-100 flex items-center justify-center mx-auto mb-3">
-            <Upload className="w-5 h-5 text-neutral-500" strokeWidth={2} />
+          <div className="w-9 h-9 rounded-md border border-neutral-200 bg-neutral-100 flex items-center justify-center mx-auto mb-2.5">
+            <Upload className="w-4 h-4 text-neutral-500" strokeWidth={2} />
           </div>
           <p className="text-sm text-neutral-900 font-medium mb-1">
-            Arrastra y suelta el archivo aquí, o
+            Arrastra y suelta el archivo aqui, o
           </p>
-          <label className="inline-flex items-center px-3 py-1.5 mt-2 border border-neutral-200 rounded-md text-sm font-medium text-neutral-900 bg-white hover:bg-neutral-50 cursor-pointer transition-colors">
+          <label className="inline-flex items-center rounded-md px-3 py-1.5 mt-1.5 border border-neutral-200 text-sm font-medium text-neutral-900 bg-white hover:bg-neutral-50 cursor-pointer transition-colors duration-150">
             <span>Seleccionar archivo</span>
             <input
               ref={fileInputRef}
@@ -122,13 +128,13 @@ export const FileUpload = ({
               className="hidden"
             />
           </label>
-          <p className="text-xs text-neutral-500 mt-3">PDF, PNG, JPG hasta {MAX_FILE_SIZE_MB}MB</p>
-          {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
+          <p className="text-xs text-neutral-500 mt-2.5">PDF, PNG, JPG hasta {MAX_FILE_SIZE_MB}MB</p>
+          {error && <p className="text-xs text-red-600 mt-1.5">{error}</p>}
         </div>
       ) : (
-        <div className="border border-neutral-200 rounded-md p-3.5 bg-white">
+        <div className="rounded-md border border-neutral-200 px-3.5 py-2.5 bg-white">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 overflow-hidden">
+            <div className="flex items-center gap-2 overflow-hidden">
               <FileIcon className="w-4 h-4 text-neutral-500 flex-shrink-0" strokeWidth={2} />
               <span className="text-sm font-medium text-neutral-900 truncate" title={displayFileName}>
                 {displayFileName}
@@ -142,7 +148,7 @@ export const FileUpload = ({
             <button
               type="button"
               onClick={clearFile}
-              className="text-neutral-400 hover:text-red-600 transition-colors ml-2"
+              className="text-neutral-400 hover:text-red-600 transition-colors duration-150 ml-2"
               aria-label="Clear file"
             >
               <X className="w-4 h-4" strokeWidth={2} />

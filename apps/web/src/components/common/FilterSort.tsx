@@ -29,7 +29,7 @@ const Dropdown = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () 
   return (
     <div
       ref={ref}
-      className="absolute top-full left-0 z-10 mt-1.5 min-w-[200px] bg-white border border-neutral-200 rounded-xl py-1.5 animate-fade-in shadow-dropdown"
+      className="absolute top-full left-0 z-10 mt-1 min-w-[200px] rounded-md bg-white border border-neutral-200 py-1 shadow-md animate-dropdown-in"
     >
       {children}
     </div>
@@ -52,20 +52,20 @@ export const FilterSort = ({
   const [showFilter, setShowFilter] = useState(false);
 
   return (
-    <div className="flex items-center flex-wrap gap-2.5">
+    <div className="flex items-center flex-wrap gap-2">
       {/* Search */}
-      <div className="flex items-center w-[280px] h-10 px-3.5 gap-2.5 border border-neutral-300 rounded-lg flex-shrink-0 bg-white shadow-xs">
-        <Search className="w-4 h-4 text-neutral-400 flex-shrink-0" />
+      <div className="flex items-center w-[260px] h-8 px-3 gap-2 rounded-md border border-neutral-200 flex-shrink-0 bg-white">
+        <Search className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
         <input
           type="text"
           placeholder={searchPlaceholder}
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="flex-1 min-w-0 text-sm font-medium text-neutral-900 bg-transparent border-none focus:outline-none placeholder:text-neutral-400"
+          className="flex-1 min-w-0 text-sm text-neutral-900 bg-transparent border-none focus:outline-none placeholder:text-neutral-400"
         />
         {searchValue && (
           <button onClick={() => onSearchChange('')} className="focus:outline-none">
-            <X className="w-3.5 h-3.5 text-neutral-400 hover:text-neutral-600" />
+            <X className="w-3 h-3 text-neutral-400 hover:text-neutral-600" />
           </button>
         )}
       </div>
@@ -75,7 +75,7 @@ export const FilterSort = ({
         <button
           type="button"
           onClick={() => { setShowSort(!showSort); setShowFilter(false); }}
-          className="flex items-center h-10 px-3.5 gap-2 border border-neutral-300 rounded-lg text-sm font-medium text-neutral-700 bg-white hover:bg-neutral-50 transition-all duration-200 focus:outline-none shadow-xs"
+          className="flex items-center h-8 px-3 gap-1.5 rounded-md border border-neutral-200 text-sm font-medium text-neutral-700 bg-white hover:bg-neutral-50 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none"
         >
           <ArrowUpDown className="w-3.5 h-3.5 text-neutral-500" />
           <span>Ordenar</span>
@@ -86,7 +86,7 @@ export const FilterSort = ({
               key={opt.value}
               onClick={() => { onSortChange(opt.value); setShowSort(false); }}
               className={cn(
-                'w-full text-left px-3 py-2 text-sm transition-colors hover:bg-neutral-50 focus:outline-none',
+                'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-neutral-50 focus:outline-none',
                 sortValue === opt.value
                   ? 'font-medium text-neutral-900 bg-neutral-50'
                   : 'text-neutral-500'
@@ -105,10 +105,10 @@ export const FilterSort = ({
             type="button"
             onClick={() => { setShowFilter(!showFilter); setShowSort(false); }}
             className={cn(
-              'flex items-center h-10 px-3.5 gap-2 rounded-lg text-sm font-medium text-neutral-700 bg-white hover:bg-neutral-50 transition-all duration-200 focus:outline-none shadow-xs',
+              'flex items-center h-8 px-3 gap-1.5 rounded-md text-sm font-medium bg-white transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none border',
               filterValue
-                ? 'border-2 border-brand-700'
-                : 'border border-neutral-300'
+                ? 'border-neutral-900 text-neutral-900'
+                : 'border-neutral-200 text-neutral-700 hover:bg-neutral-50'
             )}
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-neutral-500" />
@@ -120,7 +120,7 @@ export const FilterSort = ({
             <button
               onClick={() => { onFilterChange(''); setShowFilter(false); }}
               className={cn(
-                'w-full text-left px-3 py-2 text-sm transition-colors hover:bg-neutral-50 focus:outline-none',
+                'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-neutral-50 focus:outline-none',
                 !filterValue
                   ? 'font-medium text-neutral-900 bg-neutral-50'
                   : 'text-neutral-500'
@@ -133,7 +133,7 @@ export const FilterSort = ({
                 key={opt.value}
                 onClick={() => { onFilterChange(opt.value); setShowFilter(false); }}
                 className={cn(
-                  'w-full text-left px-3 py-2 text-sm transition-colors hover:bg-neutral-50 focus:outline-none',
+                  'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-neutral-50 focus:outline-none',
                   filterValue === opt.value
                     ? 'font-medium text-neutral-900 bg-neutral-50'
                     : 'text-neutral-500'

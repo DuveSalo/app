@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import { Button } from '../../components/common/Button';
+import { Button } from '@/components/ui/button';
 import AuthLayout from '../../components/layout/AuthLayout';
 import { ROUTE_PATHS } from '../../constants/index';
 import { ExclamationTriangleIcon, CheckCircleIcon } from '../../components/common/Icons';
@@ -12,7 +12,7 @@ const TrialExpiredPage = () => {
   return (
     <AuthLayout variant="wizard" wizardSteps={['Cuenta', 'Empresa', 'Suscripcion']} currentStep={3}>
       <div className="max-w-md mx-auto w-full text-center">
-        <div className="mx-auto h-14 w-14 rounded-md bg-amber-50 border border-amber-200/50 flex items-center justify-center mb-6">
+        <div className="mx-auto h-14 w-14 bg-amber-50 border border-amber-200/50 flex items-center justify-center mb-6">
           <ExclamationTriangleIcon className="w-7 h-7 text-amber-600" />
         </div>
 
@@ -24,9 +24,9 @@ const TrialExpiredPage = () => {
           Escuela Segura, selecciona un plan de suscripcion.
         </p>
 
-        <div className="bg-emerald-50 border border-emerald-200 rounded-md p-4 mb-8 text-left">
+        <div className="bg-emerald-50 border border-emerald-200 p-4 mb-8 text-left">
           <div className="flex items-start gap-3">
-            <div className="h-8 w-8 rounded-md bg-emerald-100 flex items-center justify-center flex-shrink-0">
+            <div className="h-8 w-8 bg-emerald-100 flex items-center justify-center flex-shrink-0">
               <CheckCircleIcon className="w-4 h-4 text-emerald-600" />
             </div>
             <div>

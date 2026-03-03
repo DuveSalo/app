@@ -102,13 +102,13 @@ const SubscriptionPage = () => {
 
   return (
     <AuthLayout variant="wizard" wizardSteps={wizardSteps} currentStep={3}>
-      <div className="bg-white border border-neutral-200 rounded-md flex flex-col w-full max-w-[860px] p-10 gap-6">
+      <div className="bg-white border border-neutral-200 flex flex-col w-full max-w-[860px] p-8 gap-5">
         {/* Header */}
         <div className="flex flex-col items-center gap-2">
           <h2 className="text-2xl font-medium text-neutral-900 text-center">
             Elija su plan
           </h2>
-          <p className="text-sm font-light text-neutral-500 text-center">
+          <p className="text-sm text-neutral-500 text-center">
             Todos los planes incluyen acceso completo a la plataforma.
           </p>
         </div>
@@ -122,9 +122,9 @@ const SubscriptionPage = () => {
                 key={plan.id}
                 type="button"
                 onClick={() => setSelectedPlanId(plan.id)}
-                className={`flex-1 flex flex-col text-left p-5 gap-4 rounded-md transition-colors focus:outline-none ${
+                className={`flex-1 flex flex-col text-left p-4 gap-4 transition-colors focus:outline-none ${
                   isSelected
-                    ? 'border-2 border-neutral-900'
+                    ? 'border border-neutral-900 ring-1 ring-neutral-900'
                     : 'border border-neutral-200 hover:border-neutral-300'
                 }`}
               >
@@ -134,7 +134,7 @@ const SubscriptionPage = () => {
                     {plan.name}
                   </span>
                   {plan.tag && (
-                    <span className="text-xs font-medium text-white bg-neutral-900 px-2 py-0.5 rounded-md">
+                    <span className="text-xs font-medium text-white bg-neutral-900 px-2 py-0.5">
                       {plan.tag}
                     </span>
                   )}
@@ -145,7 +145,7 @@ const SubscriptionPage = () => {
                   <span className="text-3xl font-bold tracking-tight text-neutral-900">
                     {plan.price}
                   </span>
-                  <span className="text-sm font-light text-neutral-500 pb-1">
+                  <span className="text-sm text-neutral-500 pb-1">
                     {plan.priceSuffix}
                   </span>
                 </div>
@@ -155,7 +155,7 @@ const SubscriptionPage = () => {
                   {plan.features.map((feat) => (
                     <div key={feat} className="flex items-center gap-2">
                       <Check className="w-3.5 h-3.5 text-neutral-900" />
-                      <span className="text-sm font-light text-neutral-500">
+                      <span className="text-sm text-neutral-500">
                         {feat}
                       </span>
                     </div>
@@ -168,7 +168,7 @@ const SubscriptionPage = () => {
 
         {/* Payment form for paid plans */}
         {selectedPlanId !== 'trial' && currentCompany && (
-          <div className="border border-neutral-200 rounded-md p-5">
+          <div className="border border-neutral-200 p-4">
             <h3 className="text-sm font-medium text-neutral-900 mb-4">
               Metodo de pago
             </h3>
@@ -187,7 +187,7 @@ const SubscriptionPage = () => {
 
         {/* Summary */}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-light text-neutral-500">Total mensual</span>
+          <span className="text-sm text-neutral-500">Total mensual</span>
           <span className="text-xl font-bold text-neutral-900">
             {selectedPlan?.price || '$0'}
           </span>
@@ -200,7 +200,7 @@ const SubscriptionPage = () => {
           <button
             type="button"
             onClick={() => navigate(ROUTE_PATHS.CREATE_COMPANY)}
-            className="text-sm font-light text-neutral-500 focus:outline-none"
+            className="text-sm text-neutral-500 focus:outline-none"
           >
             &larr; Volver
           </button>
@@ -209,7 +209,7 @@ const SubscriptionPage = () => {
               type="button"
               onClick={handleConfirm}
               disabled={isProcessing}
-              className="flex items-center justify-center px-8 py-3 bg-neutral-900 text-white text-sm font-medium rounded-md transition-colors disabled:opacity-50 focus:outline-none hover:bg-neutral-800"
+              className="flex items-center justify-center px-8 py-3 bg-neutral-900 text-white text-sm font-medium transition-colors disabled:opacity-50 focus:outline-none hover:bg-neutral-900"
             >
               {isProcessing ? 'Procesando...' : 'Confirmar Suscripcion'}
             </button>

@@ -5,11 +5,11 @@ import { CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react';
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 interface ToastContextType {
-  showToast: (msg: string, type?: ToastType) => void;
-  showSuccess: (msg: string) => void;
-  showError: (msg: string) => void;
-  showInfo: (msg: string) => void;
-  showWarning: (msg: string) => void;
+  showToast: (msg: string, type?: ToastType, description?: string) => void;
+  showSuccess: (msg: string, description?: string) => void;
+  showError: (msg: string, description?: string) => void;
+  showInfo: (msg: string, description?: string) => void;
+  showWarning: (msg: string, description?: string) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -24,38 +24,48 @@ export const useToast = () => {
 
 const toastConfig = {
   success: {
-    icon: <CheckCircle className="h-5 w-5 text-brand-700" strokeWidth={2} />,
-    className: 'bg-brand-50 border-brand-200',
+    icon: <CheckCircle className="h-4 w-4 text-green-600" strokeWidth={2} />,
   },
   error: {
-    icon: <XCircle className="h-5 w-5 text-red-700" strokeWidth={2} />,
-    className: 'bg-red-50 border-red-200',
+    icon: <XCircle className="h-4 w-4 text-red-600" strokeWidth={2} />,
   },
   warning: {
-    icon: <AlertTriangle className="h-5 w-5 text-amber-600" strokeWidth={2} />,
-    className: 'bg-amber-50 border-amber-200',
+    icon: <AlertTriangle className="h-4 w-4 text-amber-500" strokeWidth={2} />,
   },
   info: {
-    icon: <Info className="h-5 w-5 text-blue-700" strokeWidth={2} />,
-    className: 'bg-blue-50 border-blue-200',
+    icon: <Info className="h-4 w-4 text-blue-600" strokeWidth={2} />,
   },
 };
 
 export const ToastProvider = ({ children }: { children: ReactNode }) => {
-  const showToast = useCallback((msg: string, type: ToastType = 'info') => {
+  const showToast = useCallback((msg: string, type: ToastType = 'info', description?: string) => {
     const config = toastConfig[type];
 
     toast(msg, {
       icon: config.icon,
+      description,
       duration: 5000,
-      className: `${config.className} border rounded-xl text-neutral-800 font-medium text-sm shadow-md`,
+      className: 'border border-neutral-200 bg-white rounded-md shadow-md',
+      descriptionClassName: 'text-xs text-neutral-500',
     });
   }, []);
 
-  const showSuccess = useCallback((msg: string) => showToast(msg, 'success'), [showToast]);
-  const showError = useCallback((msg: string) => showToast(msg, 'error'), [showToast]);
-  const showInfo = useCallback((msg: string) => showToast(msg, 'info'), [showToast]);
-  const showWarning = useCallback((msg: string) => showToast(msg, 'warning'), [showToast]);
+  const showSuccess = useCallback(
+    (msg: string, description?: string) => showToast(msg, 'success', description),
+    [showToast]
+  );
+  const showError = useCallback(
+    (msg: string, description?: string) => showToast(msg, 'error', description),
+    [showToast]
+  );
+  const showInfo = useCallback(
+    (msg: string, description?: string) => showToast(msg, 'info', description),
+    [showToast]
+  );
+  const showWarning = useCallback(
+    (msg: string, description?: string) => showToast(msg, 'warning', description),
+    [showToast]
+  );
 
   return (
     <ToastContext.Provider value={{ showToast, showSuccess, showError, showInfo, showWarning }}>
@@ -63,8 +73,10 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
         position="top-right"
         toastOptions={{
           style: {
-            padding: '12px 16px',
+            padding: '12px',
             fontSize: '14px',
+            fontWeight: 500,
+            color: '#171717',
           },
         }}
       />

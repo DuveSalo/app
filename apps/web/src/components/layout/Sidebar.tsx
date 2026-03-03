@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { LogOut } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { useNavigationItems } from './useNavigationItems';
@@ -20,57 +21,55 @@ const Sidebar = () => {
 
   return (
     <>
-      <aside className="w-[260px] hidden md:flex flex-col justify-between flex-shrink-0 border-r border-neutral-200 bg-white p-5">
-        {/* Top section: Logo + Nav */}
-        <div className="flex flex-col gap-6">
-          {/* Logo */}
-          <div className="flex items-center gap-3 px-2">
-            <div className="bg-brand-700 rounded-lg flex-shrink-0 w-8 h-8" />
-            <span className="text-base font-bold text-neutral-900 font-[family-name:var(--font-heading)]">
-              Escuela Segura
-            </span>
+      <aside className="hidden md:flex flex-col justify-between flex-shrink-0 border-r border-[var(--sidebar-border)] bg-[var(--sidebar-background)] w-[256px]">
+        {/* Logo */}
+        <div className="flex items-center shrink-0 h-14 border-b border-neutral-200 px-4">
+          <div className="bg-neutral-900 rounded-md flex-shrink-0 w-8 h-8 flex items-center justify-center">
+            <span className="text-white text-xs font-bold">ES</span>
           </div>
-
-          {/* Navigation */}
-          <nav className="flex flex-col gap-0.5">
-            {navItems.map((item) => {
-              const active = isActive(item.path);
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => navigate(item.path)}
-                  className={`w-full flex items-center text-left transition-all duration-200 focus:outline-none gap-3 py-2.5 px-3 rounded-lg ${
-                    active
-                      ? 'bg-brand-50 text-brand-800'
-                      : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700'
-                  }`}
-                >
-                  <div
-                    className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${active ? 'bg-brand-700' : 'bg-transparent'}`}
-                  />
-                  <span
-                    className={`text-sm ${active ? 'font-medium' : 'font-normal'}`}
-                  >
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
-          </nav>
+          <span className="ml-3 text-sm font-semibold text-neutral-900 truncate">
+            Escuela Segura
+          </span>
         </div>
 
-        {/* Bottom section: User */}
-        <button
-          onClick={() => setIsLogoutModalOpen(true)}
-          className="flex items-center transition-all duration-200 focus:outline-none gap-3 px-2 py-2 rounded-lg hover:bg-neutral-50"
-        >
-          <div className="flex items-center justify-center bg-brand-700 text-white rounded-lg flex-shrink-0 w-9 h-9 text-xs font-semibold">
-            {userInitials}
-          </div>
-          <span className="text-sm font-medium text-neutral-700">
-            {currentUser?.name}
-          </span>
-        </button>
+        {/* Navigation */}
+        <nav className="flex flex-col gap-0.5 mt-2 overflow-y-auto min-h-0 flex-1 custom-scrollbar px-2">
+          {navItems.map((item) => {
+            const active = isActive(item.path);
+            return (
+              <button
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                className={`w-full flex items-center text-left rounded-md transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 gap-2.5 py-1.5 px-2.5 text-sm ${
+                  active
+                    ? 'font-medium text-white bg-neutral-900'
+                    : 'text-neutral-500 hover:bg-[var(--sidebar-accent)] hover:text-neutral-900'
+                }`}
+              >
+                <span className="truncate">{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Bottom section */}
+        <div className="border-t border-neutral-200 p-2">
+          {/* User */}
+          <button
+            onClick={() => setIsLogoutModalOpen(true)}
+            className="w-full flex items-center rounded-md transition-colors duration-150 hover:bg-neutral-100 outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 mt-0.5 gap-2.5 py-1.5 px-2.5"
+          >
+            <div className="flex items-center justify-center bg-neutral-900 text-white rounded-md flex-shrink-0 w-7 h-7 text-[10px] font-medium">
+              {userInitials}
+            </div>
+            <div className="flex-1 min-w-0 flex items-center justify-between">
+              <span className="text-sm font-medium text-neutral-900 truncate">
+                {currentUser?.name}
+              </span>
+              <LogOut className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" strokeWidth={1.75} />
+            </div>
+          </button>
+        </div>
       </aside>
 
       <ConfirmDialog
@@ -88,3 +87,4 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+

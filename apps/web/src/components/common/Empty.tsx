@@ -9,16 +9,16 @@ import {
   type LucideIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from './Button';
+import { Button } from '@/components/ui/button';
 
 const emptyVariants = cva(
   'flex flex-col items-center justify-center text-center',
   {
     variants: {
       size: {
-        sm: 'py-6 gap-3',
-        md: 'py-10 gap-4',
-        lg: 'py-14 gap-5',
+        sm: 'py-5 gap-2.5',
+        md: 'py-8 gap-3',
+        lg: 'py-12 gap-4',
       },
     },
     defaultVariants: {
@@ -28,9 +28,9 @@ const emptyVariants = cva(
 );
 
 const iconSizeMap: Record<string, string> = {
-  sm: 'h-8 w-8',
-  md: 'h-10 w-10',
-  lg: 'h-12 w-12',
+  sm: 'h-7 w-7',
+  md: 'h-9 w-9',
+  lg: 'h-11 w-11',
 };
 
 const presetIcons: Record<string, LucideIcon> = {
@@ -51,7 +51,7 @@ export interface EmptyProps extends HTMLAttributes<HTMLDivElement> {
   action?: {
     label: string;
     onClick: () => void;
-    variant?: 'primary' | 'secondary' | 'outline';
+    variant?: 'default' | 'secondary' | 'outline';
   };
 }
 
@@ -70,26 +70,16 @@ export const Empty = ({
 
   return (
     <div className={cn(emptyVariants({ size: currentSize }), className)} {...props}>
-      <div className="bg-neutral-100 p-4 rounded-2xl border border-neutral-200">
+      <div className="bg-neutral-100 p-3 rounded-md border border-neutral-200">
         <IconComponent className={cn(iconSize, 'text-neutral-400')} strokeWidth={1.5} />
       </div>
 
-      <div className="space-y-1">
-        <h3 className={cn(
-          'font-medium text-neutral-900 tracking-tight',
-          currentSize === 'sm' && 'text-sm',
-          currentSize === 'md' && 'text-base',
-          currentSize === 'lg' && 'text-lg'
-        )}>
+      <div className="space-y-0.5">
+        <h3 className="text-sm font-medium text-neutral-900">
           {title}
         </h3>
         {description && (
-          <p className={cn(
-            'text-neutral-500 max-w-sm mx-auto',
-            currentSize === 'sm' && 'text-xs',
-            currentSize === 'md' && 'text-sm',
-            currentSize === 'lg' && 'text-base'
-          )}>
+          <p className="text-xs text-neutral-500 max-w-sm mx-auto">
             {description}
           </p>
         )}
@@ -97,10 +87,10 @@ export const Empty = ({
 
       {action && (
         <Button
-          variant={action.variant || 'primary'}
-          size={currentSize}
+          variant={action.variant || 'default'}
+          size="sm"
           onClick={action.onClick}
-          className="mt-2"
+          className="mt-1"
         >
           {action.label}
         </Button>
@@ -117,7 +107,7 @@ export const EmptySearch = ({
   <Empty
     icon="search"
     title="Sin resultados"
-    description={description || (query ? `No se encontraron resultados para "${query}"` : 'No se encontraron resultados para tu búsqueda')}
+    description={description || (query ? `No se encontraron resultados para "${query}"` : 'No se encontraron resultados para tu busqueda')}
     {...props}
   />
 );

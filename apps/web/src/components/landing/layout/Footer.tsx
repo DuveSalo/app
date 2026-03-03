@@ -18,13 +18,13 @@ const FOOTER_LINKS = {
 
 export function Footer() {
   return (
-    <footer className="bg-warm-900 text-warm-400">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
+    <footer className="bg-neutral-900 text-neutral-400">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand column */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-700 text-white">
+              <div className="flex h-9 w-9 items-center justify-center bg-neutral-900 text-white rounded-md">
                 <svg
                   width="18"
                   height="18"
@@ -55,11 +55,11 @@ export function Footer() {
                   />
                 </svg>
               </div>
-              <span className="text-lg font-semibold text-white font-[family-name:var(--font-heading)]">
+              <span className="text-lg font-semibold text-white ">
                 Escuela Segura
               </span>
             </div>
-            <p className="text-sm leading-relaxed text-warm-500 max-w-xs">
+            <p className="text-sm leading-relaxed text-neutral-500 max-w-xs">
               Plataforma integral para la gestión de seguridad, documentación y
               cumplimiento normativo en instituciones educativas.
             </p>
@@ -68,7 +68,7 @@ export function Footer() {
           {/* Link columns */}
           {Object.entries(FOOTER_LINKS).map(([title, links]) => (
             <div key={title}>
-              <h3 className="text-sm font-semibold text-white mb-4 font-[family-name:var(--font-heading)]">
+              <h3 className="text-sm font-semibold text-white mb-4 ">
                 {title}
               </h3>
               <ul className="space-y-3">
@@ -76,7 +76,7 @@ export function Footer() {
                   <li key={link.label}>
                     <a
                       href={link.href}
-                      className="text-sm text-warm-500 hover:text-white transition-colors"
+                      className="text-sm text-neutral-500 hover:text-white transition-colors"
                     >
                       {link.label}
                     </a>
@@ -88,12 +88,12 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 pt-8 border-t border-warm-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-warm-600">
+        <div className="mt-12 pt-8 border-t border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-neutral-600">
             &copy; {new Date().getFullYear()} Escuela Segura. Todos los
             derechos reservados.
           </p>
-          <p className="text-xs text-warm-600">Hecho en Argentina</p>
+          <p className="text-xs text-neutral-600">Hecho en Argentina</p>
         </div>
       </div>
     </footer>

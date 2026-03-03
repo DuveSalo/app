@@ -1,91 +1,96 @@
 # CLAUDE.md
 
-## Project
-
-Escuela Segura — safety compliance management SaaS for schools (Next.js + Supabase).
-
-## Monorepo Structure
-
-pnpm workspace with apps and packages:
-
-```
-escuela-segura-monorepo/
-├── apps/web/          # Next.js 16 app (React 19 + TypeScript)
-├── packages/          # Shared packages (future)
-├── supabase/          # Edge Functions + config
-└── pnpm-workspace.yaml
-```
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Commands
 
 ```bash
-# Root (runs across all packages)
-pnpm dev / build / test / lint
+# Development
+pnpm install                          # Install all workspace dependencies
+pnpm dev                              # Start Next.js dev server (port 3000)
+pnpm build                            # Production build (all workspaces)
 
-# Web app (from apps/web/)
-pnpm dev              # next dev
-pnpm build            # next build
-pnpm test             # vitest
-pnpm test:run         # vitest run
-pnpm test:coverage    # vitest run --coverage
-pnpm test:e2e         # playwright test
-pnpm format           # prettier
+# Testing
+cd apps/web
+pnpm test                             # Vitest watch mode
+pnpm test:run                         # Vitest single run
+pnpm vitest run src/lib/utils/dateUtils.test.ts   # Run a single test file
+pnpm test:coverage                    # Unit tests with coverage
+pnpm test:e2e                         # Playwright E2E (must have dev server running)
+pnpm test:e2e:headed                  # E2E in headed browser
+
+# Formatting
+cd apps/web && pnpm format            # Prettier
+
+# Supabase
+npx supabase start                    # Local Supabase
+npx supabase functions serve          # Serve Edge Functions locally
+npx supabase db push                  # Push migrations to remote
+npx supabase functions deploy <name>  # Deploy a single Edge Function
 ```
 
 ## Architecture
 
-All app code lives in `apps/web/src/`:
+**Monorepo**: pnpm workspace — `apps/web` (Next.js 16 + React 19), `supabase/` (Edge Functions + migrations), `e2e/` (Playwright).
 
-- **Landing page**: Next.js App Router — `src/app/page.tsx` (SSR, SEO, structured data)
-- **SPA dashboard**: `src/app/app/[[...slug]]/` — client-only catch-all that mounts the React Router SPA under `/app`
-- **Features**: `src/features/{name}/` — domain modules with `components/`, `hooks/`, `types.ts`
-- **Common UI**: `src/components/common/` (Button, Input, Select, Card, Table, etc.)
-- **Landing UI**: `src/components/landing/` (Header, Footer, Hero, Features, Pricing, etc.)
-- **shadcn/ui**: `src/components/ui/` — base components, do NOT modify
-- **Layouts**: PageLayout (all main pages), AuthLayout (split for login, wizard for onboarding)
-- **API services**: `src/lib/api/services/` — one file per entity, prefer explicit `.select()` columns, `mapXFromDb` mappers
-- **Edge Functions**: `supabase/functions/` — MercadoPago billing lifecycle (see deep dives)
-- **Types**: `src/types/` + auto-generated `database.types.ts`
+**Hybrid routing**: Next.js App Router handles SSR pages (`/`, `/privacidad`, `/terminos`). A catch-all route at `src/app/app/[[...slug]]/` mounts a React Router SPA (basename `/app`) for the entire authenticated dashboard. All SPA page components are `React.lazy()` loaded.
 
-## Key Files
+**State**: Single `AuthContext` (user + company + auth methods). No Redux/Zustand — pages use local `useState`/`useEffect`. Custom `useForm` and `useEntityForm` hooks for form management.
 
-- `apps/web/src/app/layout.tsx` — Root layout with metadata, fonts, JSON-LD
-- `apps/web/src/app/page.tsx` — Landing page (SSR)
-- `apps/web/src/app/app/[[...slug]]/client.tsx` — Client-only SPA mount (BrowserRouter, basename `/app`)
-- `apps/web/src/App.tsx` — React Router with `React.lazy()` routes (SPA dashboard)
-- `apps/web/src/routes/ProtectedRoute.tsx` — 3-level guard: user → company → subscription
-- `apps/web/src/features/auth/AuthContext.tsx` — global auth state
-- `apps/web/src/lib/env.ts` — Zod-validated env config (always import from here, not `process.env`)
+**Backend**: Supabase (Postgres + Auth + Storage + Edge Functions). Auth uses PKCE flow. All DB interaction goes through service files in `src/lib/api/services/` with mapper functions converting snake_case rows to camelCase domain types.
 
-## Auth Flow
+**Payments**: MercadoPago subscriptions managed via Supabase Edge Functions (`supabase/functions/mp-*`).
 
-Google OAuth → AuthContext → ProtectedRoute → Onboarding: Login → Create Company → Subscribe (MercadoPago) → Dashboard
+### Key directories (`apps/web/src/`)
 
-## Environment Variables
+| Path | Purpose |
+|---|---|
+| `features/{name}/` | Domain modules — page components + feature-specific components/hooks |
+| `components/common/` | Shared UI: Button, Input, Select, Table, Modal, Toast, etc. (custom CVA-based) |
+| `components/ui/` | **shadcn/ui primitives — do NOT modify** |
+| `components/layout/` | MainLayout, Sidebar, MobileNav, PageLayout, AuthLayout |
+| `lib/api/services/` | One service file per entity (auth, company, certificate, etc.) |
+| `lib/api/mappers.ts` | DB row → domain type converters |
+| `lib/supabase/client.ts` | Typed Supabase client singleton |
+| `lib/utils/` | Error classes, logger, dateUtils, validation, sanitization |
+| `lib/env.ts` | Zod-validated env config — always import `env` from here, never `process.env` |
+| `routes/` | Route config (`routes.config.ts`) + `ProtectedRoute` auth guard |
+| `constants/` | `ROUTE_PATHS`, `MODULE_TITLES`, config values |
+| `types/` | Domain types + `database.types.ts` (auto-generated from Supabase) |
+
+### Feature module pattern
+
+Canonical example: `features/fire-extinguishers/`
 
 ```
-NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, NEXT_PUBLIC_MP_PUBLIC_KEY
-NEXT_PUBLIC_GEMINI_API_KEY (optional), NEXT_PUBLIC_LOG_LEVEL (optional: debug|info|warn|error)
+fire-extinguishers/
+├── components/          # Feature-specific UI
+├── hooks/               # Feature-specific hooks
+├── types.ts             # Feature-specific types (when needed)
+├── FireExtinguisherListPage.tsx
+└── CreateEditFireExtinguisherPage.tsx
 ```
 
-## Design System
+### Layout hierarchy
 
-**Typography**: Bricolage Grotesque (headings, `--font-heading`), Outfit (body, `--font-sans`), JetBrains Mono (`--font-mono`).
-**Primary color**: `brand-700` (#1A5C52, deep teal) for buttons, active states, accents.
-**Neutrals**: Warm stone palette (`neutral-*`). Use `neutral-*` for all gray tones (NEVER `slate-*` or `gray-*`).
-**Status colors**: `brand-*` (success/valid), `amber` (warning), `red` (danger), `blue` (info).
-**Shadows**: Real shadows enabled — `shadow-card`, `shadow-md`, `shadow-dropdown`, etc.
-**Border radius**: Generous — `rounded-lg` (inputs), `rounded-xl` (cards, badges), `rounded-2xl` (modals, large cards).
-**Headings**: Always add `font-[family-name:var(--font-heading)]` to h1/h2/h3 and card titles.
+`MainLayout` (sidebar + content) → `PageLayout` (header + body + optional footer) → feature page content. Auth flows use `AuthLayout` with `split` (login/register) or `wizard` (onboarding) variants.
+
+### ProtectedRoute guard (4 levels)
+
+1. No user → `/login`
+2. No company → `/create-company`
+3. No active subscription/trial → `/trial-expired` or `/subscribe`
+4. Already-onboarded user on auth pages → `/dashboard`
 
 ## Conventions
 
-- Canonical feature pattern: `apps/web/src/features/fire-extinguishers/`
-- Path alias: `@/*` → `apps/web/src/*`
-- Package manager: **pnpm** (never npm/yarn)
-- Landing pages use Next.js App Router (SSR); dashboard uses client-only SPA via React Router
-
-## Deep Dives
-
-- [Architecture & service layer](.claude/docs/architecture.md)
-- [Edge Functions & MercadoPago billing](.claude/docs/supabase-edge-functions.md)
+- **Env vars**: Use `NEXT_PUBLIC_` prefix. Add to Zod schema in `lib/env.ts` before use. Import `env` from `@/lib/env`, never `process.env` directly.
+- **Services**: One file per entity. Use explicit `.select('col1, col2')` over `.select('*')`. Always run results through `mapXFromDb()` mappers.
+- **Error handling**: Use `handleSupabaseError()` to wrap Supabase errors. Typed hierarchy: `AppError` → `AuthError`, `ValidationError`, `NotFoundError`, `DatabaseError`, `NetworkError`.
+- **Icons**: Lucide exclusively (`lucide-react`).
+- **Styling**: Tailwind v4 (CSS-first config in `globals.css`). shadcn/ui `new-york` style with `neutral` palette. CVA for component variants.
+- **Dates**: `date-fns` for all date operations.
+- **XSS**: Sanitize user input with `lib/utils/sanitize.ts` (DOMPurify).
+- **Supabase Edge Functions**: Auth pattern is extract JWT → verify → business logic. Use `_shared/supabase-admin.ts` for RLS bypass. CORS via `_shared/cors.ts`.
+- **Migrations**: Name as `YYYYMMDD[_sequence]_description.sql`. Use `IF NOT EXISTS`. Every new table must have RLS policies.
+- **Types**: `database.types.ts` is auto-generated from Supabase — don't edit manually.

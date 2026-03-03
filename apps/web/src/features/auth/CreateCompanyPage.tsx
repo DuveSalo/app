@@ -115,7 +115,7 @@ const CreateCompanyPage = () => {
   return (
     <AuthLayout variant="wizard" wizardSteps={wizardSteps} currentStep={2}>
       {showSuccessMessage && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-md p-4 mb-4 max-w-[680px] w-full">
+        <div className="bg-emerald-50 border border-emerald-200 p-4 mb-4 max-w-[680px] w-full">
           <p className="text-sm font-medium text-emerald-600">
             Email confirmado! Ahora complete los datos de su empresa.
           </p>
@@ -124,14 +124,14 @@ const CreateCompanyPage = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="bg-white border border-neutral-200 rounded-md flex flex-col w-full max-w-[680px] p-10 gap-6"
+        className="bg-white border border-neutral-200 flex flex-col w-full max-w-[680px] p-8 gap-5"
       >
         {/* Header */}
         <div className="flex flex-col gap-2">
           <h2 className="text-2xl font-medium text-neutral-900">
             Datos de la Empresa
           </h2>
-          <p className="text-sm font-light text-neutral-500">
+          <p className="text-sm text-neutral-500">
             Ingresa la informacion de tu institucion.
           </p>
         </div>
@@ -143,7 +143,7 @@ const CreateCompanyPage = () => {
             <input
               type="text" name="name" value={formData.name} onChange={handleChange}
               placeholder="Ej: Escuela N 5"
-              className="w-full h-11 px-3.5 text-sm text-neutral-900 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-900"
+              className="w-full h-10 px-3.5 text-sm text-neutral-900 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-900"
             />
             {formErrors.name && <span className="text-xs text-red-600">{formErrors.name}</span>}
           </div>
@@ -153,7 +153,7 @@ const CreateCompanyPage = () => {
               <input
                 type="text" name="cuit" value={formData.cuit} onChange={handleChange}
                 placeholder="30-12345678-9" maxLength={13}
-                className="w-full h-11 px-3.5 text-sm text-neutral-900 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                className="w-full h-10 px-3.5 text-sm text-neutral-900 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-900"
               />
               {formErrors.cuit && <span className="text-xs text-red-600">{formErrors.cuit}</span>}
             </div>
@@ -162,7 +162,7 @@ const CreateCompanyPage = () => {
               <input
                 type="text" name="postalCode" value={formData.postalCode} onChange={handleChange}
                 placeholder="1425" maxLength={8}
-                className="w-full h-11 px-3.5 text-sm text-neutral-900 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                className="w-full h-10 px-3.5 text-sm text-neutral-900 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-900"
               />
               {formErrors.postalCode && <span className="text-xs text-red-600">{formErrors.postalCode}</span>}
             </div>
@@ -172,7 +172,7 @@ const CreateCompanyPage = () => {
               <label className="text-sm font-medium text-neutral-900">Pais</label>
               <select
                 name="country" value={formData.country} onChange={handleSelectChange}
-                className="w-full h-11 px-3.5 text-sm text-neutral-900 border border-neutral-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                className="w-full h-10 px-3.5 text-sm text-neutral-900 border border-neutral-200 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900"
               >
                 <option value="">Seleccione</option>
                 {COUNTRIES.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
@@ -183,7 +183,7 @@ const CreateCompanyPage = () => {
               <select
                 name="province" value={formData.province} onChange={handleSelectChange}
                 disabled={!formData.country}
-                className="w-full h-11 px-3.5 text-sm text-neutral-900 border border-neutral-200 rounded-md bg-white disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                className="w-full h-10 px-3.5 text-sm text-neutral-900 border border-neutral-200 rounded-md bg-white disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-neutral-900"
               >
                 <option value="">Seleccione</option>
                 {availableProvinces.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
@@ -195,7 +195,7 @@ const CreateCompanyPage = () => {
             <input
               type="text" name="address" value={formData.address} onChange={handleChange}
               placeholder="Av. del Libertador 5252"
-              className="w-full h-11 px-3.5 text-sm text-neutral-900 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-900"
+              className="w-full h-10 px-3.5 text-sm text-neutral-900 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-900"
             />
             {formErrors.address && <span className="text-xs text-red-600">{formErrors.address}</span>}
           </div>
@@ -215,7 +215,7 @@ const CreateCompanyPage = () => {
                   key={opt.value}
                   type="button"
                   onClick={() => toggleService(opt.value)}
-                  className={`flex items-center px-3.5 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className={`flex items-center px-3.5 py-2 text-sm font-medium transition-colors ${
                     isSelected
                       ? 'bg-neutral-900 text-white'
                       : 'bg-transparent text-neutral-900 border border-neutral-200 hover:bg-neutral-50'
@@ -235,14 +235,14 @@ const CreateCompanyPage = () => {
           <button
             type="button"
             onClick={() => navigate(ROUTE_PATHS.REGISTER)}
-            className="text-sm font-light text-neutral-500 focus:outline-none"
+            className="text-sm text-neutral-500 focus:outline-none"
           >
             &larr; Volver
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="flex items-center justify-center px-8 py-3 bg-neutral-900 text-white text-sm font-medium rounded-md transition-colors disabled:opacity-50 focus:outline-none hover:bg-neutral-800"
+            className="flex items-center justify-center px-8 py-3 bg-neutral-900 text-white text-sm font-medium transition-colors disabled:opacity-50 focus:outline-none hover:bg-neutral-900"
           >
             {isLoading ? 'Guardando...' : 'Continuar'}
           </button>

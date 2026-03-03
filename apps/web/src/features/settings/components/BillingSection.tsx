@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button } from '../../../components/common/Button';
+import { Button } from '@/components/ui/button';
 import { CheckIcon, ReceiptIcon, XCircleIcon } from '../../../components/common/Icons';
 import { plansData } from '../../auth/SubscriptionPage';
 import { CardForm } from '../../auth/components/CardForm';
@@ -47,7 +47,7 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   pending: { label: 'Pendiente', className: 'bg-amber-50 text-amber-700' },
   suspended: { label: 'Suspendida', className: 'bg-amber-50 text-amber-700' },
   cancelled: { label: 'Cancelada', className: 'bg-red-50 text-red-700' },
-  expired: { label: 'Expirada', className: 'bg-gray-100 text-neutral-600' },
+  expired: { label: 'Expirada', className: 'bg-neutral-100 text-neutral-600' },
 };
 
 const PAYMENT_STATUS_CONFIG: Record<string, { label: string; className: string }> = {
@@ -132,12 +132,12 @@ export const BillingSection = ({
   const renderPlanSelector = () => (
     <>
       {/* Plan cards */}
-      <div className="space-y-2 mb-5">
+      <div className="space-y-2 mb-4">
         {plansData.map((plan) => (
           <div
             key={plan.id}
             onClick={() => { setSelectedPlanId(plan.id); setPlanError(''); }}
-            className={`flex items-center gap-3 p-3 rounded-md border cursor-pointer transition-all ${
+            className={`flex items-center gap-3 p-3 border cursor-pointer transition-all ${
               selectedPlanId === plan.id
                 ? 'border-neutral-900 ring-1 ring-neutral-900 bg-white'
                 : 'border-neutral-200 hover:border-neutral-300 bg-white'
@@ -145,7 +145,7 @@ export const BillingSection = ({
           >
             {/* Radio */}
             <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-              selectedPlanId === plan.id ? 'border-neutral-900 bg-neutral-900' : 'border-gray-300'
+              selectedPlanId === plan.id ? 'border-neutral-900 bg-neutral-900' : 'border-neutral-300'
             }`}>
               {selectedPlanId === plan.id && (
                 <div className="w-1.5 h-1.5 rounded-full bg-white" />
@@ -157,7 +157,7 @@ export const BillingSection = ({
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-neutral-900">{plan.name}</span>
                 {plan.tag && (
-                  <span className="text-xs font-medium rounded-md bg-neutral-900 text-white px-2 py-0.5">
+                  <span className="text-xs font-medium bg-neutral-900 text-white px-2 py-0.5">
                     {plan.tag}
                   </span>
                 )}
@@ -184,9 +184,9 @@ export const BillingSection = ({
       {/* Payment Form */}
       <div className="relative">
         {isProcessing && (
-          <div className="absolute inset-0 bg-white/90 flex items-center justify-center z-10 rounded-md">
+          <div className="absolute inset-0 bg-white/90 flex items-center justify-center z-10">
             <div className="text-center">
-              <div className="w-6 h-6 border-2 border-gray-300 border-t-neutral-900 rounded-full animate-spin mx-auto mb-2" />
+              <div className="w-6 h-6 border-2 border-neutral-300 border-t-neutral-900 rounded-full animate-spin mx-auto mb-2" />
               <p className="text-sm text-neutral-500">Procesando suscripcion...</p>
             </div>
           </div>
@@ -224,14 +224,14 @@ export const BillingSection = ({
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
 
       {/* Trial info card */}
       {!subscription && trialEndsAt && (
-        <div className="bg-blue-50 rounded-md border border-blue-200 p-6">
+        <div className="bg-blue-50 border border-blue-200 p-5">
           <div className="flex items-center gap-2 mb-2">
             <h3 className="text-sm font-medium text-blue-900">Periodo de prueba</h3>
-            <span className="text-xs font-medium px-2.5 py-1 rounded-md bg-blue-100 text-blue-700">
+            <span className="text-xs font-medium px-2.5 py-1 bg-blue-100 text-blue-700">
               Activo
             </span>
           </div>
@@ -248,12 +248,12 @@ export const BillingSection = ({
       )}
 
       {/* SECTION 1: Plan */}
-      <div className="bg-white rounded-md border border-neutral-200 p-6">
+      <div className="bg-white border border-neutral-200 p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-medium text-neutral-900">Plan</h3>
             {statusConfig && (
-              <span className={`text-xs font-medium px-2.5 py-1 rounded-md ${statusConfig.className}`}>
+              <span className={`text-xs font-medium px-2.5 py-1 ${statusConfig.className}`}>
                 {statusConfig.label}
               </span>
             )}
@@ -317,7 +317,7 @@ export const BillingSection = ({
 
       {/* SECTION 2: Payment method */}
       {subscription && !needsSubscription && (
-        <div className="bg-white rounded-md border border-neutral-200 p-6">
+        <div className="bg-white border border-neutral-200 p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-neutral-900">Metodo de pago</h3>
             {canChangePlan && (
@@ -338,9 +338,9 @@ export const BillingSection = ({
           {!showChangePayment && (
             <div className="flex items-center gap-4">
               {/* Mini card visual */}
-              <div className="w-[72px] h-[46px] rounded-md bg-gradient-to-br from-gray-800 to-gray-950 p-2 flex flex-col justify-between flex-shrink-0">
+              <div className="w-[72px] h-[46px] bg-gradient-to-br from-neutral-800 to-neutral-950 p-2 flex flex-col justify-between flex-shrink-0">
                 <div className="w-5 h-3.5 rounded-sm bg-gradient-to-br from-amber-300 to-amber-500 opacity-80" />
-                <p className="text-xs tracking-widest text-gray-400 font-mono">
+                <p className="text-xs tracking-widest text-neutral-400 font-mono">
                   {cardLastFour ? `.... ${cardLastFour}` : '.... ....'}
                 </p>
               </div>
@@ -392,9 +392,9 @@ export const BillingSection = ({
 
       {/* SECTION 3: Payment history */}
       {payments.length > 0 && (
-        <div className="bg-white rounded-md border border-neutral-200 p-6">
+        <div className="bg-white border border-neutral-200 p-5">
           <div className="flex items-center gap-2 mb-4">
-            <ReceiptIcon className="w-4 h-4 text-gray-400" />
+            <ReceiptIcon className="w-4 h-4 text-neutral-400" />
             <h3 className="text-sm font-medium text-neutral-900">Historial de pagos</h3>
           </div>
           <div className="space-y-3">
@@ -425,9 +425,9 @@ export const BillingSection = ({
 
       {/* SECTION 4: Cancel plan */}
       {subscription && !needsSubscription && (
-        <div className="bg-white rounded-md border border-neutral-200 p-6">
+        <div className="bg-white border border-neutral-200 p-5">
           <div className="flex items-center gap-2 mb-4">
-            <XCircleIcon className="w-4 h-4 text-gray-400" />
+            <XCircleIcon className="w-4 h-4 text-neutral-400" />
             <h3 className="text-sm font-medium text-neutral-900">Cancelar plan</h3>
           </div>
 
@@ -455,7 +455,7 @@ export const BillingSection = ({
                   <p className="text-sm text-red-600">Confirmar cancelacion?</p>
                   <Button
                     type="button"
-                    variant="danger"
+                    variant="destructive"
                     onClick={handleCancel}
                     loading={actionLoading}
                     disabled={isLoading}

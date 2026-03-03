@@ -4,7 +4,7 @@ import { SectionProps } from '../types';
 export const CabinetSection = ({ formData, onChange }: SectionProps) => {
   return (
     <div className="space-y-4">
-      <p className="text-sm font-light text-neutral-500">Indique el estado del gabinete donde se encuentra el extintor.</p>
+      <p className="text-sm text-neutral-500">Indique el estado del gabinete donde se encuentra el extintor.</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Select
           label="El vidrio esta en condiciones?"

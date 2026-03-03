@@ -1,6 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { Button } from './Button';
+import { Button } from '@/components/ui/button';
 import { logger } from '../../lib/utils/logger';
 
 interface ErrorBoundaryProps {
@@ -46,19 +46,19 @@ class ErrorBoundaryClass extends Component<ErrorBoundaryProps, ErrorBoundaryStat
 
       return (
         <div className="min-h-screen flex items-center justify-center bg-white px-4">
-          <div className="max-w-md w-full bg-white rounded-md border border-neutral-200 p-8 text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-red-50 rounded-md border border-red-200 mb-6">
-              <AlertTriangle className="w-6 h-6 text-red-600" strokeWidth={2} />
+          <div className="max-w-md w-full bg-white rounded-lg border border-neutral-200 p-6 text-center">
+            <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-red-50 border border-red-200 mb-4">
+              <AlertTriangle className="w-5 h-5 text-red-600" strokeWidth={2} />
             </div>
-            <h1 className="text-xl font-bold text-neutral-900 mb-2 tracking-tight">
-              Algo salió mal
+            <h1 className="text-base font-semibold text-neutral-900 mb-1">
+              Algo salio mal
             </h1>
-            <p className="text-sm text-neutral-500 mb-6 leading-relaxed">
-              Lo sentimos, ocurrió un error inesperado. Por favor intenta recargar la página.
+            <p className="text-sm text-neutral-500 mb-5 leading-relaxed">
+              Lo sentimos, ocurrio un error inesperado. Por favor intenta recargar la pagina.
             </p>
             {error && (
-              <details className="text-left mb-6 p-3 bg-neutral-50 border border-neutral-200 rounded-md">
-                <summary className="cursor-pointer text-sm font-medium text-neutral-700 mb-2">
+              <details className="text-left mb-5 p-3 rounded-md bg-neutral-50 border border-neutral-200">
+                <summary className="cursor-pointer text-sm font-medium text-neutral-700">
                   Detalles del error
                 </summary>
                 <div className="pt-2 border-t border-neutral-200 mt-2">
@@ -68,15 +68,16 @@ class ErrorBoundaryClass extends Component<ErrorBoundaryProps, ErrorBoundaryStat
                 </div>
               </details>
             )}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="flex flex-col sm:flex-row gap-2 justify-center">
               <Button
-                variant="primary"
+                size="sm"
                 onClick={() => window.location.reload()}
               >
-                Recargar página
+                Recargar pagina
               </Button>
               <Button
                 variant="outline"
+                size="sm"
                 onClick={this.handleReset}
               >
                 Intentar de nuevo

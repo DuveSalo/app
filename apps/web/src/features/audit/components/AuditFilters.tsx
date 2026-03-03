@@ -26,7 +26,7 @@ export const AuditFilters = ({
   );
 
   return (
-    <div className="bg-white border border-neutral-200 rounded-md p-4">
+    <div className="bg-white border border-neutral-200 p-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-medium text-neutral-900">Filtros</h3>
         {hasActiveFilters && (

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { QRDocumentType } from '../../types/index';
 import * as api from '@/lib/api/services';
-import { Button } from '../../components/common/Button';
+import { Button } from '@/components/ui/button';
 import { FileUpload } from '../../components/common/FileUpload';
 import { DatePicker } from '../../components/common/DatePicker';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
@@ -101,14 +101,14 @@ const EditQRDocumentPage = ({ qrType, title, listPath }: EditQRDocumentPageProps
       <div className="h-full overflow-y-auto custom-scrollbar">
         <div className="max-w-2xl space-y-6">
           <form id="edit-form" onSubmit={handleSubmit} className="space-y-5">
-            <div className="p-4 bg-neutral-50 rounded-md border border-neutral-200">
+            <div className="p-4 bg-neutral-50 border border-neutral-200">
               <h3 className="text-sm font-medium text-neutral-900 mb-3">Archivo actual</h3>
               <div className="flex items-center justify-between">
                 <p className="text-sm text-neutral-500">{currentFileName || 'Sin archivo'}</p>
                 {currentPdfUrl && (
                   <button
                     type="button"
-                    className="inline-flex items-center justify-center px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-md transition-colors"
+                    className="inline-flex items-center justify-center px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
                     onClick={() => window.open(currentPdfUrl, '_blank')}
                     title="Ver PDF actual"
                   >

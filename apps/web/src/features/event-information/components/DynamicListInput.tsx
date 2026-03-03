@@ -1,5 +1,5 @@
 import { Plus, Trash2 } from 'lucide-react';
-import { Button } from '@/components/common/Button';
+import { Button } from '@/components/ui/button';
 
 interface DynamicListInputProps {
   label: string;
@@ -46,9 +46,9 @@ export const DynamicListInput = ({
       )}
       <div className="space-y-3">
         {items.map((item, index) => (
-          <div key={index} className="bg-white rounded-md border border-neutral-200">
+          <div key={index} className="bg-white border border-neutral-200">
             <div className="flex items-center gap-3 p-3">
-              <div className="flex-shrink-0 w-6 h-6 rounded-md bg-blue-50 text-blue-700 flex items-center justify-center text-xs font-medium">
+              <div className="flex-shrink-0 w-6 h-6 bg-blue-50 text-blue-700 flex items-center justify-center text-xs font-medium">
                 {index + 1}
               </div>
               <textarea
@@ -62,7 +62,7 @@ export const DynamicListInput = ({
                 type="button"
                 onClick={() => removeItem(index)}
                 disabled={items.length <= minItems}
-                className="flex-shrink-0 p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-neutral-400 disabled:hover:bg-transparent"
+                className="flex-shrink-0 p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:text-neutral-400 disabled:hover:bg-transparent"
                 aria-label={`Eliminar ${label.toLowerCase()} ${index + 1}`}
               >
                 <Trash2 className="w-5 h-5" />

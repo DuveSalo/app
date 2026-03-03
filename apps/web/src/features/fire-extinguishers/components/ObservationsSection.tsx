@@ -8,7 +8,7 @@ interface ObservationsSectionProps extends SectionProps {
 export const ObservationsSection = ({ formData, onChange, formError }: ObservationsSectionProps) => {
   return (
     <div className="space-y-4">
-      <p className="text-sm font-light text-neutral-500">Agregue cualquier observacion adicional sobre el control del extintor.</p>
+      <p className="text-sm text-neutral-500">Agregue cualquier observacion adicional sobre el control del extintor.</p>
       <Textarea
         label="Observaciones Generales"
         id="observations"

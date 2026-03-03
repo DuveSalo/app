@@ -15,22 +15,22 @@ export const TrialBanner = () => {
   const isUrgent = daysRemaining <= 3;
   const bannerClasses = isUrgent
     ? 'bg-amber-50 border-amber-200 text-amber-800'
-    : 'bg-brand-50 border-brand-200 text-brand-800';
+    : 'bg-neutral-50 border-neutral-200 text-neutral-900';
   const buttonClasses = isUrgent
     ? 'bg-amber-600 hover:bg-amber-700 text-white'
-    : 'bg-brand-700 hover:bg-brand-800 text-white';
+    : 'bg-neutral-900 hover:bg-neutral-800 text-white';
 
   const dayText = daysRemaining === 1 ? 'dia' : 'dias';
 
   return (
-    <div className={`flex items-center justify-between px-4 py-2 border-b text-sm ${bannerClasses}`}>
+    <div className={`flex items-center justify-between h-9 px-4 border-b text-sm ${bannerClasses}`}>
       <p className="font-medium">
         Prueba gratuita: te {daysRemaining === 1 ? 'queda' : 'quedan'}{' '}
-        <span className="font-bold">{daysRemaining} {dayText}</span>
+        <span className="font-semibold">{daysRemaining} {dayText}</span>
       </p>
       <button
         onClick={() => navigate(ROUTE_PATHS.SUBSCRIPTION)}
-        className={`px-3.5 py-1 rounded-lg text-xs font-medium transition-all duration-200 shadow-sm ${buttonClasses}`}
+        className={`rounded-md px-3 py-1 text-xs font-medium transition-colors duration-150 ${buttonClasses}`}
       >
         Suscribirse ahora
       </button>

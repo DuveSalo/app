@@ -32,13 +32,13 @@ export function HowItWorks() {
   const { ref, isInView } = useInView({ threshold: 0.2 });
 
   return (
-    <section className="py-20 lg:py-28 bg-warm-50">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-14">
-          <h2 className="text-3xl md:text-4xl font-bold text-warm-900 tracking-tight font-[family-name:var(--font-heading)]">
+    <section className="py-16 lg:py-24 bg-neutral-50">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-xl mx-auto mb-12">
+          <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 tracking-tight">
             Comience en tres simples pasos
           </h2>
-          <p className="mt-4 text-warm-500 text-lg leading-relaxed">
+          <p className="mt-3 text-neutral-500 text-sm leading-relaxed">
             De la registración al cumplimiento total en minutos.
           </p>
         </div>
@@ -49,9 +49,9 @@ export function HowItWorks() {
           animate={isInView ? "visible" : "hidden"}
           variants={{
             hidden: {},
-            visible: { transition: { staggerChildren: 0.15 } },
+            visible: { transition: { staggerChildren: 0.1 } },
           }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12"
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10"
         >
           {STEPS.map((item, i) => {
             const Icon = item.icon;
@@ -59,33 +59,33 @@ export function HowItWorks() {
               <motion.div
                 key={item.step}
                 variants={{
-                  hidden: { opacity: 0, y: 24 },
+                  hidden: { opacity: 0, y: 16 },
                   visible: {
                     opacity: 1,
                     y: 0,
-                    transition: { duration: 0.5, ease: "easeOut" as const },
+                    transition: { duration: 0.4, ease: "easeOut" as const },
                   },
                 }}
                 className="relative text-center"
               >
                 {/* Connecting line (desktop only) */}
                 {i < STEPS.length - 1 && (
-                  <div className="hidden md:block absolute top-10 left-[60%] w-[80%] h-px bg-gradient-to-r from-brand-300 to-warm-300" />
+                  <div className="hidden md:block absolute top-8 left-[60%] w-[80%] h-px bg-neutral-300" />
                 )}
 
                 <div className="relative inline-flex flex-col items-center">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white border border-warm-200 shadow-sm mb-5">
-                    <Icon className="h-8 w-8 text-brand-700" />
+                  <div className="flex h-16 w-16 items-center justify-center bg-white border border-neutral-200 mb-4 rounded-lg">
+                    <Icon className="h-6 w-6 text-neutral-900" strokeWidth={1.75} />
                   </div>
-                  <span className="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-brand-700 text-white text-xs font-bold font-[family-name:var(--font-mono)]">
+                  <span className="absolute -top-1.5 -right-1.5 flex h-6 w-6 items-center justify-center bg-neutral-900 text-white text-[10px] font-bold font-[family-name:var(--font-mono)] rounded-md">
                     {item.step}
                   </span>
                 </div>
 
-                <h3 className="text-lg font-semibold text-warm-900 mb-2 font-[family-name:var(--font-heading)]">
+                <h3 className="text-sm font-semibold text-neutral-900 mb-1.5">
                   {item.title}
                 </h3>
-                <p className="text-sm text-warm-500 leading-relaxed max-w-xs mx-auto">
+                <p className="text-sm text-neutral-500 leading-relaxed max-w-xs mx-auto">
                   {item.description}
                 </p>
               </motion.div>

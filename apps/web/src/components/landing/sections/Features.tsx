@@ -53,16 +53,16 @@ const FEATURES = [
 const containerVariants = {
   hidden: {},
   visible: {
-    transition: { staggerChildren: 0.08 },
+    transition: { staggerChildren: 0.06 },
   },
 } as const;
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 16 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: "easeOut" as const },
+    transition: { duration: 0.4, ease: "easeOut" as const },
   },
 } as const;
 
@@ -70,13 +70,13 @@ export function Features() {
   const { ref, isInView } = useInView({ threshold: 0.15 });
 
   return (
-    <section id="funcionalidades" className="py-20 lg:py-28 bg-white">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-14">
-          <h2 className="text-3xl md:text-4xl font-bold text-warm-900 tracking-tight font-[family-name:var(--font-heading)]">
-            Todo lo que necesita para cumplir con las normativas
+    <section id="funcionalidades" className="py-16 lg:py-24 bg-white">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-xl mx-auto mb-12">
+          <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 tracking-tight">
+            Todo lo que necesita para cumplir
           </h2>
-          <p className="mt-4 text-warm-500 text-lg leading-relaxed">
+          <p className="mt-3 text-neutral-500 text-sm leading-relaxed">
             Herramientas diseñadas para simplificar la gestión de seguridad en
             instituciones educativas.
           </p>
@@ -87,7 +87,7 @@ export function Features() {
           variants={containerVariants}
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
         >
           {FEATURES.map((feature) => {
             const Icon = feature.icon;
@@ -95,15 +95,15 @@ export function Features() {
               <motion.div
                 key={feature.title}
                 variants={itemVariants}
-                className="group relative rounded-2xl border border-warm-200 bg-white shadow-card p-6 transition-all hover:shadow-card-hover hover:border-brand-200"
+                className="group border border-neutral-200 bg-white p-5 transition-colors hover:border-neutral-300 rounded-lg"
               >
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700 mb-4 transition-colors group-hover:bg-brand-100">
-                  <Icon className="h-5 w-5" />
+                <div className="flex h-9 w-9 items-center justify-center bg-neutral-100 text-neutral-900 mb-3 transition-colors group-hover:bg-neutral-200 rounded-md">
+                  <Icon className="h-4 w-4" strokeWidth={1.75} />
                 </div>
-                <h3 className="text-base font-semibold text-warm-900 mb-2 font-[family-name:var(--font-heading)]">
+                <h3 className="text-sm font-semibold text-neutral-900 mb-1.5">
                   {feature.title}
                 </h3>
-                <p className="text-sm text-warm-500 leading-relaxed">
+                <p className="text-sm text-neutral-500 leading-relaxed">
                   {feature.description}
                 </p>
               </motion.div>

@@ -48,7 +48,7 @@ const DropdownMenu = ({ isOpen, onClose, children }: DropdownMenuProps) => {
     return (
         <div
             ref={ref}
-            className="absolute top-full left-0 z-10 mt-1 min-w-[200px] rounded-md border border-neutral-200 bg-white py-1 animate-fade-in"
+            className="absolute top-full left-0 z-10 mt-1 min-w-[200px] rounded-md bg-white border border-neutral-200 py-1 shadow-md animate-dropdown-in"
         >
             {children}
         </div>
@@ -75,23 +75,23 @@ export const DashboardFilters = ({
     const hasActiveFilters = !!filterStatus || !!filterType;
 
     return (
-        <div className="flex items-center gap-2.5 w-full">
+        <div className="flex items-center flex-wrap gap-2">
             {/* Search */}
-            <div className="flex items-center w-[280px] h-[38px] px-3.5 gap-2.5 shrink-0 rounded-md border border-neutral-200">
-                <Search className="h-4 w-4 text-neutral-400 shrink-0" />
+            <div className="flex items-center w-[260px] h-8 px-3 gap-2 rounded-md border border-neutral-200 flex-shrink-0 bg-white">
+                <Search className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
                 <input
                     type="text"
                     placeholder="Buscar documentos..."
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    className="flex-1 min-w-0 bg-transparent text-sm font-light text-neutral-900 placeholder:text-neutral-400 focus:outline-none"
+                    className="flex-1 min-w-0 text-sm text-neutral-900 bg-transparent border-none focus:outline-none placeholder:text-neutral-400"
                 />
                 {searchQuery && (
                     <button
                         onClick={() => onSearchChange('')}
                         className="focus:outline-none"
                     >
-                        <X className="h-3.5 w-3.5 text-neutral-400" />
+                        <X className="w-3 h-3 text-neutral-400 hover:text-neutral-600" />
                     </button>
                 )}
             </div>
@@ -101,20 +101,20 @@ export const DashboardFilters = ({
                 <button
                     type="button"
                     onClick={() => { setShowSortDropdown(!showSortDropdown); setShowStatusDropdown(false); setShowTypeDropdown(false); }}
-                    className="flex items-center h-[38px] px-3.5 gap-2 rounded-md border border-neutral-200 focus:outline-none"
+                    className="flex items-center h-8 px-3 gap-1.5 rounded-md border border-neutral-200 text-sm font-medium text-neutral-700 bg-white hover:bg-neutral-50 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none"
                 >
-                    <ArrowUpDown className="h-3.5 w-3.5 text-neutral-500" />
-                    <span className="text-sm font-medium text-neutral-900">Ordenar</span>
+                    <ArrowUpDown className="w-3.5 h-3.5 text-neutral-500" />
+                    <span>Ordenar</span>
                 </button>
                 <DropdownMenu isOpen={showSortDropdown} onClose={() => setShowSortDropdown(false)}>
                     {sortOptions.map(option => (
                         <button
                             key={option.value}
                             onClick={() => { onSortChange(option.value); setShowSortDropdown(false); }}
-                            className={`w-full text-left px-3.5 py-2 text-sm focus:outline-none transition-colors hover:bg-neutral-50 ${
+                            className={`w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-neutral-50 focus:outline-none ${
                                 sortBy === option.value
                                     ? 'font-medium text-neutral-900 bg-neutral-50'
-                                    : 'font-light text-neutral-500'
+                                    : 'text-neutral-500'
                             }`}
                         >
                             {option.label}
@@ -128,12 +128,14 @@ export const DashboardFilters = ({
                 <button
                     type="button"
                     onClick={() => { setShowStatusDropdown(!showStatusDropdown); setShowSortDropdown(false); setShowTypeDropdown(false); }}
-                    className={`flex items-center h-[38px] px-3.5 gap-2 rounded-md border focus:outline-none ${
-                        filterStatus ? 'border-neutral-900 border-2' : 'border-neutral-200'
+                    className={`flex items-center h-8 px-3 gap-1.5 rounded-md text-sm font-medium bg-white transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none border ${
+                        filterStatus
+                            ? 'border-neutral-900 text-neutral-900'
+                            : 'border-neutral-200 text-neutral-700 hover:bg-neutral-50'
                     }`}
                 >
-                    <SlidersHorizontal className="h-3.5 w-3.5 text-neutral-500" />
-                    <span className="text-sm font-medium text-neutral-900">
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-neutral-500" />
+                    <span>
                         {filterStatus ? statusOptions.find(o => o.value === filterStatus)?.label : 'Estado'}
                     </span>
                 </button>
@@ -142,10 +144,10 @@ export const DashboardFilters = ({
                         <button
                             key={option.value}
                             onClick={() => { onStatusChange(option.value || undefined); setShowStatusDropdown(false); }}
-                            className={`w-full text-left px-3.5 py-2 text-sm focus:outline-none transition-colors hover:bg-neutral-50 ${
+                            className={`w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-neutral-50 focus:outline-none ${
                                 filterStatus === option.value
                                     ? 'font-medium text-neutral-900 bg-neutral-50'
-                                    : 'font-light text-neutral-500'
+                                    : 'text-neutral-500'
                             }`}
                         >
                             {option.label}
@@ -160,22 +162,24 @@ export const DashboardFilters = ({
                     <button
                         type="button"
                         onClick={() => { setShowTypeDropdown(!showTypeDropdown); setShowSortDropdown(false); setShowStatusDropdown(false); }}
-                        className={`flex items-center h-[38px] px-3.5 gap-2 rounded-md border focus:outline-none ${
-                            filterType ? 'border-neutral-900 border-2' : 'border-neutral-200'
+                        className={`flex items-center h-8 px-3 gap-1.5 rounded-md text-sm font-medium bg-white transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none border ${
+                            filterType
+                                ? 'border-neutral-900 text-neutral-900'
+                                : 'border-neutral-200 text-neutral-700 hover:bg-neutral-50'
                         }`}
                     >
-                        <Layers className="h-3.5 w-3.5 text-neutral-500" />
-                        <span className="text-sm font-medium text-neutral-900">
+                        <Layers className="w-3.5 h-3.5 text-neutral-500" />
+                        <span>
                             {filterType || 'Tipo'}
                         </span>
                     </button>
                     <DropdownMenu isOpen={showTypeDropdown} onClose={() => setShowTypeDropdown(false)}>
                         <button
                             onClick={() => { onTypeChange(undefined); setShowTypeDropdown(false); }}
-                            className={`w-full text-left px-3.5 py-2 text-sm focus:outline-none transition-colors hover:bg-neutral-50 ${
+                            className={`w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-neutral-50 focus:outline-none ${
                                 !filterType
                                     ? 'font-medium text-neutral-900 bg-neutral-50'
-                                    : 'font-light text-neutral-500'
+                                    : 'text-neutral-500'
                             }`}
                         >
                             Todos los tipos
@@ -184,10 +188,10 @@ export const DashboardFilters = ({
                             <button
                                 key={type}
                                 onClick={() => { onTypeChange(type); setShowTypeDropdown(false); }}
-                                className={`w-full text-left px-3.5 py-2 text-sm focus:outline-none transition-colors hover:bg-neutral-50 ${
+                                className={`w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-neutral-50 focus:outline-none ${
                                     filterType === type
                                         ? 'font-medium text-neutral-900 bg-neutral-50'
-                                        : 'font-light text-neutral-500'
+                                        : 'text-neutral-500'
                                 }`}
                             >
                                 {type}
@@ -204,7 +208,7 @@ export const DashboardFilters = ({
                     className="focus:outline-none"
                     title="Limpiar filtros"
                 >
-                    <X className="h-3.5 w-3.5 text-neutral-400" />
+                    <X className="w-3.5 h-3.5 text-neutral-400 hover:text-neutral-600" />
                 </button>
             )}
         </div>

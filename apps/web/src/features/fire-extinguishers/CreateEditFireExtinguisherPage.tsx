@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { FireExtinguisherControl } from '../../types/index';
 import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
 import * as api from '@/lib/api/services';
-import { Button } from '../../components/common/Button';
+import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import PageLayout from '../../components/layout/PageLayout';
 import { Tabs } from '../../components/common/Tabs';
@@ -154,7 +154,6 @@ const CreateEditFireExtinguisherPage = () => {
       {activeTab < 6 ? (
         <Button
           type="button"
-          variant="primary"
           onClick={handleNext}
           disabled={!canAdvanceFromTab(activeTab) || isSubmitting}
         >
@@ -163,7 +162,6 @@ const CreateEditFireExtinguisherPage = () => {
       ) : (
         <Button
           type="button"
-          variant="primary"
           onClick={handleSubmit}
           loading={isSubmitting}
           disabled={!isFormComplete}

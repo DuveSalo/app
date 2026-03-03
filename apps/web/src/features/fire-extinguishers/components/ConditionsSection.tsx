@@ -7,7 +7,7 @@ export const ConditionsSection = ({ formData, onChange, onCheckChange }: Section
     <div className="space-y-6">
       <div>
         <h4 className="text-sm font-medium text-neutral-900 mb-3">Verificaciones</h4>
-        <div className="space-y-3 bg-blue-50 p-4 rounded-md border border-blue-200">
+        <div className="space-y-3 bg-blue-50 p-4 border border-blue-200">
           <Checkbox
             label="Estan legibles las etiquetas identificatorias?"
             id="labelsLegible"

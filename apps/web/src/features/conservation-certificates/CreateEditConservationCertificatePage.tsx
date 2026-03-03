@@ -9,7 +9,7 @@ import { sanitizeInput } from '../../lib/utils/sanitize';
 import { useEntityForm } from '../../lib/hooks/useEntityForm';
 import { Input } from '../../components/common/Input';
 import { DatePicker } from '../../components/common/DatePicker';
-import { Button } from '../../components/common/Button';
+import { Button } from '@/components/ui/button';
 import { FileUpload } from '../../components/common/FileUpload';
 import { SkeletonForm } from '../../components/common/SkeletonLoader';
 import { PdfPreview } from '../../components/common/PdfPreview';

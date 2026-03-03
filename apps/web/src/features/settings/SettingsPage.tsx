@@ -31,7 +31,7 @@ export const SettingsPage = () => {
             <button
               type="button"
               onClick={data.handleCancelCompanyEdit}
-              className="flex items-center gap-2 h-9 px-5 border border-neutral-200 text-sm font-medium text-neutral-900 rounded-md focus:outline-none hover:bg-neutral-50 transition-colors"
+              className="flex items-center gap-2 h-9 px-5 border border-neutral-200 text-sm font-medium text-neutral-900 focus:outline-none hover:bg-neutral-50 transition-colors"
             >
               <X className="w-3.5 h-3.5 text-neutral-400" />
               Cancelar
@@ -40,7 +40,7 @@ export const SettingsPage = () => {
               type="button"
               onClick={data.handleCompanySubmit}
               disabled={data.isLoading || !data.isCompanyFormValid()}
-              className="flex items-center gap-2 h-9 px-5 bg-neutral-900 text-white text-sm font-medium rounded-md focus:outline-none disabled:opacity-50 hover:bg-neutral-800 transition-colors"
+              className="flex items-center gap-2 h-9 px-5 bg-neutral-900 text-white text-sm font-medium focus:outline-none disabled:opacity-50 hover:bg-neutral-900 transition-colors"
             >
               <Check className="w-3.5 h-3.5" />
               Guardar cambios
@@ -53,7 +53,7 @@ export const SettingsPage = () => {
             <button
               type="button"
               onClick={data.handleCancelProfileEdit}
-              className="flex items-center gap-2 h-9 px-5 border border-neutral-200 text-sm font-medium text-neutral-900 rounded-md focus:outline-none hover:bg-neutral-50 transition-colors"
+              className="flex items-center gap-2 h-9 px-5 border border-neutral-200 text-sm font-medium text-neutral-900 focus:outline-none hover:bg-neutral-50 transition-colors"
             >
               <X className="w-3.5 h-3.5 text-neutral-400" />
               Cancelar
@@ -62,7 +62,7 @@ export const SettingsPage = () => {
               type="submit"
               form="profile-form"
               disabled={data.isLoading}
-              className="flex items-center gap-2 h-9 px-5 bg-neutral-900 text-white text-sm font-medium rounded-md focus:outline-none disabled:opacity-50 hover:bg-neutral-800 transition-colors"
+              className="flex items-center gap-2 h-9 px-5 bg-neutral-900 text-white text-sm font-medium focus:outline-none disabled:opacity-50 hover:bg-neutral-900 transition-colors"
             >
               <Check className="w-3.5 h-3.5" />
               Guardar cambios

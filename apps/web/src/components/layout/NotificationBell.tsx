@@ -131,7 +131,7 @@ const NotificationBell = () => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 hover:bg-neutral-50 transition-colors focus:outline-none rounded-md"
+        className="relative p-2 rounded-md hover:bg-neutral-100 transition-colors focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none"
         aria-label="Notificaciones"
       >
         <Bell className="w-5 h-5 text-neutral-700" strokeWidth={2} />
@@ -143,7 +143,7 @@ const NotificationBell = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-neutral-200 rounded-2xl z-50 overflow-hidden animate-fade-in shadow-dropdown">
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-lg bg-white border border-neutral-200 shadow-lg z-50 overflow-hidden animate-dropdown-in">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-neutral-50">
             <h3 className="text-sm font-medium text-neutral-900">Notificaciones</h3>
@@ -151,7 +151,7 @@ const NotificationBell = () => {
               <button
                 onClick={handleMarkAllAsRead}
                 disabled={isLoading}
-                className="flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-900 transition-colors disabled:opacity-50 focus:outline-none"
+                className="flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-900 transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
                 Marcar todo como leído
@@ -189,7 +189,7 @@ const NotificationBell = () => {
                       {!notification.isRead && (
                         <button
                           onClick={(e) => handleMarkAsRead(notification.id, e)}
-                          className="p-1 hover:bg-neutral-200 transition-colors focus:outline-none rounded-sm"
+                          className="p-1 hover:bg-neutral-200 transition-colors focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none"
                           title="Marcar como leída"
                         >
                           <Check className="w-4 h-4 text-neutral-400" />
@@ -206,7 +206,7 @@ const NotificationBell = () => {
           <div className="px-4 py-2.5 border-t border-neutral-200 bg-neutral-50">
             <button
               onClick={handleViewAll}
-              className="flex items-center justify-center gap-1.5 w-full text-sm text-neutral-500 hover:text-neutral-900 font-medium transition-colors focus:outline-none"
+              className="flex items-center justify-center gap-1.5 w-full text-sm text-neutral-500 hover:text-neutral-900 font-medium transition-colors focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none"
             >
               Ver todas las notificaciones
               <ExternalLink className="w-3.5 h-3.5" />

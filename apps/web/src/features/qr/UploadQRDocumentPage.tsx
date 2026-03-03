@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QRDocumentType } from '../../types/index';
 import * as api from '@/lib/api/services';
-import { Button } from '../../components/common/Button';
+import { Button } from '@/components/ui/button';
 import { FileUpload } from '../../components/common/FileUpload';
 import { DatePicker } from '../../components/common/DatePicker';
 import PageLayout from '../../components/layout/PageLayout';

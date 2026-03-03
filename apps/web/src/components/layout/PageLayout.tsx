@@ -22,23 +22,23 @@ export const PageLayout = ({
   const navigate = useNavigate();
 
   return (
-    <div className="bg-neutral-50 h-full flex flex-col overflow-hidden">
-      {/* Header — compact, fixed height */}
-      <div className="flex-shrink-0 px-5 pt-5 pb-3 md:px-8 md:pt-6 md:pb-4">
-        <div className="flex items-end justify-between">
-          <div className="min-w-0 flex flex-col gap-1">
-            <h1 className="text-2xl font-bold text-neutral-900 tracking-tight leading-tight font-[family-name:var(--font-heading)]">
+    <div className="h-full flex flex-col overflow-hidden bg-neutral-50">
+      {/* Header — compact toolbar */}
+      <div className="flex-shrink-0 px-4 md:px-6 py-3 md:py-4 border-b border-neutral-200 bg-white">
+        <div className="flex items-center justify-between">
+          <div className="min-w-0">
+            <h1 className="text-lg md:text-xl font-semibold text-neutral-900 leading-tight tracking-tight">
               {title}
             </h1>
             {subtitle && (
-              <p className="text-sm font-normal text-neutral-500">{subtitle}</p>
+              <p className="text-xs text-neutral-500 mt-0.5">{subtitle}</p>
             )}
           </div>
-          <div className="flex items-center flex-shrink-0 gap-3">
+          <div className="flex items-center flex-shrink-0 gap-2">
             {headerActions}
             <button
               onClick={() => navigate(ROUTE_PATHS.NOTIFICATIONS)}
-              className="hidden md:flex items-center justify-center w-10 h-10 rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50 transition-all duration-200 focus:outline-none shadow-xs"
+              className="hidden md:flex items-center justify-center w-8 h-8 rounded-md border border-neutral-200 bg-white hover:bg-neutral-50 transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1"
             >
               <Bell className="w-4 h-4 text-neutral-500" />
             </button>
@@ -46,14 +46,14 @@ export const PageLayout = ({
         </div>
       </div>
 
-      {/* Body — takes remaining height, children handle their own scroll */}
-      <div className="flex-1 min-h-0 overflow-hidden px-5 pb-3 md:px-8 md:pb-4">
+      {/* Body — fills remaining space, no outer scroll */}
+      <div className="flex-1 min-h-0 overflow-hidden p-4 md:p-6">
         {children}
       </div>
 
       {/* Footer */}
       {footer && (
-        <div className="border-t border-neutral-200 bg-white flex flex-col-reverse sm:flex-row justify-end flex-shrink-0 px-5 py-3 md:px-8 gap-3">
+        <div className="border-t border-neutral-200 bg-white flex flex-col-reverse sm:flex-row justify-end flex-shrink-0 px-4 py-3 md:px-6 gap-2">
           {footer}
         </div>
       )}

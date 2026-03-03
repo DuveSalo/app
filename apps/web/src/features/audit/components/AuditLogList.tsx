@@ -25,14 +25,14 @@ export const AuditLogList = ({
         {[...Array(5)].map((_, i) => (
           <div
             key={i}
-            className="bg-white border border-neutral-200 rounded-md p-4 animate-pulse"
+            className="bg-white border border-neutral-200 p-4 animate-pulse"
           >
             <div className="flex items-center gap-2 mb-2">
-              <div className="h-6 w-24 bg-gray-200 rounded-md"></div>
-              <div className="h-6 w-32 bg-gray-200 rounded-md"></div>
+              <div className="h-6 w-24 bg-neutral-200"></div>
+              <div className="h-6 w-32 bg-neutral-200"></div>
             </div>
-            <div className="h-4 w-48 bg-gray-200 rounded-md mb-2"></div>
-            <div className="h-4 w-64 bg-gray-200 rounded-md"></div>
+            <div className="h-4 w-48 bg-neutral-200 mb-2"></div>
+            <div className="h-4 w-64 bg-neutral-200"></div>
           </div>
         ))}
       </div>
@@ -41,7 +41,7 @@ export const AuditLogList = ({
 
   if (logs.length === 0) {
     return (
-      <div className="bg-white border border-neutral-200 rounded-md p-8 text-center">
+      <div className="bg-white border border-neutral-200 p-8 text-center">
         <p className="text-neutral-500">{emptyMessage}</p>
       </div>
     );

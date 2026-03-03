@@ -41,37 +41,37 @@ export const AuditLogItem = ({
   };
 
   return (
-    <div className="bg-white border border-neutral-200 rounded-md p-4 hover:bg-neutral-50 transition-colors">
+    <div className="bg-white border border-neutral-200 p-4 hover:bg-neutral-50 transition-colors">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             <span
-              className={`px-2 py-1 text-xs font-medium rounded-md border ${getActionColor(
+              className={`px-2 py-1 text-xs font-medium border ${getActionColor(
                 log.action
               )}`}
             >
               {AUDIT_ACTION_LABELS[log.action]}
             </span>
-            <span className="text-sm text-neutral-600">
+            <span className="text-sm text-neutral-500">
               {AUDIT_TABLE_LABELS[log.tableName]}
             </span>
           </div>
 
-          <div className="flex items-center gap-4 text-sm text-neutral-500 mb-2">
+          <div className="flex items-center gap-4 text-xs text-neutral-500 mb-2">
             <div className="flex items-center gap-1">
-              <Clock className="w-5 h-5" />
+              <Clock className="w-4 h-4" />
               <span>{formatDate(log.createdAt)}</span>
             </div>
             {log.userId && (
               <div className="flex items-center gap-1">
-                <User className="w-5 h-5" />
+                <User className="w-4 h-4" />
                 <span>Usuario: {log.userId.substring(0, 8)}...</span>
               </div>
             )}
           </div>
 
           {changes.length > 0 && (
-            <div className="text-sm text-neutral-600">
+            <div className="text-sm text-neutral-500">
               {changes.length} campo{changes.length !== 1 ? 's' : ''} modificado
               {changes.length !== 1 ? 's' : ''}
             </div>
@@ -97,7 +97,7 @@ export const AuditLogItem = ({
             {changes.map((change, index) => (
               <div
                 key={index}
-                className="bg-neutral-100 rounded-md p-3 border border-neutral-200"
+                className="bg-neutral-100 p-3 border border-neutral-200"
               >
                 <div className="text-sm font-medium text-neutral-900 mb-2">
                   {getFieldLabel(change.field)}
@@ -105,13 +105,13 @@ export const AuditLogItem = ({
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-neutral-500 block mb-1">Antes:</span>
-                    <div className="bg-white p-2 rounded-md border border-neutral-200 text-neutral-900 break-words">
+                    <div className="bg-white p-2 border border-neutral-200 text-neutral-900 break-words">
                       {formatAuditValue(change.oldValue)}
                     </div>
                   </div>
                   <div>
                     <span className="text-neutral-500 block mb-1">Ahora:</span>
-                    <div className="bg-white p-2 rounded-md border border-emerald-200 text-neutral-900 break-words">
+                    <div className="bg-white p-2 border border-emerald-200 text-neutral-900 break-words">
                       {formatAuditValue(change.newValue)}
                     </div>
                   </div>
@@ -127,7 +127,7 @@ export const AuditLogItem = ({
           <h4 className="text-sm font-medium text-neutral-900 mb-3">
             Registro creado con:
           </h4>
-          <div className="bg-neutral-100 rounded-md p-3 border border-neutral-200">
+          <div className="bg-neutral-100 p-3 border border-neutral-200">
             <pre className="text-xs text-neutral-900 whitespace-pre-wrap">
               {JSON.stringify(log.newData, null, 2)}
             </pre>
@@ -140,7 +140,7 @@ export const AuditLogItem = ({
           <h4 className="text-sm font-medium text-neutral-900 mb-3">
             Registro eliminado:
           </h4>
-          <div className="bg-neutral-100 rounded-md p-3 border border-neutral-200">
+          <div className="bg-neutral-100 p-3 border border-neutral-200">
             <pre className="text-xs text-neutral-900 whitespace-pre-wrap">
               {JSON.stringify(log.oldData, null, 2)}
             </pre>
