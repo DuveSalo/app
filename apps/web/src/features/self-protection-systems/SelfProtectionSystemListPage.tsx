@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useToast } from '../../components/common/Toast';
+import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { SkeletonTable } from '../../components/common/SkeletonLoader';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
@@ -29,7 +29,6 @@ const SelfProtectionSystemListPage = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
-  const { showSuccess, showError } = useToast();
   const { currentCompany } = useAuth();
 
   const toggleExpanded = (id: string) => {
@@ -48,11 +47,11 @@ const SelfProtectionSystemListPage = () => {
       const data = await api.getSelfProtectionSystems(currentCompany.id);
       setSystems(data);
     } catch (err: unknown) {
-      showError(err instanceof Error ? err.message : 'Error al cargar sistemas de autoprotección');
+      toast.error(err instanceof Error ? err.message : 'Error al cargar sistemas de autoprotección');
     } finally {
       setIsLoading(false);
     }
-  }, [currentCompany, showError]);
+  }, [currentCompany]);
 
   useEffect(() => {
     loadSystems();
@@ -65,10 +64,10 @@ const SelfProtectionSystemListPage = () => {
     setSystems((s) => s.filter((sys) => sys.id !== deleteId));
     try {
       await api.deleteSelfProtectionSystem(deleteId);
-      showSuccess('Sistema eliminado correctamente');
+      toast.success('Sistema eliminado correctamente');
     } catch (err: unknown) {
       setSystems(prev);
-      showError(err instanceof Error ? err.message : 'Error al eliminar el sistema');
+      toast.error(err instanceof Error ? err.message : 'Error al eliminar el sistema');
     } finally {
       setIsDeleting(false);
       setDeleteId(null);

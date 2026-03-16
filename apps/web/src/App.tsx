@@ -2,7 +2,6 @@
 import { Fragment, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/lib/auth/AuthContext';
-import { ToastProvider } from './components/common/Toast';
 import { Toaster } from '@/components/ui/sonner';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -18,7 +17,6 @@ import AdminLayout from './features/admin/components/AdminLayout';
 const App = () => {
   return (
     <AuthProvider>
-      <ToastProvider>
         <Toaster position="bottom-right" />
         <ErrorBoundary>
           <Suspense fallback={<SpinnerPage />}>
@@ -157,7 +155,6 @@ const App = () => {
               </Routes>
             </Suspense>
           </ErrorBoundary>
-        </ToastProvider>
       </AuthProvider>
   );
 };

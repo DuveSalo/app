@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { SkeletonTable } from '../../components/common/SkeletonLoader';
-import { useToast } from '../../components/common/Toast';
+import { toast } from 'sonner';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { DataTable } from '../../components/common/DataTable';
 import PageLayout from '../../components/layout/PageLayout';
@@ -28,7 +28,6 @@ const EventInformationListPage = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { showSuccess, showError } = useToast();
   const { currentCompany } = useAuth();
 
   const columns: ColumnDef<EventInformation, string>[] = [
@@ -90,11 +89,11 @@ const EventInformationListPage = () => {
       const data = await api.getEvents(currentCompany.id);
       setEvents(data);
     } catch (err: unknown) {
-      showError(err instanceof Error ? err.message : 'Error al cargar información de eventos');
+      toast.error(err instanceof Error ? err.message : 'Error al cargar información de eventos');
     } finally {
       setIsLoading(false);
     }
-  }, [currentCompany, showError]);
+  }, [currentCompany]);
 
   useEffect(() => {
     loadEvents();
@@ -107,10 +106,10 @@ const EventInformationListPage = () => {
     setEvents((e) => e.filter((ev) => ev.id !== deleteId));
     try {
       await api.deleteEvent(deleteId);
-      showSuccess('Evento eliminado correctamente');
+      toast.success('Evento eliminado correctamente');
     } catch (err: unknown) {
       setEvents(prev);
-      showError(err instanceof Error ? err.message : 'Error al eliminar el evento');
+      toast.error(err instanceof Error ? err.message : 'Error al eliminar el evento');
     } finally {
       setIsDeleting(false);
       setDeleteId(null);

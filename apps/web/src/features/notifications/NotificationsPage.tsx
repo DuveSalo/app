@@ -6,7 +6,7 @@ import { Notification, NotificationType } from '../../types/notification';
 import * as notificationService from '../../lib/api/services/notifications';
 import { Skeleton } from '../../components/common/SkeletonLoader';
 import PageLayout from '../../components/layout/PageLayout';
-import { useToast } from '../../components/common/Toast';
+import { toast } from 'sonner';
 import { Empty } from '../../components/common/Empty';
 
 type FilterType = 'all' | 'unread' | 'read';
@@ -58,7 +58,6 @@ const SkeletonNotifications = () => (
 
 const NotificationsPage = () => {
   const { currentCompany } = useAuth();
-  const { showSuccess, showError } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>('all');
@@ -83,7 +82,7 @@ const NotificationsPage = () => {
       setNotifications(paginatedNotifs.items);
       setStats(statsData);
     } catch {
-      showError('Error al cargar las notificaciones');
+      toast.error('Error al cargar las notificaciones');
     } finally {
       setIsLoading(false);
     }
@@ -95,7 +94,7 @@ const NotificationsPage = () => {
       setNotifications(prev => prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n)));
       setStats(prev => ({ ...prev, unread: Math.max(0, prev.unread - 1) }));
     } catch {
-      showError('Error al marcar como leída');
+      toast.error('Error al marcar como leída');
     }
   };
 
@@ -105,9 +104,9 @@ const NotificationsPage = () => {
       await notificationService.markAllAsRead(currentCompany.id);
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setStats(prev => ({ ...prev, unread: 0 }));
-      showSuccess('Todas las notificaciones marcadas como leídas');
+      toast.success('Todas las notificaciones marcadas como leídas');
     } catch {
-      showError('Error al marcar todas como leídas');
+      toast.error('Error al marcar todas como leídas');
     }
   };
 

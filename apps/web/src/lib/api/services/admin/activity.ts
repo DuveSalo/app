@@ -1,0 +1,40 @@
+import { supabase } from '../../../supabase/client';
+import { handleSupabaseError } from '../../../utils/errors';
+import type { ActivityLogRow } from '../../../../features/admin/types';
+
+/**
+ * Fetch activity logs for the admin panel.
+ */
+export const getActivityLogs = async (): Promise<ActivityLogRow[]> => {
+  const { data, error } = await supabase
+    .from('activity_logs')
+    .select('id, admin_id, action, target_type, target_id, metadata, created_at')
+    .order('created_at', { ascending: false });
+
+  if (error) handleSupabaseError(error);
+  if (!data || data.length === 0) return [];
+
+  // Fetch admin info from employees table
+  const adminIds: string[] = Array.from(new Set<string>(data.filter((r) => r.admin_id).map((r) => String(r.admin_id))));
+  const { data: employees } = adminIds.length > 0
+    ? await supabase
+        .from('employees')
+        .select('id, email, name')
+        .in('id', adminIds)
+    : { data: [] as { id: string; email: string; name: string }[] };
+
+  const adminMap = new Map<string, string>(
+    (employees || []).map((e) => [e.id, e.email || e.name || 'Admin'])
+  );
+
+  return data.map((row) => ({
+    id: row.id,
+    adminId: row.admin_id || '',
+    adminEmail: adminMap.get(row.admin_id || '') || 'Admin',
+    action: row.action,
+    targetType: row.target_type,
+    targetId: row.target_id,
+    metadata: (row.metadata || {}) as Record<string, unknown>,
+    createdAt: row.created_at,
+  }));
+};

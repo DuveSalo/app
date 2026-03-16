@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FireExtinguisherControl } from '../../types/index';
-import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
+import { ROUTE_PATHS } from '../../constants/index';
 import * as api from '@/lib/api/services';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -229,7 +229,7 @@ const CreateEditFireExtinguisherPage = () => {
 
     try {
       if (id) {
-        await api.updateFireExtinguisher({ ...apiData, id, companyId: MOCK_COMPANY_ID });
+        await api.updateFireExtinguisher({ ...apiData, id, companyId: '' });
       } else {
         await api.createFireExtinguisher(apiData);
       }

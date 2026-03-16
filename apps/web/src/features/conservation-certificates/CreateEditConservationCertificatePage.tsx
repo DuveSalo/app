@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
+import { ROUTE_PATHS } from '../../constants/index';
 import * as api from '@/lib/api/services';
-import { useToast } from '../../components/common/Toast';
+import { toast } from 'sonner';
 import { sanitizeInput } from '../../lib/utils/sanitize';
 import { Input } from '../../components/common/Input';
 import { DatePicker } from '../../components/common/DatePicker';
@@ -31,7 +31,6 @@ const CreateEditConservationCertificatePage = () => {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
-  const { showSuccess, showError } = useToast();
 
   const form = useForm<ConservationCertificateFormData>({
     resolver: zodResolver(conservationCertificateSchema),
@@ -63,7 +62,7 @@ const CreateEditConservationCertificatePage = () => {
         })
         .catch((error: unknown) => {
           const message = error instanceof Error ? error.message : 'Error al cargar los datos';
-          showError(message);
+          toast.error(message);
           navigate(ROUTE_PATHS.CONSERVATION_CERTIFICATES);
         })
         .finally(() => setIsLoadingData(false));
@@ -80,16 +79,16 @@ const CreateEditConservationCertificatePage = () => {
       };
 
       if (id) {
-        await api.updateCertificate({ ...dataToSubmit, id, companyId: MOCK_COMPANY_ID });
-        showSuccess('Certificado actualizado correctamente');
+        await api.updateCertificate({ ...dataToSubmit, id, companyId: '' });
+        toast.success('Certificado actualizado correctamente');
       } else {
         await api.createCertificate(dataToSubmit);
-        showSuccess('Certificado creado correctamente');
+        toast.success('Certificado creado correctamente');
       }
 
       navigate(ROUTE_PATHS.CONSERVATION_CERTIFICATES);
     } catch (err: unknown) {
-      showError(err instanceof Error ? err.message : 'Error al guardar certificado');
+      toast.error(err instanceof Error ? err.message : 'Error al guardar certificado');
     } finally {
       setSaving(false);
     }

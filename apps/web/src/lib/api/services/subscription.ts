@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase/client';
+import type { Tables } from '../../../types/database.types';
 import type {
   Subscription,
   PaymentTransaction,
@@ -11,43 +12,43 @@ import type {
 } from '../../../types/subscription';
 
 // DB row to domain mapper
-function mapSubscriptionFromDb(data: Record<string, unknown>): Subscription {
+function mapSubscriptionFromDb(data: Tables<'subscriptions'>): Subscription {
   return {
-    id: data.id as string,
-    companyId: data.company_id as string,
-    mpPreapprovalId: (data.mp_preapproval_id as string) || null,
-    mpPlanId: (data.mp_plan_id as string) || null,
-    planKey: data.plan_key as string,
-    planName: data.plan_name as string,
-    amount: Number(data.amount),
-    currency: (data.currency as string) || 'ARS',
+    id: data.id,
+    companyId: data.company_id,
+    mpPreapprovalId: data.mp_preapproval_id || null,
+    mpPlanId: data.mp_plan_id || null,
+    planKey: data.plan_key,
+    planName: data.plan_name,
+    amount: data.amount,
+    currency: data.currency || 'ARS',
     status: data.status as SubscriptionStatus,
-    subscriberEmail: (data.subscriber_email as string) || null,
-    currentPeriodStart: (data.current_period_start as string) || null,
-    currentPeriodEnd: (data.current_period_end as string) || null,
-    nextBillingTime: (data.next_billing_time as string) || null,
-    activatedAt: (data.activated_at as string) || null,
-    cancelledAt: (data.cancelled_at as string) || null,
-    suspendedAt: (data.suspended_at as string) || null,
-    failedPaymentsCount: (data.failed_payments_count as number) || 0,
-    createdAt: data.created_at as string,
-    updatedAt: data.updated_at as string,
+    subscriberEmail: data.subscriber_email || null,
+    currentPeriodStart: data.current_period_start || null,
+    currentPeriodEnd: data.current_period_end || null,
+    nextBillingTime: data.next_billing_time || null,
+    activatedAt: data.activated_at || null,
+    cancelledAt: data.cancelled_at || null,
+    suspendedAt: data.suspended_at || null,
+    failedPaymentsCount: data.failed_payments_count || 0,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
   };
 }
 
-function mapTransactionFromDb(data: Record<string, unknown>): PaymentTransaction {
+function mapTransactionFromDb(data: Tables<'payment_transactions'>): PaymentTransaction {
   return {
-    id: data.id as string,
-    subscriptionId: (data.subscription_id as string) || null,
-    companyId: data.company_id as string,
-    transactionId: (data.paypal_transaction_id as string) || '', // DB column name kept for compatibility
-    grossAmount: Number(data.gross_amount),
-    feeAmount: data.fee_amount ? Number(data.fee_amount) : null,
-    netAmount: data.net_amount ? Number(data.net_amount) : null,
-    currency: (data.currency as string) || 'ARS',
+    id: data.id,
+    subscriptionId: data.subscription_id || null,
+    companyId: data.company_id,
+    transactionId: data.paypal_transaction_id || '', // DB column name kept for compatibility
+    grossAmount: data.gross_amount,
+    feeAmount: data.fee_amount ?? null,
+    netAmount: data.net_amount ?? null,
+    currency: data.currency || 'ARS',
     status: data.status as PaymentTransaction['status'],
-    paidAt: (data.paid_at as string) || null,
-    createdAt: data.created_at as string,
+    paidAt: data.paid_at || null,
+    createdAt: data.created_at,
   };
 }
 
@@ -105,9 +106,7 @@ export async function mpGetSubscriptionStatus(
 export async function getActiveSubscription(
   companyId: string,
 ): Promise<Subscription | null> {
-  // Tables 'subscriptions' and 'payment_transactions' exist in DB but not in generated types yet
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('subscriptions')
     .select('*')
     .eq('company_id', companyId)
@@ -119,7 +118,7 @@ export async function getActiveSubscription(
   if (error) throw new Error(error.message);
   if (!data) return null;
 
-  return mapSubscriptionFromDb(data as Record<string, unknown>);
+  return mapSubscriptionFromDb(data);
 }
 
 /**
@@ -129,8 +128,7 @@ export async function getPaymentHistory(
   companyId: string,
   limit = 5,
 ): Promise<PaymentTransaction[]> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from('payment_transactions')
     .select('*')
     .eq('company_id', companyId)
@@ -140,5 +138,5 @@ export async function getPaymentHistory(
   if (error) throw new Error(error.message);
   if (!data) return [];
 
-  return (data as Record<string, unknown>[]).map((row) => mapTransactionFromDb(row));
+  return data.map((row) => mapTransactionFromDb(row));
 }

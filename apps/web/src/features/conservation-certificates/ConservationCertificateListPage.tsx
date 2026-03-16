@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useToast } from '../../components/common/Toast';
+import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { SkeletonTable } from '../../components/common/SkeletonLoader';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
@@ -30,7 +30,6 @@ const ConservationCertificateListPage = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { showSuccess, showError } = useToast();
   const { currentCompany } = useAuth();
 
   const columns: ColumnDef<ConservationCertificate, string>[] = [
@@ -102,11 +101,11 @@ const ConservationCertificateListPage = () => {
       const data = await api.getCertificates(currentCompany.id);
       setCertificates(data);
     } catch (err: unknown) {
-      showError(err instanceof Error ? err.message : 'Error al cargar certificados');
+      toast.error(err instanceof Error ? err.message : 'Error al cargar certificados');
     } finally {
       setIsLoading(false);
     }
-  }, [currentCompany, showError]);
+  }, [currentCompany]);
 
   useEffect(() => {
     loadCertificates();
@@ -119,10 +118,10 @@ const ConservationCertificateListPage = () => {
     setCertificates((c) => c.filter((cert) => cert.id !== deleteId));
     try {
       await api.deleteCertificate(deleteId);
-      showSuccess('Certificado eliminado correctamente');
+      toast.success('Certificado eliminado correctamente');
     } catch (err: unknown) {
       setCertificates(prev);
-      showError(err instanceof Error ? err.message : 'Error al eliminar certificado');
+      toast.error(err instanceof Error ? err.message : 'Error al eliminar certificado');
     } finally {
       setIsDeleting(false);
       setDeleteId(null);

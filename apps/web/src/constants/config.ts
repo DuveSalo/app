@@ -2,7 +2,6 @@
 
 // Mock IDs (for development/testing)
 export const MOCK_USER_ID = "user-123";
-export const MOCK_COMPANY_ID = "company-abc";
 
 // App Configuration
 export const APP_NAME = "Escuela Segura";

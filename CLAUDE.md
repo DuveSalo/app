@@ -114,6 +114,23 @@ Full spec in `DESIGN-SYSTEM.md`. Key rules:
 - **Forms**: No Card wrapper. Sections separated by border-t. react-hook-form + zod + shadcn Form/FormField
 - **Settings**: Accessed from user DropdownMenu in sidebar footer, NOT from sidebar nav
 
+## Type Safety & Code Health Rules
+
+### Type Safety
+- **NEVER use `as any`** — if database.types.ts doesn't have a table, regenerate first: `npx supabase gen types typescript --project-id <id> > apps/web/src/types/database.types.ts`
+- **NEVER use `Record<string, unknown>` for DB rows** — always use `Tables<'table_name'>`
+- After ANY migration (`supabase db push`), immediately regenerate types
+
+### File Size Limits
+- API service files: max 300 lines. If larger, split into directory with barrel index.ts
+- Custom hooks: max 150 lines. If larger, split by responsibility
+- Page components: max 400 lines. Extract sections into feature components
+
+### Conventions
+- Toast: always `import { toast } from 'sonner'` directly. Never create wrapper contexts
+- Destructive actions: always AlertDialog or ConfirmDialog. Never `window.confirm()` or `window.alert()`
+- Company ID: services resolve companyId via auth internally. Never pass mock or hardcoded IDs from pages
+
 ## Key File Locations
 
 - Auth context: `src/lib/auth/AuthContext.tsx`

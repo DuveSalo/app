@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SelfProtectionSystem } from '../../types/index';
-import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
+import { ROUTE_PATHS } from '../../constants/index';
 import * as api from '@/lib/api/services';
 import { toast } from 'sonner';
 import { Input } from '../../components/common/Input';
@@ -133,7 +133,7 @@ const CreateEditSelfProtectionSystemPage = () => {
     setFormError('');
     try {
       if (id) {
-        await api.updateSelfProtectionSystem({ ...data, id, companyId: MOCK_COMPANY_ID });
+        await api.updateSelfProtectionSystem({ ...data, id, companyId: '' });
       } else {
         await api.createSelfProtectionSystem(data);
       }

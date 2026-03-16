@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { EventInformation } from '../../types/index';
-import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
+import { ROUTE_PATHS } from '../../constants/index';
 import * as api from '@/lib/api/services';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -104,7 +104,7 @@ const CreateEditEventInformationPage = () => {
 
     try {
       if (id) {
-        await api.updateEvent({ ...fullApiData, id, companyId: MOCK_COMPANY_ID });
+        await api.updateEvent({ ...fullApiData, id, companyId: '' });
       } else {
         await api.createEvent(fullApiData);
       }

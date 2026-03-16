@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useToast } from '../../components/common/Toast';
+import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { SkeletonTable } from '../../components/common/SkeletonLoader';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
@@ -30,7 +30,6 @@ const FireExtinguisherListPage = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { showSuccess, showError } = useToast();
   const { currentCompany } = useAuth();
 
   const columns: ColumnDef<FireExtinguisherControl, string>[] = [
@@ -103,11 +102,11 @@ const FireExtinguisherListPage = () => {
       const data = await api.getFireExtinguishers(currentCompany.id);
       setExtinguishers(data);
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'Error al cargar extintores');
+      toast.error(err instanceof Error ? err.message : 'Error al cargar extintores');
     } finally {
       setIsLoading(false);
     }
-  }, [currentCompany, showError]);
+  }, [currentCompany]);
 
   useEffect(() => {
     loadExtinguishers();
@@ -118,11 +117,11 @@ const FireExtinguisherListPage = () => {
     setIsDeleting(true);
     try {
       await api.deleteFireExtinguisher(deleteId);
-      showSuccess('Extintor eliminado correctamente');
+      toast.success('Extintor eliminado correctamente');
       setDeleteId(null);
       loadExtinguishers();
     } catch (err) {
-      showError(err instanceof Error ? err.message : 'Error al eliminar extintor');
+      toast.error(err instanceof Error ? err.message : 'Error al eliminar extintor');
     } finally {
       setIsDeleting(false);
     }
