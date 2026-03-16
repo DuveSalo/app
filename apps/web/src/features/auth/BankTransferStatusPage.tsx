@@ -59,8 +59,15 @@ const BankTransferStatusPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [company?.id]);
 
-  // Auto-redirect when approved
+  // Stop polling and auto-redirect when status is terminal
   useEffect(() => {
+    if (payment?.status === 'approved' || payment?.status === 'rejected') {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
+
     if (payment?.status === 'approved') {
       autoRedirectRef.current = setTimeout(async () => {
         await refreshCompany(true);
