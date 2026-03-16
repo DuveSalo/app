@@ -2,9 +2,8 @@
 import { supabase } from '../../supabase/client';
 import { QRDocument, QRDocumentType, QRDocumentCreate } from '../../../types/index';
 import { mapQRDocumentFromDb } from '../mappers';
-import { AuthError, NotFoundError, handleSupabaseError } from '../../utils/errors';
-import { getCurrentUser } from './auth';
-import { getCompanyIdByUserId } from './company';
+import { NotFoundError, handleSupabaseError } from '../../utils/errors';
+import { getAuthenticatedCompanyId } from './context';
 import { TablesUpdate } from '../../../types/database.types';
 import { PaginationParams, CursorPaginationParams, CursorPaginatedResult } from '../../../types/common';
 import { parseCursor } from '../../utils/pagination';
@@ -16,11 +15,7 @@ export const getQRDocuments = async (type: QRDocumentType, companyId?: string): 
   let finalCompanyId = companyId;
 
   if (!finalCompanyId) {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      throw new AuthError('Usuario no autenticado');
-    }
-    finalCompanyId = await getCompanyIdByUserId(currentUser.id);
+    finalCompanyId = await getAuthenticatedCompanyId();
   }
 
   const { data, error } = await supabase
@@ -43,11 +38,7 @@ export const getAllQRDocuments = async (
   let finalCompanyId = companyId;
 
   if (!finalCompanyId) {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      throw new AuthError('Usuario no autenticado');
-    }
-    finalCompanyId = await getCompanyIdByUserId(currentUser.id);
+    finalCompanyId = await getAuthenticatedCompanyId();
   }
 
   let query = supabase
@@ -116,11 +107,7 @@ export const getQRDocumentsCursor = async (
 };
 
 export const uploadQRDocument = async (docData: QRDocumentCreate): Promise<QRDocument> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError("Usuario no autenticado");
-
-  // Use lightweight helper - only get company_id (N+1 optimization)
-  const companyId = await getCompanyIdByUserId(currentUser.id);
+  const companyId = await getAuthenticatedCompanyId();
 
   let pdfFileUrl: string | null = null;
   let pdfFilePath: string | null = null;
@@ -182,9 +169,7 @@ export const uploadQRDocument = async (docData: QRDocumentCreate): Promise<QRDoc
 };
 
 export const getQRDocumentById = async (id: string): Promise<QRDocument> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError('Usuario no autenticado');
-  const companyId = await getCompanyIdByUserId(currentUser.id);
+  const companyId = await getAuthenticatedCompanyId();
 
   const { data, error } = await supabase
     .from('qr_documents')
@@ -201,11 +186,7 @@ export const getQRDocumentById = async (id: string): Promise<QRDocument> => {
 };
 
 export const updateQRDocument = async (id: string, docData: Partial<QRDocumentCreate>): Promise<QRDocument> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError("Usuario no autenticado");
-
-  // Use lightweight helper - only get company_id (N+1 optimization)
-  const companyId = await getCompanyIdByUserId(currentUser.id);
+  const companyId = await getAuthenticatedCompanyId();
 
   let pdfFileUrl: string | null = null;
   let pdfFilePath: string | null = null;

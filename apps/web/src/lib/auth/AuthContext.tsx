@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { createLogger } from '@/lib/utils/logger';
 import { getTrialStatus } from '@/lib/utils/trial';
 import { supabase } from '@/lib/supabase/client';
+import { setServiceContext, clearServiceContext } from '@/lib/api/services/context';
 
 const logger = createLogger('AuthContext');
 
@@ -49,6 +50,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
           const company = await api.getCompanyByUserId(user.id);
           setCurrentCompany(company);
+          setServiceContext(user.id, company.id);
         } catch (error) {
           setCurrentCompany(null);
         }
@@ -64,6 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       setCurrentUser(null);
       setCurrentCompany(null);
+      clearServiceContext();
     } finally {
       setIsLoading(false);
     }
@@ -83,6 +86,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (event === 'SIGNED_OUT') {
         setCurrentUser(null);
         setCurrentCompany(null);
+        clearServiceContext();
         setIsLoading(false);
       } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         // Re-fetch user data on new sign-in (e.g. OAuth callback) or successful token refresh
@@ -112,6 +116,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const company = await api.getCompanyByUserId(user.id);
         setCurrentCompany(company);
+        setServiceContext(user.id, company.id);
         const trialStatus = getTrialStatus(company);
         if (company.isSubscribed || trialStatus === 'active') {
           navigate(ROUTE_PATHS.DASHBOARD);
@@ -127,6 +132,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       setCurrentUser(null);
       setCurrentCompany(null);
+      clearServiceContext();
       throw error; // Re-throw to be handled by the UI
     } finally {
       setIsLoading(false);
@@ -169,6 +175,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     setCurrentUser(null);
     setCurrentCompany(null);
+    clearServiceContext();
     toast.info('Sesión cerrada');
     navigate(ROUTE_PATHS.LOGIN);
   };

@@ -2,9 +2,8 @@
 import { supabase } from '../../supabase/client';
 import { EventInformation } from '../../../types/index';
 import { mapEventFromDb } from '../mappers';
-import { AuthError, NotFoundError, handleSupabaseError } from '../../utils/errors';
-import { getCurrentUser } from './auth';
-import { getCompanyIdByUserId } from './company';
+import { NotFoundError, handleSupabaseError } from '../../utils/errors';
+import { getAuthenticatedCompanyId } from './context';
 
 import { PaginationParams, CursorPaginationParams, CursorPaginatedResult } from '../../../types/common';
 import { parseCursor } from '../../utils/pagination';
@@ -77,9 +76,7 @@ export const getEventsCursor = async (
 };
 
 export const getEventById = async (id: string): Promise<EventInformation> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError('Usuario no autenticado');
-  const companyId = await getCompanyIdByUserId(currentUser.id);
+  const companyId = await getAuthenticatedCompanyId();
 
   const { data, error } = await supabase
     .from('events')
@@ -96,11 +93,7 @@ export const getEventById = async (id: string): Promise<EventInformation> => {
 };
 
 export const createEvent = async (eventData: Omit<EventInformation, 'id' | 'companyId'>): Promise<EventInformation> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError("Usuario no autenticado");
-
-  // Use lightweight helper - only get company_id (N+1 optimization)
-  const companyId = await getCompanyIdByUserId(currentUser.id);
+  const companyId = await getAuthenticatedCompanyId();
 
   const { data, error } = await supabase
     .from('events')
@@ -125,9 +118,7 @@ export const createEvent = async (eventData: Omit<EventInformation, 'id' | 'comp
 };
 
 export const updateEvent = async (eventData: EventInformation): Promise<EventInformation> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError('Usuario no autenticado');
-  const companyId = await getCompanyIdByUserId(currentUser.id);
+  const companyId = await getAuthenticatedCompanyId();
 
   const { data, error } = await supabase
     .from('events')

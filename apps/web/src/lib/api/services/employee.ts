@@ -1,30 +1,11 @@
 
 import { supabase } from '../../supabase/client';
 import { Employee } from '../../../types/index';
-import { handleSupabaseError, AuthError, NotFoundError } from '../../utils/errors';
-import { getCurrentUser } from './auth';
-
-// Helper to get company_id without loading employees (N+1 fix)
-const getCompanyIdByUserId = async (userId: string): Promise<string> => {
-  const { data, error } = await supabase
-    .from('companies')
-    .select('id')
-    .eq('user_id', userId)
-    .single();
-
-  if (error || !data) {
-    throw new NotFoundError("Empresa no encontrada", "company");
-  }
-
-  return data.id;
-};
+import { handleSupabaseError } from '../../utils/errors';
+import { getAuthenticatedCompanyId } from './context';
 
 export const addEmployee = async (employee: Omit<Employee, 'id'>): Promise<Employee> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError("Usuario no autenticado");
-
-  // Use lightweight query to get only company_id (N+1 fix)
-  const companyId = await getCompanyIdByUserId(currentUser.id);
+  const companyId = await getAuthenticatedCompanyId();
 
   const { data, error } = await supabase
     .from('employees')
@@ -74,11 +55,7 @@ export const updateEmployee = async (employee: Employee): Promise<Employee> => {
 };
 
 export const deleteEmployee = async (employeeId: string): Promise<void> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError("Usuario no autenticado");
-
-  // Use lightweight query to get only company_id (N+1 fix)
-  const companyId = await getCompanyIdByUserId(currentUser.id);
+  const companyId = await getAuthenticatedCompanyId();
 
   // Check if this is the last employee (count only, no full data fetch)
   const { count, error: countError } = await supabase

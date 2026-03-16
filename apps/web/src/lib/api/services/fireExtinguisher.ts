@@ -1,8 +1,7 @@
 import { supabase } from '../../supabase/client';
 import { FireExtinguisherControl, ExtinguisherType, ExtinguisherCapacity, YesNo, YesNoNA } from '../../../types/index';
-import { AuthError, handleSupabaseError } from '../../utils/errors';
-import { getCurrentUser } from './auth';
-import { getCompanyIdByUserId } from './company';
+import { handleSupabaseError } from '../../utils/errors';
+import { getAuthenticatedCompanyId } from './context';
 import { Tables } from '../../../types/database.types';
 import { PaginationParams, CursorPaginationParams, CursorPaginatedResult } from '../../../types/common';
 import { parseCursor } from '../../utils/pagination';
@@ -124,9 +123,7 @@ export const getFireExtinguishersCursor = async (
 };
 
 export const getFireExtinguisherById = async (id: string): Promise<FireExtinguisherControl> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError('Usuario no autenticado');
-  const companyId = await getCompanyIdByUserId(currentUser.id);
+  const companyId = await getAuthenticatedCompanyId();
 
   const { data, error } = await supabase
     .from('fire_extinguishers')
@@ -145,21 +142,12 @@ export const getFireExtinguisherById = async (id: string): Promise<FireExtinguis
 export const createFireExtinguisher = async (
   extinguisher: Omit<FireExtinguisherControl, 'id' | 'companyId' | 'createdAt' | 'updatedAt'>
 ): Promise<FireExtinguisherControl> => {
-  const { data: sessionData } = await supabase.auth.getSession();
-  if (!sessionData.session) throw new Error('No authenticated user');
-
-  const { data: company } = await supabase
-    .from('companies')
-    .select('id')
-    .eq('user_id', sessionData.session.user.id)
-    .single();
-
-  if (!company) throw new Error('No company found for user');
+  const companyId = await getAuthenticatedCompanyId();
 
   const { data, error } = await supabase
     .from('fire_extinguishers')
     .insert({
-      company_id: company.id,
+      company_id: companyId,
       control_date: extinguisher.controlDate,
       extinguisher_number: extinguisher.extinguisherNumber,
       type: extinguisher.type,
@@ -200,9 +188,7 @@ export const createFireExtinguisher = async (
 export const updateFireExtinguisher = async (
   extinguisher: Omit<FireExtinguisherControl, 'createdAt' | 'updatedAt'>
 ): Promise<FireExtinguisherControl> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError('Usuario no autenticado');
-  const companyId = await getCompanyIdByUserId(currentUser.id);
+  const companyId = await getAuthenticatedCompanyId();
 
   const { data, error } = await supabase
     .from('fire_extinguishers')

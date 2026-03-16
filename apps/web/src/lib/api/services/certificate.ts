@@ -2,9 +2,8 @@
 import { supabase } from '../../supabase/client';
 import { ConservationCertificate } from '../../../types/index';
 import { mapCertificateFromDb } from '../mappers';
-import { AuthError, NotFoundError, handleSupabaseError } from '../../utils/errors';
-import { getCurrentUser } from './auth';
-import { getCompanyIdByUserId } from './company';
+import { NotFoundError, handleSupabaseError } from '../../utils/errors';
+import { getAuthenticatedCompanyId } from './context';
 import { TablesUpdate } from '../../../types/database.types';
 import { PaginationParams, CursorPaginationParams, CursorPaginatedResult } from '../../../types/common';
 import { parseCursor } from '../../utils/pagination';
@@ -16,11 +15,7 @@ export const getCertificates = async (
   let finalCompanyId = companyId;
 
   if (!finalCompanyId) {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      throw new AuthError('Usuario no autenticado');
-    }
-    finalCompanyId = await getCompanyIdByUserId(currentUser.id);
+    finalCompanyId = await getAuthenticatedCompanyId();
   }
 
   const columns = '*';
@@ -87,9 +82,7 @@ export const getCertificatesCursor = async (
 };
 
 export const getCertificateById = async (id: string): Promise<ConservationCertificate> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError('Usuario no autenticado');
-  const companyId = await getCompanyIdByUserId(currentUser.id);
+  const companyId = await getAuthenticatedCompanyId();
 
   const columns = '*';
 
@@ -108,11 +101,7 @@ export const getCertificateById = async (id: string): Promise<ConservationCertif
 };
 
 export const createCertificate = async (certData: Omit<ConservationCertificate, 'id' | 'companyId'>): Promise<ConservationCertificate> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError("Usuario no autenticado");
-
-  // Use lightweight helper - only get company_id (N+1 optimization)
-  const companyId = await getCompanyIdByUserId(currentUser.id);
+  const companyId = await getAuthenticatedCompanyId();
 
   let pdfFileUrl: string | null = null;
   let pdfFilePath: string | null = null;
@@ -171,11 +160,7 @@ export const createCertificate = async (certData: Omit<ConservationCertificate, 
 };
 
 export const updateCertificate = async (certData: ConservationCertificate): Promise<ConservationCertificate> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError("Usuario no autenticado");
-
-  // Use lightweight helper - only get company_id (N+1 optimization)
-  const companyId = await getCompanyIdByUserId(currentUser.id);
+  const companyId = await getAuthenticatedCompanyId();
 
   let pdfFileUrl: string | null = null;
   let pdfFilePath: string | null = null;

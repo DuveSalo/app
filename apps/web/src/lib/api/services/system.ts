@@ -2,9 +2,8 @@
 import { supabase } from '../../supabase/client';
 import { SelfProtectionSystem } from '../../../types/index';
 import { mapSystemFromDb } from '../mappers';
-import { AuthError, NotFoundError, handleSupabaseError } from '../../utils/errors';
-import { getCurrentUser } from './auth';
-import { getCompanyIdByUserId } from './company';
+import { NotFoundError, handleSupabaseError } from '../../utils/errors';
+import { getAuthenticatedCompanyId } from './context';
 import { createLogger } from '../../utils/logger';
 import { TablesUpdate } from '../../../types/database.types';
 import { PaginationParams, CursorPaginationParams, CursorPaginatedResult } from '../../../types/common';
@@ -21,11 +20,7 @@ export const getSelfProtectionSystems = async (
   let finalCompanyId = companyId;
 
   if (!finalCompanyId) {
-    const currentUser = await getCurrentUser();
-    if (!currentUser) {
-      throw new AuthError('Usuario no autenticado');
-    }
-    finalCompanyId = await getCompanyIdByUserId(currentUser.id);
+    finalCompanyId = await getAuthenticatedCompanyId();
   }
 
   let query = supabase
@@ -89,9 +84,7 @@ export const getSelfProtectionSystemsCursor = async (
 };
 
 export const getSelfProtectionSystemById = async (id: string): Promise<SelfProtectionSystem> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError('Usuario no autenticado');
-  const companyId = await getCompanyIdByUserId(currentUser.id);
+  const companyId = await getAuthenticatedCompanyId();
 
   const { data, error } = await supabase
     .from('self_protection_systems')
@@ -108,11 +101,7 @@ export const getSelfProtectionSystemById = async (id: string): Promise<SelfProte
 };
 
 export const createSelfProtectionSystem = async (systemData: Omit<SelfProtectionSystem, 'id' | 'companyId'>): Promise<SelfProtectionSystem> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError("Usuario no autenticado");
-
-  // Use lightweight helper - only get company_id (N+1 optimization)
-  const companyId = await getCompanyIdByUserId(currentUser.id);
+  const companyId = await getAuthenticatedCompanyId();
 
   // Upload all PDF files in parallel
   const uploadProbatory = async (): Promise<string | null> => {
@@ -206,11 +195,7 @@ export const createSelfProtectionSystem = async (systemData: Omit<SelfProtection
 };
 
 export const updateSelfProtectionSystem = async (systemData: SelfProtectionSystem): Promise<SelfProtectionSystem> => {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError("Usuario no autenticado");
-
-  // Use lightweight helper - only get company_id (N+1 optimization)
-  const companyId = await getCompanyIdByUserId(currentUser.id);
+  const companyId = await getAuthenticatedCompanyId();
 
   // Upload all PDF files in parallel
   const uploadProbatory = async (): Promise<string | null> => {
