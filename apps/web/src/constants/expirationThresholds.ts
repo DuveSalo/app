@@ -30,7 +30,7 @@ export const EXPIRATION_CONFIG = {
 /**
  * Configuración de formato de fechas
  */
-export const DATE_FORMAT = {
+export const EXPIRATION_DATE_FORMAT = {
   LOCALE: 'es-AR',
   OPTIONS: {
     year: 'numeric' as const,

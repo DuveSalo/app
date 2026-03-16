@@ -48,7 +48,7 @@ const DropdownMenu = ({ isOpen, onClose, children }: DropdownMenuProps) => {
     return (
         <div
             ref={ref}
-            className="absolute top-full left-0 z-10 mt-1 min-w-[200px] rounded-md bg-white border border-neutral-200 py-1 shadow-md animate-dropdown-in"
+            className="absolute top-full left-0 z-10 mt-1 min-w-[200px] rounded-md bg-background border border-border py-1 shadow-md"
         >
             {children}
         </div>
@@ -75,23 +75,23 @@ export const DashboardFilters = ({
     const hasActiveFilters = !!filterStatus || !!filterType;
 
     return (
-        <div className="flex items-center flex-wrap gap-2">
+        <div className="flex items-center flex-wrap gap-3">
             {/* Search */}
-            <div className="flex items-center w-[260px] h-8 px-3 gap-2 rounded-md border border-neutral-200 flex-shrink-0 bg-white">
-                <Search className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
+            <div className="flex items-center w-64 h-9 px-3 gap-2 rounded-md border border-input bg-background flex-shrink-0">
+                <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <input
                     type="text"
                     placeholder="Buscar documentos..."
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    className="flex-1 min-w-0 text-sm text-neutral-900 bg-transparent border-none focus:outline-none placeholder:text-neutral-400"
+                    className="flex-1 min-w-0 text-sm text-foreground bg-transparent border-none focus:outline-none placeholder:text-muted-foreground"
                 />
                 {searchQuery && (
                     <button
                         onClick={() => onSearchChange('')}
                         className="focus:outline-none"
                     >
-                        <X className="w-3 h-3 text-neutral-400 hover:text-neutral-600" />
+                        <X className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
                     </button>
                 )}
             </div>
@@ -101,9 +101,9 @@ export const DashboardFilters = ({
                 <button
                     type="button"
                     onClick={() => { setShowSortDropdown(!showSortDropdown); setShowStatusDropdown(false); setShowTypeDropdown(false); }}
-                    className="flex items-center h-8 px-3 gap-1.5 rounded-md border border-neutral-200 text-sm font-medium text-neutral-700 bg-white hover:bg-neutral-50 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none"
+                    className="flex items-center h-9 px-4 gap-2 rounded-md text-sm font-medium text-foreground bg-transparent hover:bg-muted transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
                 >
-                    <ArrowUpDown className="w-3.5 h-3.5 text-neutral-500" />
+                    <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
                     <span>Ordenar</span>
                 </button>
                 <DropdownMenu isOpen={showSortDropdown} onClose={() => setShowSortDropdown(false)}>
@@ -111,10 +111,10 @@ export const DashboardFilters = ({
                         <button
                             key={option.value}
                             onClick={() => { onSortChange(option.value); setShowSortDropdown(false); }}
-                            className={`w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-neutral-50 focus:outline-none ${
+                            className={`w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-muted focus:outline-none ${
                                 sortBy === option.value
-                                    ? 'font-medium text-neutral-900 bg-neutral-50'
-                                    : 'text-neutral-500'
+                                    ? 'font-medium text-foreground bg-muted'
+                                    : 'text-muted-foreground'
                             }`}
                         >
                             {option.label}
@@ -128,13 +128,13 @@ export const DashboardFilters = ({
                 <button
                     type="button"
                     onClick={() => { setShowStatusDropdown(!showStatusDropdown); setShowSortDropdown(false); setShowTypeDropdown(false); }}
-                    className={`flex items-center h-8 px-3 gap-1.5 rounded-md text-sm font-medium bg-white transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none border ${
+                    className={`flex items-center h-9 px-4 gap-2 rounded-md text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ${
                         filterStatus
-                            ? 'border-neutral-900 text-neutral-900'
-                            : 'border-neutral-200 text-neutral-700 hover:bg-neutral-50'
+                            ? 'bg-muted text-foreground'
+                            : 'bg-transparent text-foreground hover:bg-muted'
                     }`}
                 >
-                    <SlidersHorizontal className="w-3.5 h-3.5 text-neutral-500" />
+                    <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
                     <span>
                         {filterStatus ? statusOptions.find(o => o.value === filterStatus)?.label : 'Estado'}
                     </span>
@@ -144,10 +144,10 @@ export const DashboardFilters = ({
                         <button
                             key={option.value}
                             onClick={() => { onStatusChange(option.value || undefined); setShowStatusDropdown(false); }}
-                            className={`w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-neutral-50 focus:outline-none ${
+                            className={`w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-muted focus:outline-none ${
                                 filterStatus === option.value
-                                    ? 'font-medium text-neutral-900 bg-neutral-50'
-                                    : 'text-neutral-500'
+                                    ? 'font-medium text-foreground bg-muted'
+                                    : 'text-muted-foreground'
                             }`}
                         >
                             {option.label}
@@ -162,13 +162,13 @@ export const DashboardFilters = ({
                     <button
                         type="button"
                         onClick={() => { setShowTypeDropdown(!showTypeDropdown); setShowSortDropdown(false); setShowStatusDropdown(false); }}
-                        className={`flex items-center h-8 px-3 gap-1.5 rounded-md text-sm font-medium bg-white transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none border ${
+                        className={`flex items-center h-9 px-4 gap-2 rounded-md text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ${
                             filterType
-                                ? 'border-neutral-900 text-neutral-900'
-                                : 'border-neutral-200 text-neutral-700 hover:bg-neutral-50'
+                                ? 'bg-muted text-foreground'
+                                : 'bg-transparent text-foreground hover:bg-muted'
                         }`}
                     >
-                        <Layers className="w-3.5 h-3.5 text-neutral-500" />
+                        <Layers className="w-4 h-4 text-muted-foreground" />
                         <span>
                             {filterType || 'Tipo'}
                         </span>
@@ -176,10 +176,10 @@ export const DashboardFilters = ({
                     <DropdownMenu isOpen={showTypeDropdown} onClose={() => setShowTypeDropdown(false)}>
                         <button
                             onClick={() => { onTypeChange(undefined); setShowTypeDropdown(false); }}
-                            className={`w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-neutral-50 focus:outline-none ${
+                            className={`w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-muted focus:outline-none ${
                                 !filterType
-                                    ? 'font-medium text-neutral-900 bg-neutral-50'
-                                    : 'text-neutral-500'
+                                    ? 'font-medium text-foreground bg-muted'
+                                    : 'text-muted-foreground'
                             }`}
                         >
                             Todos los tipos
@@ -188,10 +188,10 @@ export const DashboardFilters = ({
                             <button
                                 key={type}
                                 onClick={() => { onTypeChange(type); setShowTypeDropdown(false); }}
-                                className={`w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-neutral-50 focus:outline-none ${
+                                className={`w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-muted focus:outline-none ${
                                     filterType === type
-                                        ? 'font-medium text-neutral-900 bg-neutral-50'
-                                        : 'text-neutral-500'
+                                        ? 'font-medium text-foreground bg-muted'
+                                        : 'text-muted-foreground'
                                 }`}
                             >
                                 {type}
@@ -205,10 +205,10 @@ export const DashboardFilters = ({
             {hasActiveFilters && (
                 <button
                     onClick={() => { onStatusChange(undefined); onTypeChange(undefined); }}
-                    className="focus:outline-none"
+                    className="flex items-center h-9 px-2 rounded-md hover:bg-muted transition-colors focus:outline-none"
                     title="Limpiar filtros"
                 >
-                    <X className="w-3.5 h-3.5 text-neutral-400 hover:text-neutral-600" />
+                    <X className="w-4 h-4 text-muted-foreground" />
                 </button>
             )}
         </div>

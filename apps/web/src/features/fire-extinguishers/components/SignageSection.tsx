@@ -1,60 +1,109 @@
 import { Select } from '../../../components/common/Select';
 import { Textarea } from '../../../components/common/Textarea';
+import { FormField, FormItem, FormControl, FormMessage } from '@/components/ui/form';
 import { SectionProps } from '../types';
 
-export const SignageSection = ({ formData, onChange }: SectionProps) => {
+export const SignageSection = ({ form }: SectionProps) => {
   return (
     <div className="space-y-4">
-      <Textarea
-        label="Estado y Conservacion"
-        id="signageCondition"
+      <FormField
+        control={form.control}
         name="signageCondition"
-        value={formData.signageCondition}
-        onChange={onChange}
-        placeholder="Describa el estado y conservacion de la senalizacion del extintor"
-        rows={3}
-        required
+        render={({ field }) => (
+          <FormItem>
+            <FormControl>
+              <Textarea
+                label="Estado y Conservacion"
+                id="signageCondition"
+                placeholder="Describa el estado y conservacion de la senalizacion del extintor"
+                rows={3}
+                required
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
       />
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Select
-          label="Posee en el piso?"
-          id="signageFloor"
+        <FormField
+          control={form.control}
           name="signageFloor"
-          value={formData.signageFloor}
-          onChange={onChange}
-          required
-        >
-          <option value="">Seleccione...</option>
-          <option value="Si">Si</option>
-          <option value="No">No</option>
-          <option value="N/A">N/A</option>
-        </Select>
-        <Select
-          label="Posee en la pared?"
-          id="signageWall"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Select
+                  label="Posee en el piso?"
+                  id="signageFloor"
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  name={field.name}
+                  required
+                >
+                  <option value="">Seleccione...</option>
+                  <option value="Si">Si</option>
+                  <option value="No">No</option>
+                  <option value="N/A">N/A</option>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="signageWall"
-          value={formData.signageWall}
-          onChange={onChange}
-          required
-        >
-          <option value="">Seleccione...</option>
-          <option value="Si">Si</option>
-          <option value="No">No</option>
-          <option value="N/A">N/A</option>
-        </Select>
-        <Select
-          label="Posee en altura?"
-          id="signageHeight"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Select
+                  label="Posee en la pared?"
+                  id="signageWall"
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  name={field.name}
+                  required
+                >
+                  <option value="">Seleccione...</option>
+                  <option value="Si">Si</option>
+                  <option value="No">No</option>
+                  <option value="N/A">N/A</option>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="signageHeight"
-          value={formData.signageHeight}
-          onChange={onChange}
-          required
-        >
-          <option value="">Seleccione...</option>
-          <option value="Si">Si</option>
-          <option value="No">No</option>
-          <option value="N/A">N/A</option>
-        </Select>
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Select
+                  label="Posee en altura?"
+                  id="signageHeight"
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  name={field.name}
+                  required
+                >
+                  <option value="">Seleccione...</option>
+                  <option value="Si">Si</option>
+                  <option value="No">No</option>
+                  <option value="N/A">N/A</option>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
     </div>
   );

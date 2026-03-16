@@ -1,8 +1,10 @@
 /**
  * MercadoPago plan ID mapping and metadata.
  * Plan IDs (preapproval_plan) are created via API/script and stored as env secrets.
- * Plan keys match the frontend plansData definitions.
+ * Plan metadata is fetched from the subscription_plans DB table (single source of truth).
  */
+
+import { supabaseAdmin } from './supabase-admin.ts';
 
 export interface MpPlanMetadata {
   name: string;
@@ -10,14 +12,41 @@ export interface MpPlanMetadata {
   currency: string;
 }
 
-export const MP_PLAN_METADATA: Record<string, MpPlanMetadata> = {
-  basic: { name: 'Basic', amount: 25000, currency: 'ARS' },
-  standard: { name: 'Standard', amount: 49000, currency: 'ARS' },
-  premium: { name: 'Premium', amount: 89000, currency: 'ARS' },
-};
+/**
+ * Fetch plan metadata from the subscription_plans table.
+ * Converts centavos (DB) to pesos (MercadoPago transaction_amount).
+ */
+export async function getPlanMetadataFromDb(planKey: string): Promise<MpPlanMetadata> {
+  const { data, error } = await supabaseAdmin
+    .from('subscription_plans')
+    .select('name, price, key')
+    .eq('key', planKey)
+    .eq('is_active', true)
+    .single();
 
-export function isValidMpPlanKey(key: string): key is keyof typeof MP_PLAN_METADATA {
-  return key in MP_PLAN_METADATA;
+  if (error || !data) {
+    throw new Error(`Plan not found or inactive: ${planKey}`);
+  }
+
+  return {
+    name: data.name,
+    amount: data.price / 100, // centavos → pesos
+    currency: 'ARS',
+  };
+}
+
+/**
+ * Validate that a plan key exists in the database.
+ */
+export async function isValidPlanKey(key: string): Promise<boolean> {
+  const { data } = await supabaseAdmin
+    .from('subscription_plans')
+    .select('key')
+    .eq('key', key)
+    .eq('is_active', true)
+    .single();
+
+  return !!data;
 }
 
 const MP_PLAN_ENV_MAP: Record<string, string> = {

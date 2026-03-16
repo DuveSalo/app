@@ -1,24 +1,29 @@
 import { Textarea } from '../../../components/common/Textarea';
-import { SectionProps } from '../types';
+import { FormField, FormItem, FormControl } from '@/components/ui/form';
+import { ObservationsSectionProps } from '../types';
 
-interface ObservationsSectionProps extends SectionProps {
-  formError?: string;
-}
-
-export const ObservationsSection = ({ formData, onChange, formError }: ObservationsSectionProps) => {
+export const ObservationsSection = ({ form, formError }: ObservationsSectionProps) => {
   return (
     <div className="space-y-4">
-      <p className="text-sm text-neutral-500">Agregue cualquier observacion adicional sobre el control del extintor.</p>
-      <Textarea
-        label="Observaciones Generales"
-        id="observations"
+      <p className="text-sm text-muted-foreground">Agregue cualquier observacion adicional sobre el control del extintor.</p>
+      <FormField
+        control={form.control}
         name="observations"
-        value={formData.observations}
-        onChange={onChange}
-        placeholder="Ingrese observaciones generales sobre el control (opcional)"
-        rows={6}
+        render={({ field }) => (
+          <FormItem>
+            <FormControl>
+              <Textarea
+                label="Observaciones Generales"
+                id="observations"
+                placeholder="Ingrese observaciones generales sobre el control (opcional)"
+                rows={6}
+                {...field}
+              />
+            </FormControl>
+          </FormItem>
+        )}
       />
-      {formError && <p className="text-sm text-red-600 mt-4">{formError}</p>}
+      {formError && <p className="text-sm text-destructive mt-4">{formError}</p>}
     </div>
   );
 };

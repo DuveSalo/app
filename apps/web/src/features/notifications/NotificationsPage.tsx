@@ -1,20 +1,60 @@
 import { useState, useEffect } from 'react';
-import { CheckCheck, ChevronRight } from 'lucide-react';
-import { useAuth } from '../auth/AuthContext';
+import { CheckCheck } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/lib/auth/AuthContext';
 import { Notification, NotificationType } from '../../types/notification';
 import * as notificationService from '../../lib/api/services/notifications';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { Skeleton } from '../../components/common/SkeletonLoader';
 import PageLayout from '../../components/layout/PageLayout';
 import { useToast } from '../../components/common/Toast';
-import { StatusBadge } from '../../components/common/StatusBadge';
+import { Empty } from '../../components/common/Empty';
 
 type FilterType = 'all' | 'unread' | 'read';
 
 const FILTER_BUTTONS: { value: FilterType; label: string }[] = [
   { value: 'all', label: 'Todas' },
-  { value: 'unread', label: 'No leidas' },
-  { value: 'read', label: 'Leidas' },
+  { value: 'unread', label: 'No leídas' },
+  { value: 'read', label: 'Leídas' },
 ];
+
+const getBorderClass = (type: NotificationType): string => {
+  switch (type) {
+    case 'expiration_urgent':
+    case 'expired':
+      return 'border-l-destructive';
+    case 'expiration_warning':
+      return 'border-l-amber-400';
+    case 'info':
+    case 'system':
+    default:
+      return 'border-l-border';
+  }
+};
+
+const formatRelativeTime = (dateString: string) => {
+  const dateStr = dateString.includes('T') ? dateString : `${dateString}T00:00:00`;
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffHours < 1) return 'Hace un momento';
+  if (diffHours < 24) return `Hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
+  if (diffDays === 1) return 'Ayer';
+  return `Hace ${diffDays} días`;
+};
+
+const SkeletonNotifications = () => (
+  <div className="space-y-3">
+    {Array.from({ length: 5 }).map((_, i) => (
+      <div key={i} className="border border-border rounded-md p-4 border-l-4 space-y-2">
+        <Skeleton className="h-4 w-1/3" />
+        <Skeleton className="h-3.5 w-2/3" />
+        <Skeleton className="h-3 w-24" />
+      </div>
+    ))}
+  </div>
+);
 
 const NotificationsPage = () => {
   const { currentCompany } = useAuth();
@@ -55,7 +95,7 @@ const NotificationsPage = () => {
       setNotifications(prev => prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n)));
       setStats(prev => ({ ...prev, unread: Math.max(0, prev.unread - 1) }));
     } catch {
-      showError('Error al marcar como leida');
+      showError('Error al marcar como leída');
     }
   };
 
@@ -65,135 +105,79 @@ const NotificationsPage = () => {
       await notificationService.markAllAsRead(currentCompany.id);
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setStats(prev => ({ ...prev, unread: 0 }));
-      showSuccess('Todas las notificaciones marcadas como leidas');
+      showSuccess('Todas las notificaciones marcadas como leídas');
     } catch {
-      showError('Error al marcar todas como leidas');
-    }
-  };
-
-  const formatRelativeTime = (dateString: string) => {
-    const dateStr = dateString.includes('T') ? dateString : `${dateString}T00:00:00`;
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    if (diffHours < 1) return 'Hace un momento';
-    if (diffHours < 24) return `Hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
-    if (diffDays === 1) return 'Ayer';
-    return `Hace ${diffDays} dias`;
-  };
-
-  const getNotificationBadge = (type: NotificationType) => {
-    switch (type) {
-      case 'expiration_warning':
-        return <StatusBadge status="expiring" />;
-      case 'expiration_urgent':
-      case 'expired':
-        return <StatusBadge status="expired" />;
-      case 'info':
-        return (
-          <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200">
-            Info
-          </span>
-        );
-      case 'system':
-        return (
-          <span className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-neutral-500 bg-neutral-50 border border-neutral-200">
-            Sistema
-          </span>
-        );
-      default:
-        return <StatusBadge status="valid" />;
+      showError('Error al marcar todas como leídas');
     }
   };
 
   const headerActions = stats.unread > 0 ? (
-    <button
-      type="button"
-      onClick={handleMarkAllAsRead}
-      className="flex items-center gap-2 h-9 px-5 border border-neutral-200 text-sm font-medium text-neutral-900 hover:bg-neutral-50 transition-colors focus:outline-none"
-    >
-      <CheckCheck className="w-4 h-4 text-neutral-400" />
-      Marcar todo como leido
-    </button>
+    <Button variant="ghost" onClick={handleMarkAllAsRead}>
+      <CheckCheck className="w-4 h-4" />
+      Marcar todo como leído
+    </Button>
   ) : undefined;
 
   return (
-    <PageLayout
-      title="Notificaciones"
-      subtitle={`${stats.unread} no leidas de ${stats.total} totales`}
-      headerActions={headerActions}
-    >
-      <div className="h-full flex flex-col">
-        {/* Filter chips */}
-        <div className="flex items-center gap-2 mb-4 flex-shrink-0">
-          {FILTER_BUTTONS.map(btn => (
-            <button
-              key={btn.value}
-              onClick={() => setFilter(btn.value)}
-              className={`px-4 py-2 text-sm transition-colors focus:outline-none ${
-                filter === btn.value
-                  ? 'bg-neutral-900 text-white font-medium'
-                  : 'text-neutral-500 border border-neutral-200 hover:bg-neutral-50'
-              }`}
+    <PageLayout title="Notificaciones" headerActions={headerActions}>
+      {/* Filter chips */}
+      <div className="flex items-center gap-2 mb-4">
+        {FILTER_BUTTONS.map(btn => (
+          <Button
+            key={btn.value}
+            variant={filter === btn.value ? 'default' : 'outline'}
+            size="default"
+            onClick={() => setFilter(btn.value)}
+            className="h-8 text-sm px-3"
+          >
+            {btn.label}
+          </Button>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <SkeletonNotifications />
+      ) : notifications.length === 0 ? (
+        <Empty
+          icon="inbox"
+          title={
+            filter === 'all'
+              ? 'No hay notificaciones'
+              : filter === 'unread'
+                ? 'No hay notificaciones sin leer'
+                : 'No hay notificaciones leídas'
+          }
+        />
+      ) : (
+        <div className="space-y-3">
+          {notifications.map(notification => (
+            <div
+              key={notification.id}
+              onClick={() => !notification.isRead && handleMarkAsRead(notification.id)}
+              className={`border border-border rounded-md p-4 border-l-4 ${getBorderClass(notification.type)} cursor-pointer transition-colors hover:bg-muted/50 ${!notification.isRead ? 'bg-muted/30' : ''}`}
             >
-              {btn.label}
-            </button>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    {!notification.isRead && (
+                      <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0" />
+                    )}
+                    <span className={`text-sm ${!notification.isRead ? 'font-medium' : ''}`}>
+                      {notification.title}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {notification.message}
+                  </p>
+                  <span className="text-xs text-muted-foreground mt-1.5 block">
+                    {formatRelativeTime(notification.createdAt)}
+                  </span>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
-
-        {/* Notification List */}
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-20"><LoadingSpinner size="lg" /></div>
-          ) : notifications.length === 0 ? (
-            <div className="flex items-center justify-center py-16">
-              <p className="text-sm text-neutral-500">
-                {filter === 'all' ? 'No hay notificaciones' : filter === 'unread' ? 'No hay notificaciones sin leer' : 'No hay notificaciones leidas'}
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-col w-full">
-              {notifications.map(notification => (
-                <div
-                  key={notification.id}
-                  onClick={() => !notification.isRead && handleMarkAsRead(notification.id)}
-                  className={`flex items-center justify-between cursor-pointer transition-colors ${!notification.isRead ? 'bg-neutral-50 hover:bg-neutral-100' : 'hover:bg-neutral-50'}`}
-                >
-                  <div className="flex items-start gap-4 flex-1 min-w-0 px-5 py-4 border-b border-neutral-200">
-                    {/* Unread dot */}
-                    {!notification.isRead ? (
-                      <div className="w-2 h-2 bg-neutral-900 rounded-full mt-1.5 flex-shrink-0" />
-                    ) : (
-                      <div className="w-2 h-2 flex-shrink-0" />
-                    )}
-
-                    {/* Info */}
-                    <div className="flex flex-col gap-1 flex-1 min-w-0">
-                      <span className={`text-sm text-neutral-900 ${!notification.isRead ? 'font-bold' : 'font-normal'}`}>
-                        {notification.title}
-                      </span>
-                      <span className="text-sm text-neutral-500">
-                        {notification.message}
-                      </span>
-                      <div className="flex items-center gap-3 mt-1">
-                        {getNotificationBadge(notification.type)}
-                        <span className="text-xs text-neutral-400">
-                          {formatRelativeTime(notification.createdAt)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Right chevron */}
-                    <ChevronRight className="w-4 h-4 text-neutral-300 flex-shrink-0 ml-4" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      )}
     </PageLayout>
   );
 };

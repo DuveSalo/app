@@ -5,12 +5,14 @@ export const Table = forwardRef<
   HTMLTableElement,
   HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto custom-scrollbar">
-    <table
-      ref={ref}
-      className={cn('w-full caption-bottom text-sm', className)}
-      {...props}
-    />
+  <div className="border border-border rounded-md overflow-hidden">
+    <div className="relative w-full overflow-auto custom-scrollbar">
+      <table
+        ref={ref}
+        className={cn('w-full caption-bottom text-sm', className)}
+        {...props}
+      />
+    </div>
   </div>
 ));
 Table.displayName = 'Table';
@@ -21,7 +23,7 @@ export const TableHeader = forwardRef<
 >(({ className, ...props }, ref) => (
   <thead
     ref={ref}
-    className={cn('sticky top-0 z-10 bg-neutral-50', className)}
+    className={cn('', className)}
     {...props}
   />
 ));
@@ -45,7 +47,7 @@ export const TableFooter = forwardRef<
 >(({ className, ...props }, ref) => (
   <tfoot
     ref={ref}
-    className={cn('border-t border-neutral-200 bg-neutral-50/50', className)}
+    className={cn('border-t border-border bg-muted/50', className)}
     {...props}
   />
 ));
@@ -58,7 +60,7 @@ export const TableRow = forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'h-11 border-b border-neutral-200 last:border-b-0 transition-colors hover:bg-neutral-50',
+      'border-b border-border transition-colors hover:bg-muted/50',
       className
     )}
     {...props}
@@ -73,7 +75,7 @@ export const TableHead = forwardRef<
   <th
     ref={ref}
     className={cn(
-      'h-11 px-4 text-left align-middle text-xs font-medium text-neutral-500 border-b border-neutral-200 [&:has([role=checkbox])]:pr-0',
+      'py-3 px-4 text-left align-middle text-xs font-medium text-muted-foreground border-b border-border [&:has([role=checkbox])]:pr-0',
       className
     )}
     {...props}
@@ -88,7 +90,7 @@ export const TableCell = forwardRef<
   <td
     ref={ref}
     className={cn(
-      'px-4 py-2 align-middle text-sm text-neutral-900 [&:has([role=checkbox])]:pr-0',
+      'py-3.5 px-4 align-middle text-sm text-foreground [&:has([role=checkbox])]:pr-0',
       className
     )}
     {...props}
@@ -102,7 +104,7 @@ export const TableCaption = forwardRef<
 >(({ className, ...props }, ref) => (
   <caption
     ref={ref}
-    className={cn('mt-3 text-xs text-neutral-500', className)}
+    className={cn('mt-3 text-xs text-muted-foreground', className)}
     {...props}
   />
 ));

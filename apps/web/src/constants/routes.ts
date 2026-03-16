@@ -2,6 +2,7 @@
 export const ROUTE_PATHS = {
   LOGIN: "/login",
   REGISTER: "/register",
+  AUTH_CALLBACK: "/auth/callback",
   CREATE_COMPANY: "/create-company",
   SUBSCRIPTION: "/subscribe",
   TRIAL_EXPIRED: "/trial-expired",
@@ -41,6 +42,19 @@ export const ROUTE_PATHS = {
 
   SETTINGS: "/settings",
   NOTIFICATIONS: "/notifications",
+
+  // Admin
+  ADMIN_DASHBOARD: "/admin/dashboard",
+  ADMIN_SCHOOLS: "/admin/schools",
+  ADMIN_PAYMENTS: "/admin/payments",
+  ADMIN_ACTIVITY: "/admin/activity",
+  ADMIN_METRICS: "/admin/metrics",
+  ADMIN_PLANS: "/admin/plans",
+  ADMIN_SCHOOL_DETAIL: "/admin/schools/:id",
+
+  // Bank transfer
+  BANK_TRANSFER_UPLOAD: "/bank-transfer/upload",
+  BANK_TRANSFER_STATUS: "/bank-transfer/status",
 
   // New Modules
   WATER_TANKS: "/water-tanks",

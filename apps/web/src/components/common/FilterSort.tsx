@@ -29,7 +29,7 @@ const Dropdown = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () 
   return (
     <div
       ref={ref}
-      className="absolute top-full left-0 z-10 mt-1 min-w-[200px] rounded-md bg-white border border-neutral-200 py-1 shadow-md animate-dropdown-in"
+      className="absolute top-full left-0 z-10 mt-1 min-w-[200px] rounded-md bg-background border border-border py-1 shadow-md animate-dropdown-in"
     >
       {children}
     </div>
@@ -54,18 +54,18 @@ export const FilterSort = ({
   return (
     <div className="flex items-center flex-wrap gap-2">
       {/* Search */}
-      <div className="flex items-center w-[260px] h-8 px-3 gap-2 rounded-md border border-neutral-200 flex-shrink-0 bg-white">
-        <Search className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
+      <div className="flex items-center w-[260px] h-8 px-3 gap-2 rounded-md border border-border flex-shrink-0 bg-background">
+        <Search className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
         <input
           type="text"
           placeholder={searchPlaceholder}
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="flex-1 min-w-0 text-sm text-neutral-900 bg-transparent border-none focus:outline-none placeholder:text-neutral-400"
+          className="flex-1 min-w-0 text-sm text-foreground bg-transparent border-none focus:outline-none placeholder:text-muted-foreground"
         />
         {searchValue && (
           <button onClick={() => onSearchChange('')} className="focus:outline-none">
-            <X className="w-3 h-3 text-neutral-400 hover:text-neutral-600" />
+            <X className="w-3 h-3 text-muted-foreground hover:text-foreground" />
           </button>
         )}
       </div>
@@ -75,9 +75,9 @@ export const FilterSort = ({
         <button
           type="button"
           onClick={() => { setShowSort(!showSort); setShowFilter(false); }}
-          className="flex items-center h-8 px-3 gap-1.5 rounded-md border border-neutral-200 text-sm font-medium text-neutral-700 bg-white hover:bg-neutral-50 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none"
+          className="flex items-center h-8 px-3 gap-1.5 rounded-md border border-border text-sm font-medium text-foreground bg-background hover:bg-muted transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none"
         >
-          <ArrowUpDown className="w-3.5 h-3.5 text-neutral-500" />
+          <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
           <span>Ordenar</span>
         </button>
         <Dropdown isOpen={showSort} onClose={() => setShowSort(false)}>
@@ -86,10 +86,10 @@ export const FilterSort = ({
               key={opt.value}
               onClick={() => { onSortChange(opt.value); setShowSort(false); }}
               className={cn(
-                'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-neutral-50 focus:outline-none',
+                'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-muted focus:outline-none',
                 sortValue === opt.value
-                  ? 'font-medium text-neutral-900 bg-neutral-50'
-                  : 'text-neutral-500'
+                  ? 'font-medium text-foreground bg-muted'
+                  : 'text-muted-foreground'
               )}
             >
               {opt.label}
@@ -105,13 +105,13 @@ export const FilterSort = ({
             type="button"
             onClick={() => { setShowFilter(!showFilter); setShowSort(false); }}
             className={cn(
-              'flex items-center h-8 px-3 gap-1.5 rounded-md text-sm font-medium bg-white transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none border',
+              'flex items-center h-8 px-3 gap-1.5 rounded-md text-sm font-medium bg-background transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none border',
               filterValue
-                ? 'border-neutral-900 text-neutral-900'
-                : 'border-neutral-200 text-neutral-700 hover:bg-neutral-50'
+                ? 'border-foreground text-foreground'
+                : 'border-border text-foreground hover:bg-muted'
             )}
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-neutral-500" />
+            <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
             <span>
               {filterValue ? filterOptions.find(o => o.value === filterValue)?.label : 'Estado'}
             </span>
@@ -120,10 +120,10 @@ export const FilterSort = ({
             <button
               onClick={() => { onFilterChange(''); setShowFilter(false); }}
               className={cn(
-                'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-neutral-50 focus:outline-none',
+                'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-muted focus:outline-none',
                 !filterValue
-                  ? 'font-medium text-neutral-900 bg-neutral-50'
-                  : 'text-neutral-500'
+                  ? 'font-medium text-foreground bg-muted'
+                  : 'text-muted-foreground'
               )}
             >
               Todos los estados
@@ -133,10 +133,10 @@ export const FilterSort = ({
                 key={opt.value}
                 onClick={() => { onFilterChange(opt.value); setShowFilter(false); }}
                 className={cn(
-                  'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-neutral-50 focus:outline-none',
+                  'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-muted focus:outline-none',
                   filterValue === opt.value
-                    ? 'font-medium text-neutral-900 bg-neutral-50'
-                    : 'text-neutral-500'
+                    ? 'font-medium text-foreground bg-muted'
+                    : 'text-muted-foreground'
                 )}
               >
                 {opt.label}
@@ -156,7 +156,7 @@ export const FilterSort = ({
           className="focus:outline-none"
           title="Limpiar filtro"
         >
-          <X className="w-3.5 h-3.5 text-neutral-400 hover:text-neutral-600" />
+          <X className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
         </button>
       )}
     </div>

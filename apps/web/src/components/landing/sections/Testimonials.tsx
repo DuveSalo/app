@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useInView } from "@/hooks/useInView";
+import { useInView } from "@/lib/hooks/useInView";
 
 const TESTIMONIALS = [
   {
@@ -34,13 +34,13 @@ export function Testimonials() {
   const { ref, isInView } = useInView({ threshold: 0.15 });
 
   return (
-    <section className="py-16 lg:py-24 bg-neutral-50">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-xl mx-auto mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 tracking-tight">
+    <section className="bg-background py-20 lg:py-24">
+      <div className="mx-auto max-w-6xl px-6">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-foreground tracking-tight">
             Lo que dicen nuestros clientes
           </h2>
-          <p className="mt-3 text-neutral-500 text-sm leading-relaxed">
+          <p className="mt-3 text-muted-foreground">
             Instituciones educativas de todo el país confían en Escuela Segura.
           </p>
         </div>
@@ -66,32 +66,25 @@ export function Testimonials() {
                   transition: { duration: 0.4, ease: "easeOut" as const },
                 },
               }}
-              className="border border-neutral-200 bg-white p-5 rounded-lg"
+              className="border border-border rounded-lg p-6 bg-background"
             >
-              {/* Quote */}
-              <div className="mb-5">
-                <svg
-                  className="h-6 w-6 text-neutral-200 mb-2.5"
-                  fill="currentColor"
-                  viewBox="0 0 32 32"
-                >
-                  <path d="M10 8c-3.3 0-6 2.7-6 6v10h10V14H8c0-1.1.9-2 2-2V8zm14 0c-3.3 0-6 2.7-6 6v10h10V14h-6c0-1.1.9-2 2-2V8z" />
-                </svg>
-                <p className="text-sm text-neutral-600 leading-relaxed">
-                  {t.quote}
-                </p>
-              </div>
+              <svg
+                className="h-6 w-6 text-muted-foreground/30 mb-3"
+                fill="currentColor"
+                viewBox="0 0 32 32"
+              >
+                <path d="M10 8c-3.3 0-6 2.7-6 6v10h10V14H8c0-1.1.9-2 2-2V8zm14 0c-3.3 0-6 2.7-6 6v10h10V14h-6c0-1.1.9-2 2-2V8z" />
+              </svg>
 
-              {/* Author */}
-              <div className="flex items-center gap-2.5 pt-3.5 border-t border-neutral-100">
-                <div className="flex h-8 w-8 items-center justify-center bg-neutral-100 text-neutral-900 text-[11px] font-bold rounded-md">
+              <p className="text-sm text-foreground italic leading-relaxed">{t.quote}</p>
+
+              <div className="pt-4 mt-4 border-t border-border flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center bg-muted text-foreground text-xs font-bold rounded-lg">
                   {t.initials}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-neutral-900">
-                    {t.name}
-                  </p>
-                  <p className="text-[11px] text-neutral-500">
+                  <p className="text-sm font-semibold text-foreground">{t.name}</p>
+                  <p className="text-xs text-muted-foreground">
                     {t.role}, {t.school}
                   </p>
                 </div>

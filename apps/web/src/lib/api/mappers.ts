@@ -1,7 +1,10 @@
 // Database to domain type mappers
 import { z } from 'zod';
 import type { Company, Employee, ConservationCertificate, SelfProtectionSystem, QRDocument, QRDocumentType, EventInformation, Drill } from '../../types';
+import type { Plan } from '../../types/company';
+import type { PlanData } from '../../constants/landing';
 import type { Tables } from '../../types/database.types';
+import type { SubscriptionPlanRow } from '../../features/admin/types';
 import { toCompanyServices, toPaymentMethods, toStringArray, toBooleanRecord } from '../utils/typeGuards';
 
 const DrillSchema = z.object({
@@ -37,6 +40,8 @@ export const mapCompanyFromDb = (
     trialEndsAt: data.trial_ends_at || undefined,
     subscriptionStatus: data.subscription_status as Company['subscriptionStatus'],
     subscriptionRenewalDate: data.subscription_renewal_date || undefined,
+    paymentMethod: (data as any).payment_method || 'mercadopago',
+    bankTransferStatus: (data as any).bank_transfer_status || null,
     services: toCompanyServices(data.services),
     paymentMethods: toPaymentMethods(data.payment_methods),
     employees: (employees || []).map(mapEmployeeFromDb),
@@ -128,3 +133,39 @@ export const mapEventFromDb = (data: Tables<'events'>): EventInformation => {
     finalChecks: toBooleanRecord(data.final_checks),
   };
 };
+
+/**
+ * Maps DB subscription plan row to frontend Plan type.
+ * Used by SubscriptionPage, BillingSection, ChangePlanModal.
+ */
+export function mapPlanFromDb(row: SubscriptionPlanRow): Plan {
+  const priceInPesos = row.price / 100;
+  return {
+    id: row.key,
+    name: row.name,
+    price: `$${priceInPesos.toLocaleString('es-AR')}`,
+    priceNumber: priceInPesos,
+    priceSuffix: '/mes',
+    features: row.features,
+    tag: row.tag ?? undefined,
+  };
+}
+
+/**
+ * Maps DB subscription plan row to landing PlanData type.
+ * Used by landing page Pricing component.
+ */
+export function mapLandingPlanFromDb(row: SubscriptionPlanRow): PlanData {
+  const priceInPesos = row.price / 100;
+  return {
+    id: row.key,
+    name: row.name,
+    price: priceInPesos.toLocaleString('es-AR'),
+    priceNumber: priceInPesos,
+    period: '/mes',
+    description: row.description,
+    features: row.features,
+    highlighted: row.highlighted,
+    tag: row.tag ?? undefined,
+  };
+}

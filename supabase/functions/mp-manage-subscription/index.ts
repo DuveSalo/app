@@ -9,7 +9,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 import {
   getMpConfig,
   getMpHeaders,
@@ -17,8 +17,8 @@ import {
   MercadoPagoError,
 } from '../_shared/mp-auth.ts';
 import {
-  isValidMpPlanKey,
-  MP_PLAN_METADATA,
+  isValidPlanKey,
+  getPlanMetadataFromDb,
 } from '../_shared/mp-plans.ts';
 import { supabaseAdmin } from '../_shared/supabase-admin.ts';
 import { sendEmailSafe } from '../_shared/resend.ts';
@@ -35,8 +35,10 @@ type MpAction = 'change_plan' | 'change_card' | 'cancel' | 'pause' | 'reactivate
 const VALID_ACTIONS: MpAction[] = ['change_plan', 'change_card', 'cancel', 'pause', 'reactivate'];
 
 Deno.serve(async (req) => {
+  const cors = getCorsHeaders(req.headers.get('origin'));
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: cors });
   }
 
   try {
@@ -45,7 +47,7 @@ Deno.serve(async (req) => {
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 401, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -62,7 +64,7 @@ Deno.serve(async (req) => {
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 401, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -86,14 +88,21 @@ Deno.serve(async (req) => {
     if (!action || !VALID_ACTIONS.includes(action as MpAction)) {
       return new Response(
         JSON.stringify({ error: `Invalid action. Must be one of: ${VALID_ACTIONS.join(', ')}` }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
+    const isValidMPId = (id: string) => /^[a-zA-Z0-9_-]{1,100}$/.test(id);
     if (!mpPreapprovalId) {
       return new Response(
         JSON.stringify({ error: 'Missing mpPreapprovalId' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
+      );
+    }
+    if (!isValidMPId(mpPreapprovalId)) {
+      return new Response(
+        JSON.stringify({ error: 'Formato de ID inválido' }),
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -108,7 +117,7 @@ Deno.serve(async (req) => {
       console.error('[MP] mp-manage-subscription: Subscription not found', { mpPreapprovalId, subError });
       return new Response(
         JSON.stringify({ error: 'Subscription not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 404, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
     console.log('[MP] mp-manage-subscription: Found subscription', {
@@ -129,7 +138,7 @@ Deno.serve(async (req) => {
     if (companyError || !company) {
       return new Response(
         JSON.stringify({ error: 'Company not found or access denied' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 403, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -146,21 +155,21 @@ Deno.serve(async (req) => {
 
     switch (action as MpAction) {
       case 'change_plan': {
-        if (!newPlanKey || !isValidMpPlanKey(newPlanKey)) {
+        if (!newPlanKey || !(await isValidPlanKey(newPlanKey))) {
           return new Response(
             JSON.stringify({ error: 'Missing or invalid newPlanKey' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+            { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
           );
         }
 
         if (newPlanKey === subscription.plan_key) {
           return new Response(
             JSON.stringify({ error: 'New plan is the same as current plan' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+            { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
           );
         }
 
-        const newPlanMeta = MP_PLAN_METADATA[newPlanKey];
+        const newPlanMeta = await getPlanMetadataFromDb(newPlanKey);
         putBody = {
           auto_recurring: {
             transaction_amount: newPlanMeta.amount,
@@ -189,7 +198,7 @@ Deno.serve(async (req) => {
         if (!cardTokenId) {
           return new Response(
             JSON.stringify({ error: 'Missing cardTokenId for change_card action' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+            { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
           );
         }
         putBody = { card_token_id: cardTokenId };
@@ -271,7 +280,7 @@ Deno.serve(async (req) => {
           break;
         case 'change_plan': {
           const oldPlanName = subscription.plan_name || subscription.plan_key || 'Plan anterior';
-          const newMeta = MP_PLAN_METADATA[newPlanKey!];
+          const newMeta = await getPlanMetadataFromDb(newPlanKey!);
           await sendEmailSafe({
             to: email,
             subject: 'Cambio de plan — Escuela Segura',
@@ -312,20 +321,16 @@ Deno.serve(async (req) => {
       }),
       {
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...cors, 'Content-Type': 'application/json' },
       },
     );
   } catch (error) {
-    console.error('mp-manage-subscription error:', error);
-    const message =
-      error instanceof MercadoPagoError
-        ? error.message
-        : 'Error al gestionar la suscripcion';
+    console.error('mp-manage-subscription error:', error instanceof MercadoPagoError ? error.message : error);
     const status = error instanceof MercadoPagoError ? error.statusCode || 500 : 500;
 
     return new Response(
-      JSON.stringify({ error: message }),
-      { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      JSON.stringify({ error: 'Error al procesar la solicitud' }),
+      { status, headers: { ...cors, 'Content-Type': 'application/json' } },
     );
   }
 });

@@ -110,10 +110,10 @@ export const DatePicker = ({
       {label && (
         <label
           htmlFor={id}
-          className="block text-sm font-medium text-neutral-900 mb-1.5"
+          className="block text-sm font-medium text-foreground mb-1.5"
         >
           {label}
-          {required && <span className="text-red-600 ml-0.5">*</span>}
+          {required && <span className="text-destructive ml-0.5">*</span>}
         </label>
       )}
       <Popover open={open} onOpenChange={setOpen}>
@@ -130,12 +130,12 @@ export const DatePicker = ({
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
               className={cn(
-                'flex w-full h-10 rounded-md border bg-white px-3 text-sm transition-colors duration-150 pr-9',
-                'placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0',
-                'disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-500',
+                'flex w-full h-10 rounded-md border bg-background px-3 text-sm transition-colors duration-150 pr-9',
+                'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0',
+                'disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground',
                 hasError
-                  ? 'border-red-600 text-red-900 focus-visible:ring-red-600/10 focus-visible:border-red-600'
-                  : 'border-neutral-200 text-neutral-900 focus-visible:ring-neutral-900/10 focus-visible:border-neutral-300 hover:border-neutral-300',
+                  ? 'border-destructive text-destructive focus-visible:ring-destructive/10 focus-visible:border-destructive'
+                  : 'border-border text-foreground focus-visible:ring-neutral-900/10 focus-visible:border-neutral-300 hover:border-neutral-300',
               )}
             />
             <PopoverTrigger asChild>
@@ -162,10 +162,10 @@ export const DatePicker = ({
         </PopoverContent>
       </Popover>
       {error && (
-        <p className="mt-1 text-xs text-red-600">{error}</p>
+        <p className="mt-1 text-xs text-destructive">{error}</p>
       )}
       {helperText && !error && (
-        <p className="mt-1 text-xs text-neutral-500">{helperText}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{helperText}</p>
       )}
     </div>
   );

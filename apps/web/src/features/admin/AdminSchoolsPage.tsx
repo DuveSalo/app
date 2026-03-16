@@ -1,0 +1,220 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
+import { type ColumnDef } from '@tanstack/react-table';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import PageLayout from '@/components/layout/PageLayout';
+import { DataTable } from '@/components/common/DataTable';
+import { SkeletonTable } from '@/components/common/SkeletonLoader';
+import { SubscriptionStatusBadge } from './components/SubscriptionStatusBadge';
+import { formatDateLocal } from '@/lib/utils/dateUtils';
+import * as api from '@/lib/api/services';
+import { createLogger } from '@/lib/utils/logger';
+import type { AdminSchoolRow } from './types';
+
+const logger = createLogger('AdminSchoolsPage');
+
+const AdminSchoolsPage = () => {
+  const navigate = useNavigate();
+  const [schools, setSchools] = useState<AdminSchoolRow[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; school: AdminSchoolRow | null }>({
+    open: false,
+    school: null,
+  });
+
+  const fetchSchools = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await api.getAllSchools();
+      setSchools(data);
+    } catch (err) {
+      logger.error('Error fetching schools', err);
+      toast.error('Error al cargar las escuelas');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSchools();
+  }, [fetchSchools]);
+
+  const handleToggleStatus = async (school: AdminSchoolRow) => {
+    const isSuspended = school.subscriptionStatus === 'suspended';
+    try {
+      if (isSuspended) {
+        await api.activateSchool(school.id);
+        toast.success(`"${school.name}" activada`);
+      } else {
+        await api.suspendSchool(school.id);
+        toast.success(`"${school.name}" suspendida`);
+      }
+      await fetchSchools();
+    } catch (err) {
+      logger.error('Error toggling school status', err);
+      toast.error(isSuspended ? 'Error al activar la escuela' : 'Error al suspender la escuela');
+    }
+  };
+
+  const handleDelete = async () => {
+    const school = deleteDialog.school;
+    if (!school) return;
+    setDeleteDialog({ open: false, school: null });
+    try {
+      await api.deleteSchool(school.id);
+      toast.success(`"${school.name}" eliminada`);
+      await fetchSchools();
+    } catch (err) {
+      logger.error('Error deleting school', err);
+      toast.error('Error al eliminar la escuela');
+    }
+  };
+
+  const columns: ColumnDef<AdminSchoolRow, string>[] = [
+    {
+      accessorKey: 'name',
+      header: 'Escuela',
+      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+    },
+    {
+      accessorKey: 'email',
+      header: 'Email',
+      cell: ({ row }) => (
+        <span className="text-muted-foreground">{row.original.email || '-'}</span>
+      ),
+    },
+    {
+      accessorKey: 'city',
+      header: 'Localidad',
+      cell: ({ row }) => (
+        <span>
+          {[row.original.city, row.original.province].filter(Boolean).join(', ') || '-'}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'plan',
+      header: 'Plan',
+    },
+    {
+      accessorKey: 'subscriptionStatus',
+      header: 'Estado',
+      cell: ({ row }) => <SubscriptionStatusBadge status={row.original.subscriptionStatus} />,
+    },
+    {
+      accessorKey: 'createdAt',
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          className="h-auto p-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          Fecha registro
+          <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
+        </Button>
+      ),
+      cell: ({ row }) => formatDateLocal(row.original.createdAt),
+    },
+    {
+      id: 'actions',
+      header: '',
+      cell: ({ row }) => {
+        const school = row.original;
+        const isSuspended = school.subscriptionStatus === 'suspended';
+
+        return (
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal className="h-4 w-4" />
+                  <span className="sr-only">Acciones</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigate(`/admin/schools/${school.id}`)}>
+                  Ver detalle
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleToggleStatus(school)}>
+                  {isSuspended ? 'Activar' : 'Suspender'}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => setDeleteDialog({ open: true, school })}
+                >
+                  Eliminar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+    },
+  ];
+
+  if (isLoading) {
+    return (
+      <PageLayout title="Escuelas">
+        <SkeletonTable rows={8} />
+      </PageLayout>
+    );
+  }
+
+  return (
+    <PageLayout title="Escuelas">
+      <DataTable
+        columns={columns}
+        data={schools}
+        searchKey="name"
+        searchPlaceholder="Buscar escuela..."
+        pageSize={10}
+      />
+
+      <AlertDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => {
+          if (!open) setDeleteDialog({ open: false, school: null });
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar escuela</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta accion eliminara permanentemente a{' '}
+              <span className="font-medium">{deleteDialog.school?.name}</span> y todos sus datos
+              asociados. Esta accion no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={handleDelete}>
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </PageLayout>
+  );
+};
+
+export default AdminSchoolsPage;

@@ -10,3 +10,6 @@ export * from './pdf';
 export * from './fireExtinguisher';
 export * from './notifications';
 export * from './subscription';
+export * from './admin';
+export * from './bankTransfer';
+export * from './plans';

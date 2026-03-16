@@ -3,12 +3,12 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const inputVariants = cva(
-  'flex w-full h-10 rounded-md border px-3 text-sm transition-colors duration-150 file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-400',
+  'flex w-full h-10 rounded-md border px-3 text-sm transition-colors duration-150 file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground',
   {
     variants: {
       hasError: {
-        true: 'border-red-500 text-neutral-900 focus-visible:ring-red-500/10',
-        false: 'border-neutral-200 text-neutral-900 focus-visible:ring-neutral-900/10 focus-visible:border-neutral-400 hover:border-neutral-300',
+        true: 'border-destructive text-foreground focus-visible:ring-destructive/10',
+        false: 'border-border text-foreground focus-visible:ring-neutral-900/10 focus-visible:border-neutral-400 hover:border-neutral-300',
       },
     },
     defaultVariants: {
@@ -34,7 +34,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={id}
-            className="block text-sm font-medium text-neutral-900 mb-1.5"
+            className="block text-sm font-medium text-foreground mb-1.5"
           >
             {label}
           </label>
@@ -48,10 +48,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {...props}
         />
         {error && (
-          <p className="mt-1 text-xs text-red-600">{error}</p>
+          <p className="mt-1 text-xs text-destructive">{error}</p>
         )}
         {helperText && !error && (
-          <p className="mt-1 text-xs text-neutral-500">{helperText}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{helperText}</p>
         )}
       </div>
     );

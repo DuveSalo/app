@@ -7,6 +7,7 @@ import { getCurrentUser } from './auth';
 import { getCompanyIdByUserId } from './company';
 import { TablesUpdate } from '../../../types/database.types';
 import { PaginationParams, CursorPaginationParams, CursorPaginatedResult } from '../../../types/common';
+import { parseCursor } from '../../utils/pagination';
 
 const QR_DOCUMENT_COLUMNS = '*';
 
@@ -93,11 +94,8 @@ export const getQRDocumentsCursor = async (
 
   if (params.cursor) {
     try {
-      const decoded = atob(params.cursor);
-      const [cursorDate, cursorId] = decoded.split('|');
-      if (cursorDate && cursorId) {
-        query = query.or(`upload_date.lt.${cursorDate},and(upload_date.eq.${cursorDate},id.lt.${cursorId})`);
-      }
+      const { cursorDate, cursorId } = parseCursor(params.cursor);
+      query = query.or(`upload_date.lt.${cursorDate},and(upload_date.eq.${cursorDate},id.lt.${cursorId})`);
     } catch { /* Invalid cursor */ }
   }
 
@@ -149,12 +147,13 @@ export const uploadQRDocument = async (docData: QRDocumentCreate): Promise<QRDoc
     if (uploadData) {
       pdfFilePath = uploadData.path;
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
+      // Get signed URL (private bucket)
+      const { data: urlData, error: urlError } = await supabase.storage
         .from('qr-documents')
-        .getPublicUrl(uploadData.path);
+        .createSignedUrl(uploadData.path, 3600);
+      if (urlError) throw urlError;
 
-      pdfFileUrl = urlData.publicUrl;
+      pdfFileUrl = urlData.signedUrl;
     }
   }
 
@@ -183,10 +182,15 @@ export const uploadQRDocument = async (docData: QRDocumentCreate): Promise<QRDoc
 };
 
 export const getQRDocumentById = async (id: string): Promise<QRDocument> => {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) throw new AuthError('Usuario no autenticado');
+  const companyId = await getCompanyIdByUserId(currentUser.id);
+
   const { data, error } = await supabase
     .from('qr_documents')
     .select(QR_DOCUMENT_COLUMNS)
     .eq('id', id)
+    .eq('company_id', companyId)
     .single();
 
   if (error || !data) {
@@ -208,6 +212,18 @@ export const updateQRDocument = async (id: string, docData: Partial<QRDocumentCr
 
   // Upload new file to Supabase Storage if provided
   if (docData.pdfFile && docData.pdfFile instanceof File) {
+    // Delete old file before uploading the new one (best-effort)
+    const { data: existing } = await supabase
+      .from('qr_documents')
+      .select('pdf_file_path')
+      .eq('id', id)
+      .eq('company_id', companyId)
+      .single();
+
+    if (existing?.pdf_file_path) {
+      await supabase.storage.from('qr-documents').remove([existing.pdf_file_path]).catch(() => {});
+    }
+
     // Sanitize filename - remove special characters and spaces
     const originalName = docData.pdfFileName || docData.pdfFile.name;
     const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -228,12 +244,13 @@ export const updateQRDocument = async (id: string, docData: Partial<QRDocumentCr
     if (uploadData) {
       pdfFilePath = uploadData.path;
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
+      // Get signed URL (private bucket)
+      const { data: urlData, error: urlError } = await supabase.storage
         .from('qr-documents')
-        .getPublicUrl(uploadData.path);
+        .createSignedUrl(uploadData.path, 3600);
+      if (urlError) throw urlError;
 
-      pdfFileUrl = urlData.publicUrl;
+      pdfFileUrl = urlData.signedUrl;
     }
   }
 
@@ -252,6 +269,7 @@ export const updateQRDocument = async (id: string, docData: Partial<QRDocumentCr
     .from('qr_documents')
     .update(updateData)
     .eq('id', id)
+    .eq('company_id', companyId)
     .select()
     .single();
 

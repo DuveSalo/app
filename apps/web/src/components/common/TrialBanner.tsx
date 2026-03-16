@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../features/auth/AuthContext';
+import { useAuth } from '@/lib/auth/AuthContext';
 import { getTrialDaysRemaining, getTrialStatus } from '../../lib/utils/trial';
 import { ROUTE_PATHS } from '../../constants/index';
 
@@ -18,7 +18,7 @@ export const TrialBanner = () => {
     : 'bg-neutral-50 border-neutral-200 text-neutral-900';
   const buttonClasses = isUrgent
     ? 'bg-amber-600 hover:bg-amber-700 text-white'
-    : 'bg-neutral-900 hover:bg-neutral-800 text-white';
+    : 'bg-primary hover:bg-primary/90 text-white';
 
   const dayText = daysRemaining === 1 ? 'dia' : 'dias';
 

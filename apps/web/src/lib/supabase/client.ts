@@ -11,17 +11,14 @@ export const supabase = createClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env
   }
 });
 
-// Handle stale refresh tokens gracefully — clear corrupt session instead of throwing
-supabase.auth.onAuthStateChange((event) => {
-  if (event === 'TOKEN_REFRESHED') return;
-  if (event === 'SIGNED_OUT') return;
-});
-
-// Proactively validate the stored session on load
+// Proactively clear corrupt sessions on load (silently)
 if (typeof window !== 'undefined') {
   supabase.auth.getSession().then(({ error }) => {
-    if (error?.message?.includes('Refresh Token Not Found') || error?.message?.includes('Invalid Refresh Token')) {
-      supabase.auth.signOut();
+    if (
+      error?.message?.includes('Refresh Token Not Found') ||
+      error?.message?.includes('Invalid Refresh Token')
+    ) {
+      supabase.auth.signOut({ scope: 'local' }).catch(() => {});
     }
   });
 }

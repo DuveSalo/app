@@ -3,12 +3,12 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const textareaVariants = cva(
-  'flex min-h-[80px] w-full rounded-md border bg-white px-3 py-2.5 text-sm transition-colors duration-150 placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-400 resize-none',
+  'flex min-h-[80px] w-full rounded-md border bg-background px-3 py-2.5 text-sm transition-colors duration-150 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground resize-none',
   {
     variants: {
       hasError: {
-        true: 'border-red-600 text-red-900 placeholder:text-red-300 focus-visible:ring-red-600/10 focus-visible:border-red-600',
-        false: 'border-neutral-200 text-neutral-900 focus-visible:ring-neutral-900/10 focus-visible:border-neutral-300 hover:border-neutral-300',
+        true: 'border-destructive text-destructive placeholder:text-destructive/50 focus-visible:ring-destructive/10 focus-visible:border-destructive',
+        false: 'border-border text-foreground focus-visible:ring-neutral-900/10 focus-visible:border-neutral-300 hover:border-neutral-300',
       },
     },
     defaultVariants: {
@@ -34,7 +34,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label
             htmlFor={id}
-            className="block text-sm font-medium text-neutral-900 mb-1.5"
+            className="block text-sm font-medium text-foreground mb-1.5"
           >
             {label}
           </label>
@@ -48,10 +48,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           {...props}
         />
         {error && (
-          <p className="mt-1 text-xs text-red-600">{error}</p>
+          <p className="mt-1 text-xs text-destructive">{error}</p>
         )}
         {helperText && !error && (
-          <p className="mt-1 text-xs text-neutral-500">{helperText}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{helperText}</p>
         )}
       </div>
     );

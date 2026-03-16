@@ -40,37 +40,50 @@ export const calculateExpirationStatus = (
 };
 
 /**
- * Formatea una fecha en formato YYYY-MM-DD para mostrar en la UI
- * Evita problemas de timezone parseando la fecha como hora local
- * @param dateString Fecha en formato ISO string (YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss)
- * @param locale Locale para formato (default: 'es-AR')
- * @returns Fecha formateada en formato local (ej: "12/12/2025")
+ * Parse date as local time to avoid timezone issues.
+ * YYYY-MM-DD format is parsed as UTC by default, which can cause
+ * "today" to become "yesterday" in negative UTC timezones.
  */
-export const formatDateLocal = (dateString: string | null | undefined, locale: string = 'es-AR'): string => {
-  if (!dateString) return '-';
-
-  // Parse date as local time to avoid timezone issues
-  // If date is in YYYY-MM-DD format, add T00:00:00 to parse as local time
+export const parseLocalDate = (dateString: string): Date => {
   const dateStr = dateString.includes('T') ? dateString : `${dateString}T00:00:00`;
-  const date = new Date(dateStr);
-
-  return date.toLocaleDateString(locale);
+  return new Date(dateStr);
 };
 
 /**
- * Formatea una fecha para mostrar en emails
- * @param date Fecha en formato ISO string
+ * Formatea una fecha para mostrar en la UI.
+ * @param dateString Fecha en formato ISO string (YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss)
+ * @param options Opciones de Intl.DateTimeFormat (default: day/month/year numéricos)
  * @param locale Locale para formato (default: 'es-AR')
- * @returns Fecha formateada
+ * @returns Fecha formateada (ej: "12/12/2025")
+ */
+export const formatDateLocal = (
+  dateString: string | null | undefined,
+  options?: Intl.DateTimeFormatOptions,
+  locale: string = 'es-AR',
+): string => {
+  if (!dateString) return '-';
+  const date = parseLocalDate(dateString);
+  if (isNaN(date.getTime())) return '-';
+  return date.toLocaleDateString(locale, options);
+};
+
+/**
+ * Formatea una fecha para mostrar en emails (día mes_largo año).
  */
 export const formatDateForEmail = (date: string, locale: string = 'es-AR'): string => {
-  // Parse date as local time to avoid timezone issues
-  const dateStr = date.includes('T') ? date : `${date}T00:00:00`;
-  return new Date(dateStr).toLocaleDateString(locale, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  return formatDateLocal(date, { year: 'numeric', month: 'long', day: 'numeric' }, locale);
+};
+
+/**
+ * Formatea un monto como moneda.
+ */
+export const formatCurrency = (amount: number, currency = 'ARS', locale = 'es-AR'): string => {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
 };
 
 /**

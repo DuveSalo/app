@@ -7,25 +7,25 @@ export const metadata: Metadata = {
 
 export default function TerminosPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
         <Link
           href="/"
-          className="text-sm text-neutral-800 hover:text-neutral-900 font-medium"
+          className="text-sm text-foreground hover:text-foreground font-medium"
         >
           &larr; Volver al inicio
         </Link>
 
-        <h1 className="mt-8 text-3xl font-bold text-neutral-900">
+        <h1 className="mt-8 text-3xl font-bold text-foreground">
           Términos de Servicio
         </h1>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-2 text-sm text-muted-foreground">
           Última actualización: Febrero 2026
         </p>
 
-        <div className="mt-8 prose prose-neutral max-w-none text-neutral-600 text-sm leading-relaxed space-y-6">
+        <div className="mt-8 prose prose-neutral max-w-none text-muted-foreground text-sm leading-relaxed space-y-6">
           <section>
-            <h2 className="text-lg font-semibold text-neutral-900">
+            <h2 className="text-lg font-semibold text-foreground">
               1. Aceptación de los términos
             </h2>
             <p>
@@ -36,7 +36,7 @@ export default function TerminosPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-neutral-900">
+            <h2 className="text-lg font-semibold text-foreground">
               2. Descripción del servicio
             </h2>
             <p>
@@ -48,7 +48,7 @@ export default function TerminosPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-neutral-900">
+            <h2 className="text-lg font-semibold text-foreground">
               3. Cuentas y suscripciones
             </h2>
             <p>
@@ -59,7 +59,7 @@ export default function TerminosPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-neutral-900">
+            <h2 className="text-lg font-semibold text-foreground">
               4. Prueba gratuita
             </h2>
             <p>
@@ -71,14 +71,14 @@ export default function TerminosPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-neutral-900">
+            <h2 className="text-lg font-semibold text-foreground">
               5. Contacto
             </h2>
             <p>
               Para cualquier consulta sobre estos términos, contáctenos en{" "}
               <a
                 href="mailto:contacto@escuelasegura.com"
-                className="text-neutral-800 hover:text-neutral-900"
+                className="text-foreground hover:text-foreground"
               >
                 contacto@escuelasegura.com
               </a>

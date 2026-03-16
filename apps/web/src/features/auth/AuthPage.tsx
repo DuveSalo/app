@@ -1,46 +1,106 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from './AuthContext';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
+import { Mail } from 'lucide-react';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/common/PasswordInput';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '@/components/ui/form';
 import AuthLayout from '../../components/layout/AuthLayout';
 import { ROUTE_PATHS } from '../../constants/index';
+import {
+  loginSchema,
+  registerSchema,
+  type LoginFormValues,
+  type RegisterFormValues,
+} from './schemas';
 
 const AuthPage = ({ mode }: { mode: 'login' | 'register' }) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [showConfirmationMessage, setShowConfirmationMessage] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null);
+  const [isResending, setIsResending] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login, register, loginWithGoogle } = useAuth();
+  const [error, setError] = useState('');
+  const { login, register, resendConfirmationEmail, loginWithGoogle } = useAuth();
   const location = useLocation();
 
   const registrationSuccess = location.state?.registrationSuccess;
+  const emailConfirmed = new URLSearchParams(location.search).get('confirmed') === 'true';
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  // ─── Login form ─────────────────────────────────────────
+  const loginForm = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  // ─── Register form ──────────────────────────────────────
+  const registerForm = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+  });
+
+  const handleLogin = async (values: LoginFormValues) => {
     setError('');
-    setShowConfirmationMessage(false);
     setIsLoading(true);
     try {
-      if (mode === 'login') {
-        await login(email, password);
-      } else {
-        await register(name, email, password);
-      }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Ocurrio un error.';
-      const isEmailConfirmation =
-        errorMessage.includes('EMAIL_CONFIRMATION_REQUIRED') ||
-        errorMessage.includes('confirma tu email') ||
-        errorMessage.includes('email confirmation') ||
-        (error && typeof error === 'object' && 'code' in error && (error as { code: string }).code === 'EMAIL_CONFIRMATION_REQUIRED');
-      if (isEmailConfirmation) {
-        setShowConfirmationMessage(true);
-      } else {
-        setError(errorMessage);
-      }
+      await login(values.email, values.password);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Ocurrió un error.';
+      setError(errorMessage);
+      toast.error('Error al iniciar sesión', { description: errorMessage });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRegister = async (values: RegisterFormValues) => {
+    setError('');
+    setIsLoading(true);
+    try {
+      const result = await register(values.name, values.email, values.password);
+      if (result.confirmationSent) {
+        setConfirmationEmail(result.email);
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Ocurrió un error.';
+      setError(errorMessage);
+      toast.error('Error al crear cuenta', { description: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendEmail = async () => {
+    if (!confirmationEmail) return;
+    setIsResending(true);
+    try {
+      await resendConfirmationEmail(confirmationEmail);
+      toast.success('Email reenviado correctamente');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al reenviar el email.';
+      toast.error('Error al reenviar', { description: errorMessage });
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -49,9 +109,11 @@ const AuthPage = ({ mode }: { mode: 'login' | 'register' }) => {
     setIsLoading(true);
     try {
       await loginWithGoogle();
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesion con Google.';
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error al iniciar sesión con Google.';
       setError(errorMessage);
+      toast.error('Error al iniciar sesión', { description: errorMessage });
       setIsLoading(false);
     }
   };
@@ -63,109 +125,101 @@ const AuthPage = ({ mode }: { mode: 'login' | 'register' }) => {
     return (
       <AuthLayout variant="split">
         <div className="flex flex-col w-full gap-6">
-          {/* Form header */}
           <div className="flex flex-col gap-2">
-            <h2 className="text-3xl font-medium tracking-tight text-neutral-900">
-              Iniciar sesion
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+              Iniciar sesión
             </h2>
-            <p className="text-sm text-neutral-500">
-              Ingresa tus datos para continuar
-            </p>
+            <p className="text-sm text-muted-foreground">Ingresá tus datos para continuar</p>
           </div>
 
-          {/* Registration success banner */}
-          {registrationSuccess && (
-            <div className="bg-emerald-50 border border-emerald-200 p-4" role="alert">
+          {(registrationSuccess || emailConfirmed) && (
+            <div className="bg-emerald-50 rounded-md border border-emerald-200 p-4" role="alert">
               <p className="text-sm font-medium text-emerald-600">
-                Registro exitoso. Ahora puede iniciar sesion.
+                {emailConfirmed
+                  ? 'Email confirmado exitosamente. Iniciá sesión para continuar con el registro de tu institución.'
+                  : 'Registro exitoso. Ahora podés iniciar sesión.'}
               </p>
             </div>
           )}
 
-          {/* Form fields */}
-          <form onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium text-neutral-900">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu@email.com"
-                  autoComplete="email"
-                  required
-                  disabled={isLoading}
-                  className="w-full h-10 px-4 text-sm text-neutral-900 bg-transparent border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-900"
+          <Form {...loginForm}>
+            <form onSubmit={loginForm.handleSubmit(handleLogin)}>
+              <div className="flex flex-col gap-4">
+                <FormField
+                  control={loginForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="tu@email.com"
+                          autoComplete="email"
+                          disabled={isLoading}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={loginForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex justify-between">
+                        <FormLabel>Contraseña</FormLabel>
+                        <span className="text-sm text-muted-foreground cursor-pointer">
+                          ¿Olvidaste?
+                        </span>
+                      </div>
+                      <FormControl>
+                        <PasswordInput
+                          placeholder="--------"
+                          autoComplete="current-password"
+                          disabled={isLoading}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex justify-between">
-                  <label className="text-sm font-medium text-neutral-900">Contrasena</label>
-                  <span className="text-sm text-neutral-500 cursor-pointer">
-                    Olvidaste?
-                  </span>
+
+              {error && <p className="text-sm text-destructive text-center mt-3">{error}</p>}
+
+              <div className="flex flex-col gap-4 mt-6">
+                <Button type="submit" loading={isLoading} className="w-full">
+                  {isLoading ? 'Autenticando...' : 'Iniciar sesión'}
+                </Button>
+
+                <div className="flex items-center w-full gap-4">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-sm text-muted-foreground">o</span>
+                  <div className="flex-1 h-px bg-border" />
                 </div>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="--------"
-                  autoComplete="current-password"
-                  required
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGoogleLogin}
                   disabled={isLoading}
-                  className="w-full h-10 px-4 text-sm text-neutral-900 bg-transparent border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                />
-              </div>
-            </div>
-
-            {error && (
-              <p className="text-sm text-red-600 text-center mt-3">
-                {error}
-              </p>
-            )}
-
-            {/* Actions */}
-            <div className="flex flex-col gap-4 mt-6">
-              {/* Login button */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full h-10 flex items-center justify-center bg-neutral-900 text-white text-sm font-medium rounded-md transition-colors disabled:opacity-50 focus:outline-none hover:bg-neutral-900"
-              >
-                {isLoading ? 'Autenticando...' : 'Iniciar sesion'}
-              </button>
-
-              {/* Divider */}
-              <div className="flex items-center w-full gap-4">
-                <div className="flex-1 h-px bg-neutral-200" />
-                <span className="text-sm text-neutral-400">o</span>
-                <div className="flex-1 h-px bg-neutral-200" />
-              </div>
-
-              {/* Google button */}
-              <button
-                type="button"
-                onClick={handleGoogleLogin}
-                disabled={isLoading}
-                className="w-full h-10 flex items-center justify-center gap-2.5 border border-neutral-200 rounded-md hover:bg-neutral-50 transition-colors disabled:opacity-50 focus:outline-none"
-              >
-                <span className="text-base font-bold text-neutral-500">G</span>
-                <span className="text-sm font-medium text-neutral-900">
+                  className="w-full"
+                >
+                  <span className="text-base font-bold text-muted-foreground">G</span>
                   Continuar con Google
-                </span>
-              </button>
-            </div>
-          </form>
+                </Button>
+              </div>
+            </form>
+          </Form>
 
-          {/* Register link */}
           <div className="flex justify-center gap-1.5">
-            <span className="text-sm text-neutral-500">
-              No tenes cuenta?
-            </span>
-            <Link
-              to={ROUTE_PATHS.REGISTER}
-              className="text-sm font-medium text-neutral-900"
-            >
+            <span className="text-sm text-muted-foreground">¿No tenés cuenta?</span>
+            <Link to={ROUTE_PATHS.REGISTER} className="text-sm font-medium text-foreground">
               Registrate
             </Link>
           </div>
@@ -177,137 +231,179 @@ const AuthPage = ({ mode }: { mode: 'login' | 'register' }) => {
   // ============================
   //  REGISTER MODE
   // ============================
-  const wizardSteps = ['Crear Cuenta', 'Suscripcion', 'Empresa'];
+  const wizardSteps = ['Crear Cuenta', 'Registrar Escuela', 'Suscripción'];
 
   return (
     <AuthLayout variant="wizard" wizardSteps={wizardSteps} currentStep={1}>
-      {showConfirmationMessage ? (
-        <div className="bg-white border border-neutral-200 w-full max-w-[440px] p-8">
-          <div className="text-center flex flex-col gap-4">
-            <h3 className="text-2xl font-medium text-neutral-900">
-              Revise su correo electronico
-            </h3>
-            <p className="text-sm text-neutral-500">
-              Enviamos un enlace de confirmacion a{' '}
-              <span className="font-medium text-neutral-900">{email}</span>
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-white border border-neutral-200 flex flex-col w-full max-w-[440px] p-8 gap-5">
-          {/* Card header */}
-          <div className="flex flex-col gap-2">
-            <h2 className="text-2xl font-medium text-neutral-900">
-              Crear Cuenta
-            </h2>
-            <p className="text-sm text-neutral-500">
-              Ingresa tus datos para comenzar
-            </p>
-          </div>
-
-          {/* Form fields */}
-          <form onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-neutral-900">
-                  Nombre Completo
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Juan Perez"
-                  required
-                  disabled={isLoading}
-                  className="w-full h-10 px-3.5 text-sm text-neutral-900 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-neutral-900">
-                  Direccion de Email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu@email.com"
-                  autoComplete="email"
-                  required
-                  disabled={isLoading}
-                  className="w-full h-10 px-3.5 text-sm text-neutral-900 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-neutral-900">
-                  Contrasena
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="--------"
-                  autoComplete="new-password"
-                  required
-                  disabled={isLoading}
-                  className="w-full h-10 px-3.5 text-sm text-neutral-900 border border-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-neutral-900"
-                />
-              </div>
+      {confirmationEmail ? (
+        <Card className="w-full max-w-[440px]">
+          <CardContent className="p-8 flex flex-col items-center gap-5">
+            <div className="flex items-center justify-center h-12 w-12 rounded-full bg-muted">
+              <Mail className="h-6 w-6 text-muted-foreground" />
             </div>
 
-            {/* Hint */}
-            <p className="text-xs text-neutral-500 mt-2">
-              Minimo 8 caracteres, 1 mayuscula, 1 numero y 1 simbolo.
+            <div className="flex flex-col gap-1.5 text-center">
+              <h2 className="text-xl font-semibold text-foreground">Revisá tu email</h2>
+              <p className="text-sm text-muted-foreground">
+                Enviamos un enlace de confirmación a{' '}
+                <span className="font-medium text-foreground">{confirmationEmail}</span>
+              </p>
+            </div>
+
+            <p className="text-sm text-muted-foreground text-center">
+              Hacé clic en el enlace del email para confirmar tu cuenta y continuar con el registro.
             </p>
 
-            {error && (
-              <p className="text-sm text-red-600 text-center mt-2">
-                {error}
+            <div className="flex flex-col items-center gap-3 w-full pt-2">
+              <p className="text-sm text-muted-foreground">
+                ¿No recibiste el email?{' '}
+                <button
+                  type="button"
+                  onClick={handleResendEmail}
+                  disabled={isResending}
+                  className="font-medium text-foreground hover:underline disabled:opacity-50"
+                >
+                  {isResending ? 'Reenviando...' : 'Reenviar'}
+                </button>
               </p>
-            )}
 
-            {/* CTA */}
-            <button
-              type="submit"
+              <Link
+                to={ROUTE_PATHS.LOGIN}
+                className="text-sm text-muted-foreground hover:underline"
+              >
+                Volver al inicio de sesión
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="w-full max-w-[440px]">
+          <CardContent className="p-8 flex flex-col gap-5">
+            <div className="flex flex-col gap-2">
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                Crear Cuenta
+              </h2>
+              <p className="text-sm text-muted-foreground">Ingresá tus datos para comenzar</p>
+            </div>
+
+            <Form {...registerForm}>
+              <form onSubmit={registerForm.handleSubmit(handleRegister)}>
+                <div className="flex flex-col gap-4">
+                  <FormField
+                    control={registerForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nombre Completo</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="text"
+                            placeholder="Juan Pérez"
+                            disabled={isLoading}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={registerForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Dirección de Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="tu@email.com"
+                            autoComplete="email"
+                            disabled={isLoading}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={registerForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contraseña</FormLabel>
+                        <FormControl>
+                          <PasswordInput
+                            placeholder="--------"
+                            autoComplete="new-password"
+                            disabled={isLoading}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={registerForm.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirmar Contraseña</FormLabel>
+                        <FormControl>
+                          <PasswordInput
+                            placeholder="--------"
+                            autoComplete="new-password"
+                            disabled={isLoading}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <p className="text-xs text-muted-foreground mt-2">
+                  Mínimo 8 caracteres, 1 mayúscula, 1 número y 1 símbolo.
+                </p>
+
+                {error && <p className="text-sm text-destructive text-center mt-2">{error}</p>}
+
+                <Button type="submit" loading={isLoading} className="w-full mt-4">
+                  {isLoading ? 'Creando...' : 'Crear Cuenta'}
+                </Button>
+              </form>
+            </Form>
+
+            <div className="flex items-center w-full gap-4">
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-xs text-muted-foreground">o</span>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleGoogleLogin}
               disabled={isLoading}
-              className="w-full h-10 flex items-center justify-center bg-neutral-900 text-white text-sm font-medium rounded-md transition-colors disabled:opacity-50 focus:outline-none hover:bg-neutral-900 mt-4"
+              className="w-full"
             >
-              {isLoading ? 'Creando...' : 'Crear Cuenta'}
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div className="flex items-center w-full gap-4">
-            <div className="flex-1 h-px bg-neutral-200" />
-            <span className="text-xs text-neutral-400">o</span>
-            <div className="flex-1 h-px bg-neutral-200" />
-          </div>
-
-          {/* Google */}
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            disabled={isLoading}
-            className="w-full h-10 flex items-center justify-center gap-2.5 border border-neutral-200 rounded-md hover:bg-neutral-50 transition-colors disabled:opacity-50 focus:outline-none"
-          >
-            <span className="text-base font-bold text-neutral-900">G</span>
-            <span className="text-sm font-medium text-neutral-900">
+              <span className="text-base font-bold text-foreground">G</span>
               Continuar con Google
-            </span>
-          </button>
+            </Button>
 
-          {/* Login link */}
-          <div className="flex justify-center gap-1">
-            <span className="text-sm text-neutral-500">
-              Ya tiene una cuenta?
-            </span>
-            <Link
-              to={ROUTE_PATHS.LOGIN}
-              className="text-sm font-medium text-neutral-900"
-            >
-              Iniciar sesion
-            </Link>
-          </div>
-        </div>
+            <div className="flex justify-center gap-1">
+              <span className="text-sm text-muted-foreground">¿Ya tiene una cuenta?</span>
+              <Link to={ROUTE_PATHS.LOGIN} className="text-sm font-medium text-foreground">
+                Iniciar sesión
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </AuthLayout>
   );

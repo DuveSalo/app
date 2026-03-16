@@ -1,37 +1,27 @@
-import { useState, useEffect, type ChangeEvent, type FormEvent, type MouseEvent } from 'react';
-import { useAuth } from '../../auth/AuthContext';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/lib/auth/AuthContext';
 import * as api from '@/lib/api/services';
 import { Employee, QRDocumentType, CompanyServices, Company } from '../../../types/index';
 import type { Subscription, PaymentTransaction } from '../../../types/subscription';
 import { useToast } from '../../../components/common/Toast';
+import type { CompanyInfoFormValues } from '../schemas';
+import type { EmployeeFormValues } from '../schemas';
 
-export interface CompanyFormData {
-  name: string;
-  cuit: string;
-  address: string;
-  services: QRDocumentType[];
-  postalCode: string;
-  city: string;
-  province: string;
-  country: string;
-}
+const VALID_TABS = ['company', 'employees', 'billing', 'profile'];
 
 export const useSettingsData = () => {
-  const { currentUser, currentCompany, refreshCompany, updateUserDetails, logout } = useAuth();
-  const { showSuccess, showWarning } = useToast();
+  const { currentUser, currentCompany, refreshCompany, logout } = useAuth();
+  const { showSuccess, showError, showWarning } = useToast();
+  const [searchParams] = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState('company');
+  const initialTab = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(
+    initialTab && VALID_TABS.includes(initialTab) ? initialTab : 'company'
+  );
   const [isEditingCompany, setIsEditingCompany] = useState(false);
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [showEmployeeModal, setShowEmployeeModal] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-
-  const [companyForm, setCompanyForm] = useState<Partial<CompanyFormData>>({});
-  const [companyFormErrors, setCompanyFormErrors] = useState({
-    name: '', cuit: '', address: '', postalCode: '', city: '', province: '', country: '',
-  });
-  const [employeeForm, setEmployeeForm] = useState<Omit<Employee, 'id'>>({ name: '', email: '', role: '' });
-  const [profileForm, setProfileForm] = useState({ name: '', email: '' });
 
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [payments, setPayments] = useState<PaymentTransaction[]>([]);
@@ -39,30 +29,7 @@ export const useSettingsData = () => {
   const [cardLastFour, setCardLastFour] = useState<string | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [isPasswordResetLoading, setIsPasswordResetLoading] = useState(false);
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (currentCompany) {
-      setCompanyForm({
-        name: currentCompany.name,
-        cuit: currentCompany.cuit,
-        address: currentCompany.address,
-        services: currentCompany.services ? (Object.keys(currentCompany.services) as QRDocumentType[]).filter(key => currentCompany.services?.[key]) : [],
-        postalCode: currentCompany.postalCode,
-        city: currentCompany.city,
-        province: currentCompany.province,
-        country: currentCompany.country,
-      });
-      setCompanyFormErrors({ name: '', cuit: '', address: '', postalCode: '', city: '', province: '', country: '' });
-    }
-  }, [currentCompany]);
-
-  useEffect(() => {
-    if (currentUser) {
-      setProfileForm({ name: currentUser.name, email: currentUser.email });
-    }
-  }, [currentUser]);
 
   // Fetch subscription and payment data
   useEffect(() => {
@@ -95,71 +62,28 @@ export const useSettingsData = () => {
       .catch(console.error);
   }, [activeTab, subscription?.mpPreapprovalId, subscription?.status]);
 
-  const validateCompanyField = (name: string, value: string): string => {
-    switch (name) {
-      case 'name':
-      case 'city':
-      case 'province':
-      case 'country':
-        return /^[a-zA-Z\s'-]+$/.test(value) ? '' : 'Solo se permiten letras y espacios.';
-      case 'cuit':
-        return /^\d{2}-\d{8}-\d{1}$/.test(value) ? '' : 'Formato de CUIT inválido. Use XX-XXXXXXXX-X.';
-      case 'postalCode':
-        return /^[a-zA-Z0-9]{4,8}$/.test(value) ? '' : 'El código postal debe tener entre 4 y 8 caracteres.';
-      default:
-        return '';
-    }
-  };
-
-  const handleCompanyFormChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    let finalValue = value;
-
-    if (name === 'cuit') {
-      const digits = value.replace(/\D/g, '');
-      if (digits.length <= 2) {
-        finalValue = digits;
-      } else if (digits.length <= 10) {
-        finalValue = `${digits.slice(0, 2)}-${digits.slice(2)}`;
-      } else {
-        finalValue = `${digits.slice(0, 2)}-${digits.slice(2, 10)}-${digits.slice(10, 11)}`;
-      }
-    }
-
-    setCompanyForm(prev => ({ ...prev, [name]: finalValue }));
-    const errorMsg = validateCompanyField(name, finalValue);
-    setCompanyFormErrors(prev => ({ ...prev, [name]: errorMsg }));
-  };
-
-  const isCompanyFormValid = () => {
-    return Object.values(companyFormErrors).every(err => err === '');
-  };
-
-  const handleCompanySubmit = async (e?: FormEvent | MouseEvent) => {
-    e?.preventDefault();
-    if (!currentCompany || !isCompanyFormValid()) {
-      setError('Por favor, corrija los errores en el formulario.');
-      return;
-    }
-    setIsLoading(true); setError('');
+  const handleCompanySubmit = async (values: CompanyInfoFormValues) => {
+    if (!currentCompany) return;
+    setIsLoading(true);
+    setError('');
     try {
-      const services: CompanyServices = (companyForm.services || []).reduce((acc, service) => {
-        acc[service] = true;
+      const services: CompanyServices = values.services.reduce((acc, service) => {
+        acc[service as QRDocumentType] = true;
         return acc;
       }, {} as CompanyServices);
 
       const updatePayload: Partial<Company> = {
         id: currentCompany.id,
+        name: values.name,
+        cuit: values.cuit,
+        address: values.address,
+        postalCode: values.postalCode,
+        city: values.city,
+        province: values.province,
+        country: values.country,
+        phone: values.phone,
         services,
       };
-
-      if (companyForm.name) updatePayload.name = companyForm.name;
-      if (companyForm.cuit) updatePayload.cuit = companyForm.cuit;
-      if (companyForm.address) updatePayload.address = companyForm.address;
-      if (companyForm.postalCode) updatePayload.postalCode = companyForm.postalCode;
-      if (companyForm.city) updatePayload.city = companyForm.city;
-      if (companyForm.province) updatePayload.province = companyForm.province;
-      if (companyForm.country) updatePayload.country = companyForm.country;
 
       await api.updateCompany(updatePayload);
       await refreshCompany();
@@ -168,27 +92,29 @@ export const useSettingsData = () => {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error al actualizar la empresa';
       setError(message);
+      showError(message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleEmployeeSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true); setError('');
+  const handleEmployeeSubmit = async (values: EmployeeFormValues) => {
+    setIsLoading(true);
+    setError('');
     try {
       if (editingEmployee) {
-        await api.updateEmployee({ ...employeeForm, id: editingEmployee.id });
+        await api.updateEmployee({ ...values, id: editingEmployee.id });
       } else {
-        await api.addEmployee(employeeForm);
+        await api.addEmployee(values);
       }
       setShowEmployeeModal(false);
       setEditingEmployee(null);
-      setEmployeeForm({ name: '', email: '', role: '' });
       await refreshCompany();
+      showSuccess('Empleado guardado');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error al guardar el empleado';
       setError(message);
+      showError(message);
     } finally {
       setIsLoading(false);
     }
@@ -206,79 +132,27 @@ export const useSettingsData = () => {
     try {
       await api.deleteEmployee(employee.id);
       await refreshCompany();
+      showSuccess('Empleado eliminado');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error al eliminar el empleado';
       setError(message);
+      showError(message);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleProfileSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-    try {
-      await updateUserDetails({ name: profileForm.name });
-      setIsEditingProfile(false);
-      showSuccess('Perfil actualizado');
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error al actualizar el perfil.';
-      setError(message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handlePasswordReset = async () => {
-    if (!currentUser) return;
-    setIsPasswordResetLoading(true);
-    setError('');
-    try {
-      await api.sendPasswordResetEmail(currentUser.email);
-      showSuccess('Se ha enviado un enlace para restablecer la contraseña a su correo electrónico');
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error al enviar el correo electrónico.';
-      setError(message);
-    } finally {
-      setIsPasswordResetLoading(false);
     }
   };
 
   const openEmployeeModal = (employee?: Employee) => {
     if (employee) {
       setEditingEmployee(employee);
-      setEmployeeForm({ name: employee.name, email: employee.email, role: employee.role });
     } else {
       setEditingEmployee(null);
-      setEmployeeForm({ name: '', email: '', role: 'Usuario' });
     }
     setShowEmployeeModal(true);
   };
 
   const handleCancelCompanyEdit = () => {
-    if (currentCompany) {
-      setCompanyForm({
-        name: currentCompany.name,
-        cuit: currentCompany.cuit,
-        address: currentCompany.address,
-        services: currentCompany.services ? (Object.keys(currentCompany.services) as QRDocumentType[]).filter(key => currentCompany.services?.[key]) : [],
-        postalCode: currentCompany.postalCode,
-        city: currentCompany.city,
-        province: currentCompany.province,
-        country: currentCompany.country,
-      });
-      setCompanyFormErrors({ name: '', cuit: '', address: '', postalCode: '', city: '', province: '', country: '' });
-    }
     setIsEditingCompany(false);
-    setError('');
-  };
-
-  const handleCancelProfileEdit = () => {
-    if (currentUser) {
-      setProfileForm({ name: currentUser.name, email: currentUser.email });
-    }
-    setIsEditingProfile(false);
     setError('');
   };
 
@@ -295,10 +169,11 @@ export const useSettingsData = () => {
       await refreshCompany();
       const updated = await api.getActiveSubscription(currentCompany!.id);
       setSubscription(updated);
-      showSuccess('Suscripcion cancelada');
+      showSuccess('Suscripción cancelada');
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error al cancelar la suscripcion';
+      const message = err instanceof Error ? err.message : 'Error al cancelar la suscripción';
       setError(message);
+      showError(message);
     } finally {
       setIsLoading(false);
     }
@@ -316,10 +191,11 @@ export const useSettingsData = () => {
       await refreshCompany();
       const updated = await api.getActiveSubscription(currentCompany!.id);
       setSubscription(updated);
-      showSuccess('Suscripcion reactivada');
+      showSuccess('Suscripción reactivada');
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error al reactivar la suscripcion';
+      const message = err instanceof Error ? err.message : 'Error al reactivar la suscripción';
       setError(message);
+      showError(message);
     } finally {
       setIsLoading(false);
     }
@@ -349,6 +225,7 @@ export const useSettingsData = () => {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error al cambiar de plan';
       setError(message);
+      showError(message);
     } finally {
       setIsLoading(false);
     }
@@ -370,10 +247,11 @@ export const useSettingsData = () => {
       setSubscription(updated);
       const updatedPayments = await api.getPaymentHistory(currentCompany.id, 5);
       setPayments(updatedPayments);
-      showSuccess('Suscripcion creada');
+      showSuccess('Suscripción creada');
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error al crear la suscripcion';
+      const message = err instanceof Error ? err.message : 'Error al crear la suscripción';
       setError(message);
+      showError(message);
     } finally {
       setIsLoading(false);
     }
@@ -400,31 +278,16 @@ export const useSettingsData = () => {
     // Company
     isEditingCompany,
     setIsEditingCompany,
-    companyForm,
-    setCompanyForm,
-    companyFormErrors,
-    handleCompanyFormChange,
     handleCompanySubmit,
     handleCancelCompanyEdit,
-    isCompanyFormValid,
     // Employees
     showEmployeeModal,
     setShowEmployeeModal,
     editingEmployee,
-    employeeForm,
-    setEmployeeForm,
     openEmployeeModal,
     handleEmployeeSubmit,
     handleDeleteEmployee,
-    // Profile
-    isEditingProfile,
-    setIsEditingProfile,
-    profileForm,
-    setProfileForm,
-    handleProfileSubmit,
-    handleCancelProfileEdit,
-    handlePasswordReset,
-    isPasswordResetLoading,
+    // Profile (self-contained in ProfileSection)
     // Billing
     subscription,
     payments,

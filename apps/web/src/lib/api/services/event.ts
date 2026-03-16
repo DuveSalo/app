@@ -5,7 +5,9 @@ import { mapEventFromDb } from '../mappers';
 import { AuthError, NotFoundError, handleSupabaseError } from '../../utils/errors';
 import { getCurrentUser } from './auth';
 import { getCompanyIdByUserId } from './company';
+
 import { PaginationParams, CursorPaginationParams, CursorPaginatedResult } from '../../../types/common';
+import { parseCursor } from '../../utils/pagination';
 
 const EVENT_COLUMNS = '*';
 
@@ -53,11 +55,8 @@ export const getEventsCursor = async (
 
   if (params.cursor) {
     try {
-      const decoded = atob(params.cursor);
-      const [cursorDate, cursorId] = decoded.split('|');
-      if (cursorDate && cursorId) {
-        query = query.or(`date.lt.${cursorDate},and(date.eq.${cursorDate},id.lt.${cursorId})`);
-      }
+      const { cursorDate, cursorId } = parseCursor(params.cursor);
+      query = query.or(`date.lt.${cursorDate},and(date.eq.${cursorDate},id.lt.${cursorId})`);
     } catch { /* Invalid cursor */ }
   }
 
@@ -78,10 +77,15 @@ export const getEventsCursor = async (
 };
 
 export const getEventById = async (id: string): Promise<EventInformation> => {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) throw new AuthError('Usuario no autenticado');
+  const companyId = await getCompanyIdByUserId(currentUser.id);
+
   const { data, error } = await supabase
     .from('events')
     .select(EVENT_COLUMNS)
     .eq('id', id)
+    .eq('company_id', companyId)
     .single();
 
   if (error || !data) {
@@ -121,6 +125,10 @@ export const createEvent = async (eventData: Omit<EventInformation, 'id' | 'comp
 };
 
 export const updateEvent = async (eventData: EventInformation): Promise<EventInformation> => {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) throw new AuthError('Usuario no autenticado');
+  const companyId = await getCompanyIdByUserId(currentUser.id);
+
   const { data, error } = await supabase
     .from('events')
     .update({
@@ -133,6 +141,7 @@ export const updateEvent = async (eventData: EventInformation): Promise<EventInf
       final_checks: eventData.finalChecks || {},
     })
     .eq('id', eventData.id)
+    .eq('company_id', companyId)
     .select()
     .single();
 

@@ -18,55 +18,49 @@ interface DashboardTableProps {
 
 export const DashboardTable = ({ items, onItemClick }: DashboardTableProps) => {
     return (
-        <div className="hidden sm:flex flex-col w-full h-full border border-neutral-200 rounded-lg bg-white overflow-hidden">
-            {/* Header — fixed */}
-            <div className="flex items-stretch h-10 bg-neutral-50 border-b border-neutral-200 flex-shrink-0">
-                <div className="flex items-center flex-1 px-4">
-                    <span className="text-xs font-medium text-neutral-500">Documento</span>
-                </div>
-                <div className="flex items-center w-36 px-4">
-                    <span className="text-xs font-medium text-neutral-500">Tipo</span>
-                </div>
-                <div className="flex items-center w-[120px] px-4">
-                    <span className="text-xs font-medium text-neutral-500">Estado</span>
-                </div>
-                <div className="flex items-center w-[120px] px-4">
-                    <span className="text-xs font-medium text-neutral-500">Vencimiento</span>
-                </div>
-                <div className="w-10" />
-            </div>
+        <div className="hidden sm:flex flex-col w-full h-full border border-border rounded-md bg-background overflow-hidden">
+            {/* Header */}
+            <table className="w-full">
+                <thead>
+                    <tr className="border-b border-border">
+                        <th className="text-xs font-medium text-muted-foreground py-3 px-4 text-left">Documento</th>
+                        <th className="text-xs font-medium text-muted-foreground py-3 px-4 text-left w-36">Tipo</th>
+                        <th className="text-xs font-medium text-muted-foreground py-3 px-4 text-left w-[120px]">Estado</th>
+                        <th className="text-xs font-medium text-muted-foreground py-3 px-4 text-left w-[120px]">Vencimiento</th>
+                        <th className="w-10" />
+                    </tr>
+                </thead>
+            </table>
 
             {/* Body — scrollable */}
             <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0">
-                {items.map((item) => (
-                    <div
-                        key={item.id}
-                        onClick={() => onItemClick(item)}
-                        className="flex items-stretch h-11 cursor-pointer border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50/50 transition-colors"
-                    >
-                        <div className="flex items-center flex-1 px-4">
-                            <span className="text-sm text-neutral-900 truncate">
-                                {item.name}
-                            </span>
-                        </div>
-                        <div className="flex items-center w-36 px-4">
-                            <span className="text-sm text-neutral-500 truncate">
-                                {item.type}
-                            </span>
-                        </div>
-                        <div className="flex items-center w-[120px] px-4">
-                            <StatusBadge status={item.status} />
-                        </div>
-                        <div className="flex items-center w-[120px] px-4">
-                            <span className="text-sm text-neutral-500">
-                                {new Date(item.expirationDate + 'T00:00:00').toLocaleDateString('es-AR')}
-                            </span>
-                        </div>
-                        <div className="flex items-center justify-center w-10">
-                            <ChevronRight className="h-4 w-4 text-neutral-300" />
-                        </div>
-                    </div>
-                ))}
+                <table className="w-full">
+                    <tbody>
+                        {items.map((item) => (
+                            <tr
+                                key={item.id}
+                                onClick={() => onItemClick(item)}
+                                className="cursor-pointer border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors"
+                            >
+                                <td className="text-sm text-foreground py-3.5 px-4 truncate">
+                                    {item.name}
+                                </td>
+                                <td className="text-sm text-muted-foreground py-3.5 px-4 w-36 truncate">
+                                    {item.type}
+                                </td>
+                                <td className="py-3.5 px-4 w-[120px]">
+                                    <StatusBadge status={item.status} />
+                                </td>
+                                <td className="text-sm text-muted-foreground py-3.5 px-4 w-[120px]">
+                                    {new Date(item.expirationDate + 'T00:00:00').toLocaleDateString('es-AR')}
+                                </td>
+                                <td className="py-3.5 px-2 w-10 text-center">
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground inline-block" />
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
         </div>
     );

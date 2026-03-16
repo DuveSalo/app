@@ -1,28 +1,32 @@
 
 import { Fragment, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './features/auth/AuthContext';
+import { AuthProvider } from '@/lib/auth/AuthContext';
 import { ToastProvider } from './components/common/Toast';
+import { Toaster } from '@/components/ui/sonner';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import ProtectedRoute from './routes/ProtectedRoute';
+import AdminRoute from './routes/AdminRoute';
 import { ROUTE_PATHS } from './constants/index';
 import { SpinnerPage } from './components/common/SpinnerPage';
 import { LazyPages, QR_MODULE_ROUTES, PLACEHOLDER_ROUTES } from './routes/routes.config';
 
 // Layouts
 import MainLayout from './components/layout/MainLayout';
+import AdminLayout from './features/admin/components/AdminLayout';
 
 const App = () => {
   return (
     <AuthProvider>
       <ToastProvider>
+        <Toaster position="bottom-right" />
         <ErrorBoundary>
           <Suspense fallback={<SpinnerPage />}>
             <Routes>
               {/* Auth Routes (Public) */}
               <Route path={ROUTE_PATHS.LOGIN} element={<LazyPages.AuthPage mode="login" />} />
               <Route path={ROUTE_PATHS.REGISTER} element={<LazyPages.AuthPage mode="register" />} />
-              <Route path="/auth/callback" element={<LazyPages.AuthCallbackPage />} />
+              <Route path={ROUTE_PATHS.AUTH_CALLBACK} element={<LazyPages.AuthCallbackPage />} />
 
               {/* Onboarding Routes (Protected, no layout) */}
               <Route
@@ -37,6 +41,33 @@ const App = () => {
                 path={ROUTE_PATHS.TRIAL_EXPIRED}
                 element={<ProtectedRoute><LazyPages.TrialExpiredPage /></ProtectedRoute>}
               />
+              <Route
+                path={ROUTE_PATHS.BANK_TRANSFER_UPLOAD}
+                element={<ProtectedRoute><LazyPages.BankTransferUploadPage /></ProtectedRoute>}
+              />
+              <Route
+                path={ROUTE_PATHS.BANK_TRANSFER_STATUS}
+                element={<ProtectedRoute><LazyPages.BankTransferStatusPage /></ProtectedRoute>}
+              />
+
+              {/* Admin Routes (Admin-protected with admin layout) */}
+              <Route path="/admin/*" element={
+                <AdminRoute>
+                  <AdminLayout>
+                    <Routes>
+                      <Route index element={<Navigate to="dashboard" replace />} />
+                      <Route path="dashboard" element={<LazyPages.AdminDashboardPage />} />
+                      <Route path="schools" element={<LazyPages.AdminSchoolsPage />} />
+                      <Route path="schools/:id" element={<LazyPages.AdminSchoolDetailPage />} />
+                      <Route path="payments" element={<LazyPages.AdminPaymentsPage />} />
+                      <Route path="activity" element={<LazyPages.AdminActivityPage />} />
+                      <Route path="metrics" element={<LazyPages.AdminMetricsPage />} />
+                      <Route path="plans" element={<LazyPages.AdminPlansPage />} />
+                      <Route path="*" element={<div className="text-center py-10"><h1 className="text-2xl font-semibold">404 - Página no encontrada</h1></div>} />
+                    </Routes>
+                  </AdminLayout>
+                </AdminRoute>
+              } />
 
               {/* Main Application Routes (Protected with layout) */}
               <Route path="/*" element={

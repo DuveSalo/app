@@ -2,66 +2,122 @@ import { Input } from '../../../components/common/Input';
 import { DatePicker } from '../../../components/common/DatePicker';
 import { Select } from '../../../components/common/Select';
 import { ExtinguisherType, ExtinguisherCapacity } from '../../../types/index';
+import { FormField, FormItem, FormControl, FormMessage } from '@/components/ui/form';
 import { SectionProps } from '../types';
 
-export const IdentificationSection = ({ formData, onChange, onFieldChange }: SectionProps) => {
+export const IdentificationSection = ({ form }: SectionProps) => {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <DatePicker
-          label="Fecha de Control"
-          id="controlDate"
-          value={formData.controlDate}
-          onChange={(value) => onFieldChange?.('controlDate', value)}
-          required
+        <FormField
+          control={form.control}
+          name="controlDate"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <DatePicker
+                  label="Fecha de Control"
+                  id="controlDate"
+                  value={field.value}
+                  onChange={field.onChange}
+                  required
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        <Input
-          label="Numero de Extintor"
-          id="extinguisherNumber"
-          type="text"
+        <FormField
+          control={form.control}
           name="extinguisherNumber"
-          value={formData.extinguisherNumber}
-          onChange={onChange}
-          placeholder="Ej: EXT-001"
-          required
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input
+                  label="Numero de Extintor"
+                  id="extinguisherNumber"
+                  type="text"
+                  placeholder="Ej: EXT-001"
+                  required
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Select
-          label="Tipo"
-          id="type"
+        <FormField
+          control={form.control}
           name="type"
-          value={formData.type}
-          onChange={onChange}
-          required
-        >
-          <option value="">Seleccione...</option>
-          {Object.values(ExtinguisherType).map(type => (
-            <option key={type} value={type}>{type}</option>
-          ))}
-        </Select>
-        <Select
-          label="Capacidad"
-          id="capacity"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Select
+                  label="Tipo"
+                  id="type"
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  name={field.name}
+                  required
+                >
+                  <option value="">Seleccione...</option>
+                  {Object.values(ExtinguisherType).map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="capacity"
-          value={formData.capacity}
-          onChange={onChange}
-          required
-        >
-          <option value="">Seleccione...</option>
-          {Object.values(ExtinguisherCapacity).map(cap => (
-            <option key={cap} value={cap}>{cap} kg</option>
-          ))}
-        </Select>
-        <Input
-          label="Clase"
-          id="class"
-          type="text"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Select
+                  label="Capacidad"
+                  id="capacity"
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                  name={field.name}
+                  required
+                >
+                  <option value="">Seleccione...</option>
+                  {Object.values(ExtinguisherCapacity).map(cap => (
+                    <option key={cap} value={cap}>{cap} kg</option>
+                  ))}
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="class"
-          value={formData.class}
-          onChange={onChange}
-          placeholder="Ej: ABC"
-          required
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input
+                  label="Clase"
+                  id="class"
+                  type="text"
+                  placeholder="Ej: ABC"
+                  required
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
       </div>
     </div>

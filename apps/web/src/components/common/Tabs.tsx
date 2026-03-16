@@ -18,7 +18,7 @@ export const Tabs = ({ tabs, activeTab, onTabClick, className }: TabsProps) => {
   return (
     <div className={cn('flex flex-col h-full', className)}>
       <nav
-        className="inline-flex items-center h-10 rounded-md bg-neutral-100 p-1"
+        className="inline-flex items-center h-10 rounded-md bg-muted p-1"
         role="tablist"
         aria-label="Tabs"
       >
@@ -34,10 +34,10 @@ export const Tabs = ({ tabs, activeTab, onTabClick, className }: TabsProps) => {
               'whitespace-nowrap py-1.5 px-3 rounded-sm text-sm font-medium transition-all duration-150 flex-shrink-0',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1',
               tab.disabled
-                ? 'text-neutral-300 cursor-not-allowed'
+                ? 'text-muted-foreground/50 cursor-not-allowed'
                 : index === activeTab
-                  ? 'bg-white text-neutral-900 shadow-sm'
-                  : 'text-neutral-500 hover:text-neutral-700'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
             )}
             aria-selected={index === activeTab}
             aria-controls={`tab-panel-${index}`}

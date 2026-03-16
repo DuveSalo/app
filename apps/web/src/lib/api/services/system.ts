@@ -8,6 +8,7 @@ import { getCompanyIdByUserId } from './company';
 import { createLogger } from '../../utils/logger';
 import { TablesUpdate } from '../../../types/database.types';
 import { PaginationParams, CursorPaginationParams, CursorPaginatedResult } from '../../../types/common';
+import { parseCursor } from '../../utils/pagination';
 
 const logger = createLogger('SystemService');
 
@@ -66,11 +67,8 @@ export const getSelfProtectionSystemsCursor = async (
 
   if (params.cursor) {
     try {
-      const decoded = atob(params.cursor);
-      const [cursorDate, cursorId] = decoded.split('|');
-      if (cursorDate && cursorId) {
-        query = query.or(`expiration_date.lt.${cursorDate},and(expiration_date.eq.${cursorDate},id.lt.${cursorId})`);
-      }
+      const { cursorDate, cursorId } = parseCursor(params.cursor);
+      query = query.or(`expiration_date.lt.${cursorDate},and(expiration_date.eq.${cursorDate},id.lt.${cursorId})`);
     } catch { /* Invalid cursor */ }
   }
 
@@ -91,10 +89,15 @@ export const getSelfProtectionSystemsCursor = async (
 };
 
 export const getSelfProtectionSystemById = async (id: string): Promise<SelfProtectionSystem> => {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) throw new AuthError('Usuario no autenticado');
+  const companyId = await getCompanyIdByUserId(currentUser.id);
+
   const { data, error } = await supabase
     .from('self_protection_systems')
     .select(SYSTEM_COLUMNS)
     .eq('id', id)
+    .eq('company_id', companyId)
     .single();
 
   if (error || !data) {
@@ -125,8 +128,9 @@ export const createSelfProtectionSystem = async (systemData: Omit<SelfProtection
       });
     if (uploadError) handleSupabaseError(uploadError, 'Error al subir el PDF de disposición probatoria');
     if (!uploadData) return null;
-    const { data: urlData } = supabase.storage.from('self-protection-systems').getPublicUrl(uploadData.path);
-    return urlData.publicUrl;
+    const { data: urlData, error: urlError } = await supabase.storage.from('self-protection-systems').createSignedUrl(uploadData.path, 3600);
+    if (urlError) throw urlError;
+    return urlData.signedUrl;
   };
 
   const uploadExtension = async (): Promise<string | null> => {
@@ -142,8 +146,9 @@ export const createSelfProtectionSystem = async (systemData: Omit<SelfProtection
       });
     if (uploadError) handleSupabaseError(uploadError, 'Error al subir el PDF de extensión');
     if (!uploadData) return null;
-    const { data: urlData } = supabase.storage.from('self-protection-systems').getPublicUrl(uploadData.path);
-    return urlData.publicUrl;
+    const { data: urlData, error: urlError } = await supabase.storage.from('self-protection-systems').createSignedUrl(uploadData.path, 3600);
+    if (urlError) throw urlError;
+    return urlData.signedUrl;
   };
 
   const uploadDrills = (systemData.drills || []).map(async (drill, index) => {
@@ -160,8 +165,9 @@ export const createSelfProtectionSystem = async (systemData: Omit<SelfProtection
         });
       if (uploadError) handleSupabaseError(uploadError, 'Error al subir el PDF del simulacro');
       if (uploadData) {
-        const { data: urlData } = supabase.storage.from('self-protection-systems').getPublicUrl(uploadData.path);
-        drillPdfUrl = urlData.publicUrl;
+        const { data: urlData, error: urlError } = await supabase.storage.from('self-protection-systems').createSignedUrl(uploadData.path, 3600);
+        if (urlError) throw urlError;
+        drillPdfUrl = urlData.signedUrl;
       }
     }
     return { date: drill.date, pdfFileName: drill.pdfFileName || null, pdfUrl: drillPdfUrl };
@@ -220,8 +226,9 @@ export const updateSelfProtectionSystem = async (systemData: SelfProtectionSyste
       });
     if (uploadError) handleSupabaseError(uploadError, 'Error al subir el PDF de disposición probatoria');
     if (!uploadData) return null;
-    const { data: urlData } = supabase.storage.from('self-protection-systems').getPublicUrl(uploadData.path);
-    return urlData.publicUrl;
+    const { data: urlData, error: urlError } = await supabase.storage.from('self-protection-systems').createSignedUrl(uploadData.path, 3600);
+    if (urlError) throw urlError;
+    return urlData.signedUrl;
   };
 
   const uploadExtension = async (): Promise<string | null> => {
@@ -237,8 +244,9 @@ export const updateSelfProtectionSystem = async (systemData: SelfProtectionSyste
       });
     if (uploadError) handleSupabaseError(uploadError, 'Error al subir el PDF de extensión');
     if (!uploadData) return null;
-    const { data: urlData } = supabase.storage.from('self-protection-systems').getPublicUrl(uploadData.path);
-    return urlData.publicUrl;
+    const { data: urlData, error: urlError } = await supabase.storage.from('self-protection-systems').createSignedUrl(uploadData.path, 3600);
+    if (urlError) throw urlError;
+    return urlData.signedUrl;
   };
 
   const uploadDrills = (systemData.drills || []).map(async (drill, index) => {
@@ -255,8 +263,9 @@ export const updateSelfProtectionSystem = async (systemData: SelfProtectionSyste
         });
       if (uploadError) handleSupabaseError(uploadError, 'Error al subir el PDF del simulacro');
       if (uploadData) {
-        const { data: urlData } = supabase.storage.from('self-protection-systems').getPublicUrl(uploadData.path);
-        drillPdfUrl = urlData.publicUrl;
+        const { data: urlData, error: urlError } = await supabase.storage.from('self-protection-systems').createSignedUrl(uploadData.path, 3600);
+        if (urlError) throw urlError;
+        drillPdfUrl = urlData.signedUrl;
       }
     }
     return { date: drill.date, pdfFileName: drill.pdfFileName || null, pdfUrl: drillPdfUrl };
@@ -298,6 +307,7 @@ export const updateSelfProtectionSystem = async (systemData: SelfProtectionSyste
     .from('self_protection_systems')
     .update(updateData)
     .eq('id', systemData.id)
+    .eq('company_id', companyId)
     .select()
     .single();
 

@@ -1,0 +1,238 @@
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { type ColumnDef } from '@tanstack/react-table';
+import { ArrowUpDown } from 'lucide-react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import PageLayout from '@/components/layout/PageLayout';
+import { SkeletonTable } from '@/components/common/SkeletonLoader';
+import { DataTable } from '@/components/common/DataTable';
+import { ColorBadge } from '@/components/common/StatusBadge';
+import { formatDateLocal } from '@/lib/utils/dateUtils';
+import * as api from '@/lib/api/services';
+import { createLogger } from '@/lib/utils/logger';
+import type { ActivityLogRow } from './types';
+
+const logger = createLogger('AdminActivityPage');
+
+// --- Action labels (Spanish) ---
+
+const ACTION_LABELS: Record<string, string> = {
+  approve_payment: 'Aprobar pago',
+  reject_payment: 'Rechazar pago',
+  suspend_school: 'Suspender escuela',
+  activate_school: 'Activar escuela',
+  delete_school: 'Eliminar escuela',
+  update_plan: 'Actualizar plan',
+  create_plan: 'Crear plan',
+  delete_plan: 'Eliminar plan',
+  toggle_plan: 'Cambiar estado plan',
+};
+
+// --- Target type labels ---
+
+const TARGET_TYPE_LABELS: Record<string, string> = {
+  manual_payment: 'Pago',
+  company: 'Escuela',
+  subscription: 'Suscripción',
+  subscription_plan: 'Plan',
+};
+
+// --- Action badge colors ---
+
+type ColorVariant = 'emerald' | 'amber' | 'red' | 'muted';
+
+const ACTION_VARIANTS: Record<string, ColorVariant> = {
+  approve_payment: 'emerald',
+  activate_school: 'emerald',
+  create_plan: 'emerald',
+  reject_payment: 'red',
+  suspend_school: 'red',
+  delete_school: 'red',
+  delete_plan: 'red',
+  update_plan: 'amber',
+  toggle_plan: 'amber',
+};
+
+function ActionBadge({ action }: { action: string }) {
+  const variant = ACTION_VARIANTS[action] || 'muted';
+  const label = ACTION_LABELS[action] || action;
+  return <ColorBadge variant={variant} label={label} />;
+}
+
+// --- Filter tabs ---
+
+const FILTER_TABS = [
+  { value: 'all', label: 'Todos' },
+  { value: 'payments', label: 'Pagos' },
+  { value: 'schools', label: 'Escuelas' },
+  { value: 'plans', label: 'Planes' },
+] as const;
+
+const FILTER_ACTIONS: Record<string, string[]> = {
+  payments: ['approve_payment', 'reject_payment'],
+  schools: ['suspend_school', 'activate_school', 'delete_school'],
+  plans: ['update_plan', 'create_plan', 'delete_plan', 'toggle_plan'],
+};
+
+// --- Metadata display helper ---
+
+function formatMetadata(metadata: Record<string, unknown>): string {
+  if (!metadata || Object.keys(metadata).length === 0) return '—';
+  if (metadata.reason) return String(metadata.reason);
+  if (metadata.company_id) return `Escuela: ${String(metadata.company_id).substring(0, 8)}...`;
+  const entries = Object.entries(metadata)
+    .slice(0, 2)
+    .map(([k, v]) => `${k}: ${String(v)}`)
+    .join(', ');
+  return entries || '—';
+}
+
+// --- Page ---
+
+const AdminActivityPage = () => {
+  const [logs, setLogs] = useState<ActivityLogRow[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [filter, setFilter] = useState<string>('all');
+
+  const fetchLogs = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await api.getActivityLogs();
+      setLogs(data);
+    } catch (err) {
+      logger.error('Error fetching activity logs', err);
+      toast.error('Error al cargar los registros de actividad');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
+
+  const filteredLogs = useMemo(() => {
+    if (filter === 'all') return logs;
+    const actions = FILTER_ACTIONS[filter];
+    if (!actions) return logs;
+    return logs.filter((l) => actions.includes(l.action));
+  }, [logs, filter]);
+
+  // --- Columns ---
+
+  const columns: ColumnDef<ActivityLogRow, string>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'action',
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            className="h-auto p-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Acción
+            <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
+          </Button>
+        ),
+        cell: ({ row }) => <ActionBadge action={row.original.action} />,
+      },
+      {
+        accessorKey: 'targetType',
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            className="h-auto p-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Tipo
+            <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
+          </Button>
+        ),
+        cell: ({ row }) => (
+          <span className="text-sm">
+            {TARGET_TYPE_LABELS[row.original.targetType] || row.original.targetType}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'adminEmail',
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            className="h-auto p-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Admin
+            <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
+          </Button>
+        ),
+        cell: ({ row }) => (
+          <span className="font-medium">{row.original.adminEmail}</span>
+        ),
+      },
+      {
+        accessorKey: 'metadata',
+        header: 'Detalle',
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground truncate max-w-[200px] block">
+            {formatMetadata(row.original.metadata)}
+          </span>
+        ),
+        enableSorting: false,
+      },
+      {
+        accessorKey: 'createdAt',
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            className="h-auto p-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Fecha
+            <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
+          </Button>
+        ),
+        cell: ({ row }) => formatDateLocal(row.original.createdAt),
+      },
+    ],
+    []
+  );
+
+  // --- Filter toolbar ---
+
+  const toolbar = (
+    <Tabs value={filter} onValueChange={setFilter}>
+      <TabsList>
+        {FILTER_TABS.map((tab) => (
+          <TabsTrigger key={tab.value} value={tab.value}>
+            {tab.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
+  );
+
+  if (isLoading) {
+    return (
+      <PageLayout title="Actividad">
+        <SkeletonTable rows={10} />
+      </PageLayout>
+    );
+  }
+
+  return (
+    <PageLayout title="Actividad">
+      <DataTable
+        columns={columns}
+        data={filteredLogs}
+        searchKey="adminEmail"
+        searchPlaceholder="Buscar por admin..."
+        toolbar={toolbar}
+        pageSize={15}
+      />
+    </PageLayout>
+  );
+};
+
+export default AdminActivityPage;

@@ -15,19 +15,23 @@ const AuthCallbackPage = () => {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // For PKCE flow: exchange the code from URL for a session
         const url = new URL(window.location.href);
         const code = url.searchParams.get('code');
+        const errorParam = url.searchParams.get('error');
+        const errorDescription = url.searchParams.get('error_description');
 
-        if (code) {
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-          if (exchangeError) {
-            logger.error('Error exchanging code for session', exchangeError);
-            navigate(ROUTE_PATHS.LOGIN);
-            return;
-          }
+        // Handle Supabase error redirects (e.g., expired or invalid link)
+        if (errorParam) {
+          logger.error('Auth callback error from Supabase', { error: errorParam, description: errorDescription });
+          navigate(ROUTE_PATHS.LOGIN);
+          return;
         }
 
+        // The Supabase client (detectSessionInUrl: true) automatically handles
+        // PKCE code exchange during initialization. getSession() waits for that
+        // to complete, so we don't call exchangeCodeForSession() manually —
+        // doing so races with auto-detection and fails when the code_verifier
+        // has already been consumed.
         const { data: { session }, error } = await supabase.auth.getSession();
 
         if (error) {
@@ -37,8 +41,16 @@ const AuthCallbackPage = () => {
         }
 
         if (!session) {
-          logger.warn('No session found in callback');
-          navigate(ROUTE_PATHS.LOGIN);
+          // No session after callback — likely the confirmation email was opened
+          // in a different browser (PKCE verifier missing on this device).
+          // The email is already confirmed by Supabase, so show a helpful message.
+          if (code) {
+            logger.warn('No session after callback — likely different browser (PKCE verifier missing)');
+            navigate(`${ROUTE_PATHS.LOGIN}?confirmed=true`, { replace: true });
+          } else {
+            logger.warn('No session found in callback');
+            navigate(ROUTE_PATHS.LOGIN);
+          }
           return;
         }
 
@@ -68,10 +80,10 @@ const AuthCallbackPage = () => {
   }, [navigate]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-neutral-100">
+    <div className="flex items-center justify-center min-h-screen bg-muted">
       <div className="text-center">
         <LoadingSpinner size="lg" />
-        <p className="mt-4 text-neutral-600">Completando autenticación...</p>
+        <p className="mt-4 text-muted-foreground">Completando autenticación...</p>
       </div>
     </div>
   );

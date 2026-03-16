@@ -7,7 +7,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 import {
   getMpConfig,
   getMpHeaders,
@@ -16,8 +16,8 @@ import {
 } from '../_shared/mp-auth.ts';
 import {
   getMpPlanId,
-  isValidMpPlanKey,
-  MP_PLAN_METADATA,
+  isValidPlanKey,
+  getPlanMetadataFromDb,
 } from '../_shared/mp-plans.ts';
 import { supabaseAdmin } from '../_shared/supabase-admin.ts';
 import { sendEmailSafe } from '../_shared/resend.ts';
@@ -73,8 +73,10 @@ async function cancelExistingMpSubscription(
 }
 
 Deno.serve(async (req) => {
+  const cors = getCorsHeaders(req.headers.get('origin'));
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: cors });
   }
 
   try {
@@ -83,7 +85,7 @@ Deno.serve(async (req) => {
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 401, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -100,7 +102,7 @@ Deno.serve(async (req) => {
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 401, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -122,14 +124,14 @@ Deno.serve(async (req) => {
     if (!planKey || !companyId || !cardTokenId || !payerEmail) {
       return new Response(
         JSON.stringify({ error: 'Missing required fields: planKey, companyId, cardTokenId, payerEmail' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
-    if (!isValidMpPlanKey(planKey)) {
+    if (!(await isValidPlanKey(planKey))) {
       return new Response(
         JSON.stringify({ error: `Invalid plan key: ${planKey}` }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -144,7 +146,7 @@ Deno.serve(async (req) => {
     if (companyError || !company) {
       return new Response(
         JSON.stringify({ error: 'Company not found or access denied' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 403, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -154,7 +156,7 @@ Deno.serve(async (req) => {
 
     // Create MercadoPago preapproval subscription
     const mpPlanId = getMpPlanId(planKey);
-    const planMeta = MP_PLAN_METADATA[planKey];
+    const planMeta = await getPlanMetadataFromDb(planKey);
     const config = getMpConfig();
     console.log('[MP] mp-create-subscription: Creating preapproval', {
       mpPlanId,
@@ -266,20 +268,16 @@ Deno.serve(async (req) => {
       }),
       {
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...cors, 'Content-Type': 'application/json' },
       },
     );
   } catch (error) {
-    console.error('mp-create-subscription error:', error);
-    const message =
-      error instanceof MercadoPagoError
-        ? error.message
-        : 'Error al crear la suscripcion';
+    console.error('mp-create-subscription error:', error instanceof MercadoPagoError ? error.message : error);
     const status = error instanceof MercadoPagoError ? error.statusCode || 500 : 500;
 
     return new Response(
-      JSON.stringify({ error: message }),
-      { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      JSON.stringify({ error: 'Error al procesar la solicitud' }),
+      { status, headers: { ...cors, 'Content-Type': 'application/json' } },
     );
   }
 });

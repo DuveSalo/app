@@ -19,7 +19,7 @@ export const LoadingSpinner = ({
 }: LoadingSpinnerProps) => {
   return (
     <div className={cn('flex items-center justify-center', className)}>
-      <Loader2 className={cn(sizeClasses[size], 'animate-spin text-neutral-500')} strokeWidth={2} />
+      <Loader2 className={cn(sizeClasses[size], 'animate-spin text-muted-foreground')} strokeWidth={2} />
     </div>
   );
 };
@@ -29,7 +29,7 @@ export const PageLoader = ({ message }: { message?: string }) => {
     <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
       <LoadingSpinner size="lg" />
       {message && (
-        <p className="text-sm font-medium text-neutral-500 animate-pulse">{message}</p>
+        <p className="text-sm font-medium text-muted-foreground animate-pulse">{message}</p>
       )}
     </div>
   );

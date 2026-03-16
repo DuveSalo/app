@@ -1,48 +1,71 @@
-import { useState, useEffect, useMemo, type ChangeEvent, type FormEvent } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { SelfProtectionSystem } from '../../types/index';
 import { ROUTE_PATHS, MOCK_COMPANY_ID } from '../../constants/index';
 import * as api from '@/lib/api/services';
+import { toast } from 'sonner';
 import { Input } from '../../components/common/Input';
 import { DatePicker } from '../../components/common/DatePicker';
 import { Button } from '@/components/ui/button';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { FileUpload } from '../../components/common/FileUpload';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { SkeletonForm } from '../../components/common/SkeletonLoader';
 import { PdfPreview } from '../../components/common/PdfPreview';
 import PageLayout from '../../components/layout/PageLayout';
-import { Tabs } from '../../components/common/Tabs';
 import { TrashIcon, EyeIcon } from '../../components/common/Icons';
 import { createLogger } from '../../lib/utils/logger';
+import {
+  selfProtectionSystemSchema,
+  type SelfProtectionSystemFormValues,
+  PRINCIPAL_FIELDS,
+  SIMULACROS_FIELDS,
+  PROFESIONAL_FIELDS,
+} from './schemas';
 
 const logger = createLogger('CreateEditSelfProtectionSystemPage');
+
+const DEFAULT_VALUES: SelfProtectionSystemFormValues = {
+  probatoryDispositionDate: '',
+  probatoryDispositionPdf: undefined,
+  probatoryDispositionPdfName: undefined,
+  probatoryDispositionPdfUrl: undefined,
+  extensionDate: '',
+  extensionPdf: undefined,
+  extensionPdfName: undefined,
+  extensionPdfUrl: undefined,
+  expirationDate: '',
+  drills: Array(4).fill(null).map(() => ({ date: '', pdfFile: undefined, pdfFileName: undefined })),
+  intervener: '',
+  registrationNumber: '',
+};
 
 const CreateEditSelfProtectionSystemPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [formError, setFormError] = useState('');
   const [pageError, setPageError] = useState('');
   const [activeTab, setActiveTab] = useState(0);
   const [maxAllowedStep, setMaxAllowedStep] = useState(0);
 
-  const initialSystemData: Omit<SelfProtectionSystem, 'id'|'companyId'> = {
-    probatoryDispositionDate: undefined,
-    probatoryDispositionPdf: undefined,
-    probatoryDispositionPdfName: undefined,
-    extensionDate: '',
-    extensionPdf: undefined,
-    extensionPdfName: undefined,
-    expirationDate: '',
-    drills: Array(4).fill(null).map(() => ({ date: '', pdfFile: undefined, pdfFileName: undefined })),
-    intervener: '',
-    registrationNumber: '',
-  };
-  const [currentFormData, setCurrentFormData] = useState<Omit<SelfProtectionSystem, 'id'|'companyId'>>(initialSystemData);
+  const form = useForm<SelfProtectionSystemFormValues>({
+    resolver: zodResolver(selfProtectionSystemSchema),
+    defaultValues: DEFAULT_VALUES,
+    mode: 'onBlur',
+  });
 
-  const isPrincipalComplete = useMemo(() => !!currentFormData.probatoryDispositionDate, [currentFormData.probatoryDispositionDate]);
-  const isSimulacrosComplete = useMemo(() => currentFormData.drills.every(drill => !!drill.date), [currentFormData.drills]);
-  const isProfesionalComplete = useMemo(() => !!currentFormData.intervener && !!currentFormData.registrationNumber, [currentFormData.intervener, currentFormData.registrationNumber]);
+  const probatoryDispositionDate = form.watch('probatoryDispositionDate');
+  const drills = form.watch('drills');
+  const intervener = form.watch('intervener');
+  const registrationNumber = form.watch('registrationNumber');
+
+  const isPrincipalComplete = useMemo(() => !!probatoryDispositionDate, [probatoryDispositionDate]);
+  const isSimulacrosComplete = useMemo(() => drills.every(drill => !!drill.date), [drills]);
+  const isProfesionalComplete = useMemo(() => !!intervener && !!registrationNumber, [intervener, registrationNumber]);
   const isFormComplete = useMemo(() => isPrincipalComplete && isSimulacrosComplete && isProfesionalComplete, [isPrincipalComplete, isSimulacrosComplete, isProfesionalComplete]);
 
   useEffect(() => {
@@ -60,11 +83,14 @@ const CreateEditSelfProtectionSystemPage = () => {
       setIsLoadingData(true);
       setPageError('');
       api.getSelfProtectionSystemById(id)
-        .then(systemToEdit => {
-          setCurrentFormData({
-            ...initialSystemData,
+        .then((systemToEdit: SelfProtectionSystem) => {
+          const drillsData = systemToEdit.drills.length >= 4
+            ? systemToEdit.drills.slice(0, 4)
+            : Array(4).fill(null).map((_, i) => systemToEdit.drills[i] || ({ date: '', pdfFile: undefined, pdfFileName: undefined }));
+          form.reset({
+            ...DEFAULT_VALUES,
             ...systemToEdit,
-            drills: systemToEdit.drills.length >= 4 ? systemToEdit.drills.slice(0,4) : Array(4).fill(null).map((_, i) => systemToEdit.drills[i] || ({ date: '', pdfFile: undefined, pdfFileName: undefined }))
+            drills: drillsData,
           });
         })
         .catch((error: unknown) => {
@@ -73,96 +99,64 @@ const CreateEditSelfProtectionSystemPage = () => {
         })
         .finally(() => setIsLoadingData(false));
     } else {
-      setCurrentFormData(initialSystemData);
+      form.reset(DEFAULT_VALUES);
     }
   }, [id]);
 
+  // Auto-calculate extension and expiration dates
   useEffect(() => {
-    if (currentFormData.probatoryDispositionDate) {
-        try {
-            const baseDate = new Date(currentFormData.probatoryDispositionDate);
-            baseDate.setMinutes(baseDate.getMinutes() + baseDate.getTimezoneOffset());
+    if (probatoryDispositionDate) {
+      try {
+        const baseDate = new Date(probatoryDispositionDate);
+        baseDate.setMinutes(baseDate.getMinutes() + baseDate.getTimezoneOffset());
 
-            const extensionDate = new Date(baseDate);
-            extensionDate.setFullYear(baseDate.getFullYear() + 1);
+        const extensionDate = new Date(baseDate);
+        extensionDate.setFullYear(baseDate.getFullYear() + 1);
 
-            const expirationDate = new Date(baseDate);
-            expirationDate.setFullYear(baseDate.getFullYear() + 2);
+        const expirationDate = new Date(baseDate);
+        expirationDate.setFullYear(baseDate.getFullYear() + 2);
 
-            setCurrentFormData(prev => ({
-                ...prev,
-                extensionDate: extensionDate.toISOString().split('T')[0],
-                expirationDate: expirationDate.toISOString().split('T')[0],
-            }));
-        } catch(e) {
-            logger.warn("Invalid date format for auto-calculation", { error: e, date: currentFormData.probatoryDispositionDate });
-        }
-    }
-  }, [currentFormData.probatoryDispositionDate]);
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setCurrentFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (name: string, file: File | null) => {
-     const currentNameKey = `${name}Name` as keyof typeof currentFormData;
-     setCurrentFormData(prev => ({
-        ...prev,
-        [name]: file || undefined,
-        [currentNameKey]: file?.name || prev[currentNameKey]
-    }));
-  };
-
-  const handleDrillChange = (index: number, field: 'date' | 'pdfFile', value: string | File | null) => {
-    setCurrentFormData(prev => {
-      const newDrills = [...prev.drills];
-      const drillToUpdate = { ...newDrills[index] };
-
-      if (field === 'date') {
-        drillToUpdate.date = value as string;
-      } else if (field === 'pdfFile') {
-        const file = value as File | null;
-        drillToUpdate.pdfFile = file || undefined;
-        drillToUpdate.pdfFileName = file?.name || drillToUpdate.pdfFileName;
+        form.setValue('extensionDate', extensionDate.toISOString().split('T')[0]);
+        form.setValue('expirationDate', expirationDate.toISOString().split('T')[0]);
+      } catch (e) {
+        logger.warn("Invalid date format for auto-calculation", { error: e, date: probatoryDispositionDate });
       }
-      newDrills[index] = drillToUpdate;
-      return { ...prev, drills: newDrills };
-    });
-  };
+    }
+  }, [probatoryDispositionDate]);
 
   const handleClearDrill = (index: number) => {
-    setCurrentFormData(prev => {
-      const newDrills = [...prev.drills];
-      newDrills[index] = { date: '', pdfFile: undefined, pdfFileName: undefined };
-      return { ...prev, drills: newDrills };
-    });
+    form.setValue(`drills.${index}`, { date: '', pdfFile: undefined, pdfFileName: undefined });
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!isFormComplete) {
-      setFormError("Por favor, complete todos los campos requeridos en todas las secciones para guardar.");
-      return;
-    }
-    setIsSubmitting(true);
+  const onSubmit = async (data: SelfProtectionSystemFormValues) => {
+    setSaving(true);
     setFormError('');
     try {
       if (id) {
-        await api.updateSelfProtectionSystem({ ...currentFormData, id, companyId: MOCK_COMPANY_ID });
+        await api.updateSelfProtectionSystem({ ...data, id, companyId: MOCK_COMPANY_ID });
       } else {
-        await api.createSelfProtectionSystem(currentFormData);
+        await api.createSelfProtectionSystem(data);
       }
+      toast.success('Sistema guardado');
       navigate(ROUTE_PATHS.SELF_PROTECTION_SYSTEMS);
     } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : "Error al guardar el sistema");
+      const message = err instanceof Error ? err.message : "Error al guardar el sistema";
+      setFormError(message);
+      toast.error('Error al guardar', { description: message });
     } finally {
-      setIsSubmitting(false);
+      setSaving(false);
     }
   };
 
-  const handleNext = () => {
-    if (activeTab < formTabs.length - 1) {
+  const handleNext = async () => {
+    if (activeTab === 0) {
+      const valid = await form.trigger([...PRINCIPAL_FIELDS]);
+      if (!valid) return;
+    } else if (activeTab === 1) {
+      const valid = await form.trigger([...SIMULACROS_FIELDS]);
+      if (!valid) return;
+    }
+    if (activeTab < 2) {
       setActiveTab(activeTab + 1);
     }
   };
@@ -178,22 +172,22 @@ const CreateEditSelfProtectionSystemPage = () => {
       case 0:
         return (
           <>
-            <Button type="button" variant="outline" onClick={() => navigate(ROUTE_PATHS.SELF_PROTECTION_SYSTEMS)} disabled={isSubmitting}>Cancelar</Button>
+            <Button type="button" variant="ghost" onClick={() => navigate(ROUTE_PATHS.SELF_PROTECTION_SYSTEMS)} disabled={saving}>Cancelar</Button>
             <Button type="button" onClick={handleNext} disabled={!isPrincipalComplete}>Siguiente</Button>
           </>
         );
       case 1:
         return (
           <>
-            <Button type="button" variant="outline" onClick={handleBack} disabled={isSubmitting}>Atrás</Button>
+            <Button type="button" variant="ghost" onClick={handleBack} disabled={saving}>Atrás</Button>
             <Button type="button" onClick={handleNext} disabled={!isSimulacrosComplete}>Siguiente</Button>
           </>
         );
       case 2:
         return (
           <>
-            <Button type="button" variant="outline" onClick={handleBack} disabled={isSubmitting}>Atrás</Button>
-            <Button type="submit" form="sps-form" loading={isSubmitting} disabled={!isFormComplete}>
+            <Button type="button" variant="ghost" onClick={handleBack} disabled={saving}>Atrás</Button>
+            <Button type="submit" form="sps-form" loading={saving} disabled={!isFormComplete}>
               {id ? "Actualizar" : "Guardar"}
             </Button>
           </>
@@ -201,146 +195,291 @@ const CreateEditSelfProtectionSystemPage = () => {
       default:
         return null;
     }
-  }, [activeTab, isSubmitting, isPrincipalComplete, isSimulacrosComplete, isFormComplete, id, navigate, handleNext, handleBack]);
+  }, [activeTab, saving, isPrincipalComplete, isSimulacrosComplete, isFormComplete, id, navigate, handleNext, handleBack]);
 
-  if (isLoadingData) return <div className="flex-grow flex justify-center items-center h-full"><LoadingSpinner size="lg" /></div>;
-  if (pageError) return <div className="flex-grow flex justify-center items-center h-full"><p className="text-red-600 text-center py-10">{pageError}</p></div>;
+  if (isLoadingData) return <SkeletonForm />;
+  if (pageError) return <div className="flex-grow flex justify-center items-center h-full"><p className="text-destructive text-center py-10">{pageError}</p></div>;
 
   const pageTitle = id ? "Editar Sistema de Autoprotección" : "Nuevo Sistema de Autoprotección";
 
-  const formTabs = [
-    {
-        label: 'Principal',
-        disabled: false,
-        content: (
-            <div className="space-y-4">
-                <DatePicker id="probatoryDispositionDate" label="Fecha Disposición Aprobatoria" value={currentFormData.probatoryDispositionDate || ''} onChange={(value) => setCurrentFormData(prev => ({ ...prev, probatoryDispositionDate: value }))} required/>
-
-                {id && currentFormData.probatoryDispositionPdfUrl && !currentFormData.probatoryDispositionPdf && (
-                  <div className="p-3 bg-neutral-50 border border-neutral-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-neutral-900">PDF actual:</p>
-                        <p className="text-sm text-neutral-500">{currentFormData.probatoryDispositionPdfName || 'Disposición Aprobatoria'}</p>
-                      </div>
-                      <button
-                        type="button"
-                        className="inline-flex items-center justify-center px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
-                        onClick={() => window.open(currentFormData.probatoryDispositionPdfUrl, '_blank')}
-                        title="Ver PDF actual"
-                      >
-                        <EyeIcon className="w-4 h-4 mr-1" />
-                        Ver PDF
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <FileUpload label={id ? "Reemplazar PDF Disposición Aprobatoria (opcional)" : "PDF Disposición Aprobatoria"} accept=".pdf" currentFileName={currentFormData.probatoryDispositionPdfName} onFileSelect={(file) => handleFileChange('probatoryDispositionPdf', file)} />
-                <PdfPreview file={currentFormData.probatoryDispositionPdf} />
-
-                <DatePicker id="extensionDate" label="Fecha Extensión" value={currentFormData.extensionDate || ''} onChange={(value) => setCurrentFormData(prev => ({ ...prev, extensionDate: value }))} disabled />
-
-                {id && currentFormData.extensionPdfUrl && !currentFormData.extensionPdf && (
-                  <div className="p-3 bg-neutral-50 border border-neutral-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-neutral-900">PDF actual:</p>
-                        <p className="text-sm text-neutral-500">{currentFormData.extensionPdfName || 'Extensión'}</p>
-                      </div>
-                      <button
-                        type="button"
-                        className="inline-flex items-center justify-center px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
-                        onClick={() => window.open(currentFormData.extensionPdfUrl, '_blank')}
-                        title="Ver PDF actual"
-                      >
-                        <EyeIcon className="w-4 h-4 mr-1" />
-                        Ver PDF
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <FileUpload label={id ? "Reemplazar PDF Extensión (opcional)" : "PDF Extensión"} accept=".pdf" currentFileName={currentFormData.extensionPdfName} onFileSelect={(file) => handleFileChange('extensionPdf', file)} />
-                <PdfPreview file={currentFormData.extensionPdf} />
-
-                <DatePicker id="expirationDate" label="Fecha Vencimiento" value={currentFormData.expirationDate} onChange={(value) => setCurrentFormData(prev => ({ ...prev, expirationDate: value }))} required disabled/>
-            </div>
-        )
-    },
-    {
-        label: 'Simulacros',
-        disabled: maxAllowedStep < 1,
-        content: (
-            <div className="space-y-4">
-                <p className="text-xs text-neutral-500">Registre la información de los 4 simulacros requeridos. Se requiere la fecha de los 4 simulacros para continuar.</p>
-                {currentFormData.drills.map((drill, index) => (
-                  <div key={index} className="p-4 border border-neutral-200 bg-neutral-50">
-                    <div className="flex justify-between items-center mb-3">
-                        <h4 className="text-sm font-medium text-neutral-900">Simulacro {index + 1}</h4>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleClearDrill(index)}
-                            className="text-neutral-400 hover:text-red-600 hover:bg-red-50 px-2 py-1"
-                            aria-label={`Limpiar Simulacro ${index + 1}`}
-                        >
-                            <TrashIcon className="w-4 h-4 mr-1.5" />
-                            Limpiar
-                        </Button>
-                    </div>
-                    <div className="space-y-3">
-                      <DatePicker label="Fecha" id={`drillDate-${index}`} value={drill.date} onChange={(value) => handleDrillChange(index, 'date', value)} required/>
-
-                      {id && drill.pdfUrl && !drill.pdfFile && (
-                        <div className="p-3 bg-neutral-50 border border-neutral-200">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-neutral-900">PDF actual:</p>
-                              <p className="text-sm text-neutral-500">{drill.pdfFileName || `Simulacro ${index + 1}`}</p>
-                            </div>
-                            <button
-                              type="button"
-                              className="inline-flex items-center justify-center px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 transition-colors"
-                              onClick={() => window.open(drill.pdfUrl, '_blank')}
-                              title="Ver PDF actual"
-                            >
-                              <EyeIcon className="w-4 h-4 mr-1" />
-                              Ver PDF
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      <FileUpload label={id ? "Reemplazar PDF del Simulacro (opcional)" : "PDF del Simulacro"} accept=".pdf" currentFileName={drill.pdfFileName} onFileSelect={(file) => handleDrillChange(index, 'pdfFile', file)} />
-                      <PdfPreview file={drill.pdfFile} />
-                    </div>
-                  </div>
-                ))}
-            </div>
-        )
-    },
-    {
-        label: 'Profesional',
-        disabled: maxAllowedStep < 2,
-        content: (
-            <div className="space-y-4">
-                <Input id="intervener" label="Personal Interviniente" name="intervener" value={currentFormData.intervener} onChange={handleChange} required />
-                <Input id="registrationNumber" label="Matrícula" name="registrationNumber" value={currentFormData.registrationNumber} onChange={handleChange} required />
-            </div>
-        )
-    }
-  ];
+  const tabKeys = ['principal', 'simulacros', 'profesional'];
+  const currentTabKey = tabKeys[activeTab];
 
   return (
     <PageLayout title={pageTitle} footer={footerActions}>
       <div className="h-full overflow-y-auto custom-scrollbar">
-        <div className="max-w-2xl space-y-6">
-          <form id="sps-form" onSubmit={handleSubmit}>
-            <Tabs tabs={formTabs} activeTab={activeTab} onTabClick={setActiveTab} />
-            {formError && <p className="text-sm text-red-600 mt-4 text-center">{formError}</p>}
-          </form>
+        <div className="w-full max-w-4xl mx-auto">
+          <Form {...form}>
+            <form id="sps-form" onSubmit={form.handleSubmit(onSubmit)}>
+              <Tabs value={currentTabKey} onValueChange={(v) => setActiveTab(tabKeys.indexOf(v))}>
+                <TabsList>
+                  <TabsTrigger value="principal">Principal</TabsTrigger>
+                  <TabsTrigger value="simulacros" disabled={maxAllowedStep < 1}>Simulacros</TabsTrigger>
+                  <TabsTrigger value="profesional" disabled={maxAllowedStep < 2}>Profesional</TabsTrigger>
+                </TabsList>
+                <div className="mt-4">
+                  <TabsContent value="principal">
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="probatoryDispositionDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <DatePicker
+                                id="probatoryDispositionDate"
+                                label="Fecha Disposición Aprobatoria"
+                                value={field.value || ''}
+                                onChange={(value) => {
+                                  field.onChange(value);
+                                }}
+                                required
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {id && form.getValues('probatoryDispositionPdfUrl') && !form.getValues('probatoryDispositionPdf') && (
+                        <div className="p-3 bg-muted border border-border rounded-md">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-foreground">PDF actual:</p>
+                              <p className="text-sm text-muted-foreground">{form.getValues('probatoryDispositionPdfName') || 'Disposición Aprobatoria'}</p>
+                            </div>
+                            <Button type="button" variant="ghost" onClick={() => window.open(form.getValues('probatoryDispositionPdfUrl'), '_blank')}>
+                              <EyeIcon className="w-4 h-4" /> Ver PDF
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      <FormField
+                        control={form.control}
+                        name="probatoryDispositionPdf"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <FileUpload
+                                label={id ? "Reemplazar PDF Disposición Aprobatoria (opcional)" : "PDF Disposición Aprobatoria"}
+                                accept=".pdf"
+                                currentFileName={form.getValues('probatoryDispositionPdfName')}
+                                onFileSelect={(file) => {
+                                  field.onChange(file || undefined);
+                                  if (file) {
+                                    form.setValue('probatoryDispositionPdfName', file.name);
+                                  }
+                                }}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <PdfPreview file={form.watch('probatoryDispositionPdf')} />
+
+                      <div className="border-t border-border pt-4">
+                        <FormField
+                          control={form.control}
+                          name="extensionDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <DatePicker
+                                  id="extensionDate"
+                                  label="Fecha Extensión"
+                                  value={field.value || ''}
+                                  onChange={field.onChange}
+                                  disabled
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {id && form.getValues('extensionPdfUrl') && !form.getValues('extensionPdf') && (
+                        <div className="p-3 bg-muted border border-border rounded-md">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-foreground">PDF actual:</p>
+                              <p className="text-sm text-muted-foreground">{form.getValues('extensionPdfName') || 'Extensión'}</p>
+                            </div>
+                            <Button type="button" variant="ghost" onClick={() => window.open(form.getValues('extensionPdfUrl'), '_blank')}>
+                              <EyeIcon className="w-4 h-4" /> Ver PDF
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      <FormField
+                        control={form.control}
+                        name="extensionPdf"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <FileUpload
+                                label={id ? "Reemplazar PDF Extensión (opcional)" : "PDF Extensión"}
+                                accept=".pdf"
+                                currentFileName={form.getValues('extensionPdfName')}
+                                onFileSelect={(file) => {
+                                  field.onChange(file || undefined);
+                                  if (file) {
+                                    form.setValue('extensionPdfName', file.name);
+                                  }
+                                }}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <PdfPreview file={form.watch('extensionPdf')} />
+
+                      <div className="border-t border-border pt-4">
+                        <FormField
+                          control={form.control}
+                          name="expirationDate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <DatePicker
+                                  id="expirationDate"
+                                  label="Fecha Vencimiento"
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  required
+                                  disabled
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="simulacros">
+                    <div className="space-y-4">
+                      <p className="text-xs text-muted-foreground">Registre la información de los 4 simulacros requeridos. Se requiere la fecha de los 4 simulacros para continuar.</p>
+                      {drills.map((drill, index) => (
+                        <div key={index} className="p-4 border border-border bg-muted rounded-md">
+                          <div className="flex justify-between items-center mb-3">
+                            <h4 className="text-sm font-medium text-foreground">Simulacro {index + 1}</h4>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              onClick={() => handleClearDrill(index)}
+                              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 px-2 py-1"
+                              aria-label={`Limpiar Simulacro ${index + 1}`}
+                            >
+                              <TrashIcon className="w-4 h-4" /> Limpiar
+                            </Button>
+                          </div>
+                          <div className="space-y-3">
+                            <FormField
+                              control={form.control}
+                              name={`drills.${index}.date`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormControl>
+                                    <DatePicker
+                                      label="Fecha"
+                                      id={`drillDate-${index}`}
+                                      value={field.value}
+                                      onChange={field.onChange}
+                                      required
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            {id && drill.pdfUrl && !drill.pdfFile && (
+                              <div className="p-3 bg-background border border-border rounded-md">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium text-foreground">PDF actual:</p>
+                                    <p className="text-sm text-muted-foreground">{drill.pdfFileName || `Simulacro ${index + 1}`}</p>
+                                  </div>
+                                  <Button type="button" variant="ghost" onClick={() => window.open(drill.pdfUrl, '_blank')}>
+                                    <EyeIcon className="w-4 h-4" /> Ver PDF
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+
+                            <FormField
+                              control={form.control}
+                              name={`drills.${index}.pdfFile`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormControl>
+                                    <FileUpload
+                                      label={id ? "Reemplazar PDF del Simulacro (opcional)" : "PDF del Simulacro"}
+                                      accept=".pdf"
+                                      currentFileName={drill.pdfFileName}
+                                      onFileSelect={(file) => {
+                                        field.onChange(file || undefined);
+                                        if (file) {
+                                          form.setValue(`drills.${index}.pdfFileName`, file.name);
+                                        }
+                                      }}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <PdfPreview file={drill.pdfFile} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="profesional">
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="intervener"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input
+                                id="intervener"
+                                label="Personal Interviniente"
+                                {...field}
+                                required
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="registrationNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input
+                                id="registrationNumber"
+                                label="Matrícula"
+                                {...field}
+                                required
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </TabsContent>
+                </div>
+              </Tabs>
+              {formError && <p className="text-sm text-destructive mt-4 text-center">{formError}</p>}
+            </form>
+          </Form>
         </div>
       </div>
     </PageLayout>

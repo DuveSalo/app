@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, type MouseEvent as ReactMouseEvent } from 'react';
 import { Bell, Check, CheckCheck, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../features/auth/AuthContext';
+import { useAuth } from '@/lib/auth/AuthContext';
 import { Notification } from '../../types/notification';
 import * as notificationService from '../../lib/api/services/notifications';
+import { NetworkError } from '../../lib/utils/errors';
 import { ROUTE_PATHS } from '../../constants/index';
 
 const NotificationBell = () => {
@@ -38,7 +39,9 @@ const NotificationBell = () => {
         setNotifications(notifs.items ?? []);
         setUnreadCount(count);
       } catch (error) {
-        console.error('Error fetching notifications:', error);
+        if (!(error instanceof NetworkError)) {
+          console.error('Error fetching notifications:', error);
+        }
       }
     };
 
@@ -99,16 +102,16 @@ const NotificationBell = () => {
   };
 
   const getTypeStyles = (type: string, isRead: boolean) => {
-    const baseStyles = isRead ? 'bg-white' : 'bg-neutral-50';
+    const baseStyles = isRead ? 'bg-background' : 'bg-muted';
 
     switch (type) {
       case 'expiration_urgent':
       case 'expired':
-        return `${baseStyles} border-l-4 border-l-red-500`;
+        return `${baseStyles} border-l-4 border-l-destructive`;
       case 'expiration_warning':
         return `${baseStyles} border-l-4 border-l-amber-400`;
       default:
-        return `${baseStyles} border-l-4 border-l-neutral-200`;
+        return `${baseStyles} border-l-4 border-l-border`;
     }
   };
 
@@ -131,27 +134,27 @@ const NotificationBell = () => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-md hover:bg-neutral-100 transition-colors focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none"
+        className="relative p-2 rounded-md hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none"
         aria-label="Notificaciones"
       >
-        <Bell className="w-5 h-5 text-neutral-700" strokeWidth={2} />
+        <Bell className="w-5 h-5 text-foreground" strokeWidth={2} />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-semibold text-white bg-red-600 rounded-full">
+          <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-xs font-semibold text-white bg-destructive rounded-full">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-lg bg-white border border-neutral-200 shadow-lg z-50 overflow-hidden animate-dropdown-in">
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-lg bg-background border border-border shadow-lg z-50 overflow-hidden animate-dropdown-in">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200 bg-neutral-50">
-            <h3 className="text-sm font-medium text-neutral-900">Notificaciones</h3>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted">
+            <h3 className="text-sm font-medium text-foreground">Notificaciones</h3>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
                 disabled={isLoading}
-                className="flex items-center gap-1 text-xs text-neutral-500 hover:text-neutral-900 transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none"
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
                 Marcar todo como leído
@@ -163,36 +166,36 @@ const NotificationBell = () => {
           <div className="max-h-[360px] overflow-y-auto custom-scrollbar">
             {notifications.length === 0 ? (
               <div className="py-10 text-center">
-                <Bell className="w-8 h-8 text-neutral-300 mx-auto mb-2" />
-                <p className="text-sm text-neutral-500">No hay notificaciones</p>
+                <Bell className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No hay notificaciones</p>
               </div>
             ) : (
-              <div className="divide-y divide-neutral-100">
+              <div className="divide-y divide-border">
                 {notifications.map(notification => (
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification)}
-                    className={`px-4 py-3 cursor-pointer hover:bg-neutral-50 transition-colors ${getTypeStyles(notification.type, notification.isRead)}`}
+                    className={`px-4 py-3 cursor-pointer hover:bg-muted transition-colors ${getTypeStyles(notification.type, notification.isRead)}`}
                   >
                     <div className="flex items-start gap-3">
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm ${notification.isRead ? 'text-neutral-600' : 'text-neutral-900 font-medium'}`}>
+                        <p className={`text-sm ${notification.isRead ? 'text-muted-foreground' : 'text-foreground font-medium'}`}>
                           {notification.title}
                         </p>
-                        <p className="text-xs text-neutral-500 mt-0.5 line-clamp-2">
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                           {notification.message}
                         </p>
-                        <p className="text-xs text-neutral-400 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {formatTimeAgo(notification.createdAt)}
                         </p>
                       </div>
                       {!notification.isRead && (
                         <button
                           onClick={(e) => handleMarkAsRead(notification.id, e)}
-                          className="p-1 hover:bg-neutral-200 transition-colors focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none"
+                          className="p-1 hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none"
                           title="Marcar como leída"
                         >
-                          <Check className="w-4 h-4 text-neutral-400" />
+                          <Check className="w-4 h-4 text-muted-foreground" />
                         </button>
                       )}
                     </div>
@@ -203,10 +206,10 @@ const NotificationBell = () => {
           </div>
 
           {/* Footer */}
-          <div className="px-4 py-2.5 border-t border-neutral-200 bg-neutral-50">
+          <div className="px-4 py-2.5 border-t border-border bg-muted">
             <button
               onClick={handleViewAll}
-              className="flex items-center justify-center gap-1.5 w-full text-sm text-neutral-500 hover:text-neutral-900 font-medium transition-colors focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none"
+              className="flex items-center justify-center gap-1.5 w-full text-sm text-muted-foreground hover:text-foreground font-medium transition-colors focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none"
             >
               Ver todas las notificaciones
               <ExternalLink className="w-3.5 h-3.5" />

@@ -1,12 +1,12 @@
 import { type ReactElement } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../features/auth/AuthContext';
+import { useAuth } from '@/lib/auth/AuthContext';
 import { ROUTE_PATHS } from '../constants/index';
 import { SpinnerPage } from '../components/common/SpinnerPage';
 import { getTrialStatus } from '../lib/utils/trial';
 
 const ProtectedRoute = ({ children }: { children: ReactElement }) => {
-  const { currentUser, currentCompany, isLoading } = useAuth();
+  const { currentUser, currentCompany, pendingCompanyData, isAdmin, isLoading } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -18,9 +18,18 @@ const ProtectedRoute = ({ children }: { children: ReactElement }) => {
     return <Navigate to={ROUTE_PATHS.LOGIN} state={{ from: location }} replace />;
   }
 
-  // Level 2: Must have a company
+  // Admins bypass company/subscription checks
+  if (isAdmin) {
+    return children;
+  }
+
+  // Level 2: Must have a company (or pending data to reach subscription page)
   if (!currentCompany) {
     if (location.pathname === ROUTE_PATHS.CREATE_COMPANY) {
+      return children;
+    }
+    // Allow subscription page if school data was already filled (pending, not yet saved)
+    if (pendingCompanyData && location.pathname === ROUTE_PATHS.SUBSCRIPTION) {
       return children;
     }
     return <Navigate to={ROUTE_PATHS.CREATE_COMPANY} state={{ from: location }} replace />;
@@ -35,6 +44,8 @@ const ProtectedRoute = ({ children }: { children: ReactElement }) => {
       ROUTE_PATHS.TRIAL_EXPIRED,
       ROUTE_PATHS.CREATE_COMPANY,
       ROUTE_PATHS.SETTINGS,
+      ROUTE_PATHS.BANK_TRANSFER_UPLOAD,
+      ROUTE_PATHS.BANK_TRANSFER_STATUS,
     ];
     if (allowedPaths.includes(location.pathname)) {
       return children;

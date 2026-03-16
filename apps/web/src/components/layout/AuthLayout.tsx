@@ -12,21 +12,21 @@ const OnboardingStepper = ({ steps, currentStep }: { steps: string[]; currentSte
         return (
           <div key={label} className="contents">
             {index > 0 && (
-              <div className={`w-10 h-px ${isDone ? 'bg-neutral-900' : 'bg-neutral-200'}`} />
+              <div className={`w-10 h-px ${isDone ? 'bg-primary' : 'bg-border'}`} />
             )}
             <div className="flex items-center gap-2.5">
               <div
                 className={`flex items-center justify-center rounded-md w-7 h-7 text-xs font-medium transition-all duration-200 ${
                   isCompleted
-                    ? 'bg-neutral-900 text-white'
-                    : 'border border-neutral-200 text-neutral-400'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'border border-border text-muted-foreground'
                 }`}
               >
                 {stepNumber}
               </div>
               <span
                 className={`text-sm ${
-                  isCompleted ? 'font-medium text-neutral-900' : 'text-neutral-400'
+                  isCompleted ? 'font-medium text-foreground' : 'text-muted-foreground'
                 }`}
               >
                 {label}
@@ -56,23 +56,25 @@ const AuthLayout = ({
 }: AuthLayoutProps) => {
   if (variant === 'split') {
     return (
-      <div className="h-screen flex bg-white">
+      <div className="h-screen flex bg-background">
         {/* Left: Hero */}
-        <div className="hidden lg:flex flex-col justify-between flex-1 px-20 py-16 bg-white">
+        <div className="hidden lg:flex flex-col justify-between flex-1 px-20 py-16 bg-background">
           {/* Top: Logo */}
           <div className="flex items-center gap-3">
-            <div className="bg-neutral-900 rounded-md w-7 h-7" />
-            <span className="text-base font-bold text-neutral-900">
+            <div className="bg-primary text-primary-foreground rounded-lg w-7 h-7 flex items-center justify-center text-xs font-bold">
+              ES
+            </div>
+            <span className="text-base font-bold text-foreground">
               Escuela Segura
             </span>
           </div>
 
           {/* Middle: Hero text */}
           <div className="flex flex-col gap-6">
-            <h1 className="text-5xl font-semibold leading-[1.1] text-neutral-900 max-w-[560px] tracking-tight">
+            <h1 className="text-5xl font-semibold leading-[1.1] text-foreground max-w-[560px] tracking-tight">
               Gestión de seguridad escolar, simplificada.
             </h1>
-            <p className="text-base leading-relaxed text-neutral-500 max-w-[440px]">
+            <p className="text-base leading-relaxed text-muted-foreground max-w-[440px]">
               Controla vencimientos, certificados y normativas en un solo lugar. Sin complicaciones.
             </p>
           </div>
@@ -85,10 +87,10 @@ const AuthLayout = ({
               { value: '150+', label: 'Escuelas activas' },
             ].map((stat) => (
               <div key={stat.label} className="flex flex-col gap-1.5 text-center">
-                <span className="text-2xl font-bold tracking-tight text-neutral-900">
+                <span className="text-2xl font-bold tracking-tight text-foreground">
                   {stat.value}
                 </span>
-                <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   {stat.label}
                 </span>
               </div>
@@ -97,11 +99,13 @@ const AuthLayout = ({
         </div>
 
         {/* Right: Form */}
-        <div className="flex flex-col justify-center border-l border-neutral-200 w-full lg:w-[480px] lg:flex-shrink-0 px-12 sm:px-20">
+        <div className="flex flex-col justify-center border-l border-border w-full lg:w-[480px] lg:flex-shrink-0 px-12 sm:px-20">
           {/* Mobile logo */}
           <div className="flex items-center justify-center mb-10 lg:hidden gap-3">
-            <div className="bg-neutral-900 rounded-md w-7 h-7" />
-            <span className="text-base font-semibold text-neutral-900">
+            <div className="bg-primary text-primary-foreground rounded-lg w-7 h-7 flex items-center justify-center text-xs font-bold">
+              ES
+            </div>
+            <span className="text-base font-semibold text-foreground">
               Escuela Segura
             </span>
           </div>
@@ -113,10 +117,13 @@ const AuthLayout = ({
 
   // --- Wizard Layout (Onboarding) ---
   return (
-    <div className="min-h-screen flex flex-col items-center overflow-y-auto custom-scrollbar bg-neutral-50">
+    <div className="min-h-screen flex flex-col items-center overflow-y-auto custom-scrollbar bg-muted">
       {/* Top bar */}
-      <div className="w-full flex items-center flex-shrink-0 h-16 px-10">
-        <span className="text-base font-semibold text-neutral-900">
+      <div className="w-full flex items-center flex-shrink-0 h-16 px-10 gap-3">
+        <div className="bg-primary text-primary-foreground rounded-lg w-7 h-7 flex items-center justify-center text-xs font-bold">
+          ES
+        </div>
+        <span className="text-base font-semibold text-foreground">
           Escuela Segura
         </span>
       </div>

@@ -184,6 +184,10 @@ export const handleError = (error: unknown): { message: string; code?: string } 
 export const handleSupabaseError = (error: { message: string; code?: string }, context?: string): never => {
   const message = context ? `${context}: ${error.message}` : error.message;
 
+  if (error.message === 'Failed to fetch' || error.message === 'NetworkError when attempting to fetch resource.') {
+    throw new NetworkError('No se pudo conectar con el servidor. Verifica tu conexión a internet.');
+  }
+
   if (error.code === '23505') {
     throw new DatabaseError('Este registro ya existe en la base de datos.', 'DUPLICATE_ENTRY');
   }

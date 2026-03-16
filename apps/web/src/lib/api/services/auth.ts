@@ -1,7 +1,7 @@
 
 import { supabase } from '../../supabase/client';
 import { User } from '../../../types/index';
-import { AuthError, ValidationError, EmailConfirmationRequiredError, handleSupabaseError } from '../../utils/errors';
+import { AuthError, ValidationError, handleSupabaseError } from '../../utils/errors';
 
 // Password validation
 const validatePassword = (password: string): { valid: boolean; error?: string } => {
@@ -38,10 +38,15 @@ export const login = async (email: string, password: string): Promise<User> => {
     id: data.user.id,
     name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'Usuario',
     email: data.user.email || '',
+    role: (data.user.app_metadata?.role as 'admin' | undefined) ?? undefined,
   };
 };
 
-export const register = async (name: string, email: string, password: string): Promise<User> => {
+export type RegisterResult =
+  | { status: 'ok'; user: User }
+  | { status: 'confirmation_sent'; email: string };
+
+export const register = async (name: string, email: string, password: string): Promise<RegisterResult> => {
   // Validate password
   const validation = validatePassword(password);
   if (!validation.valid) {
@@ -55,7 +60,7 @@ export const register = async (name: string, email: string, password: string): P
       data: {
         name,
       },
-      emailRedirectTo: `${window.location.origin}/app/create-company`,
+      emailRedirectTo: `${window.location.origin}/app/auth/callback`,
     },
   });
 
@@ -67,16 +72,33 @@ export const register = async (name: string, email: string, password: string): P
     throw new AuthError("Error al crear usuario.", 'USER_CREATION_ERROR');
   }
 
-  // Check if email confirmation is required (session will be null if email confirmation is enabled)
+  // If no session, email confirmation link was sent
   if (!data.session) {
-    throw new EmailConfirmationRequiredError();
+    return { status: 'confirmation_sent', email: data.user.email || email };
   }
 
   return {
-    id: data.user.id,
-    name,
-    email: data.user.email || email,
+    status: 'ok',
+    user: {
+      id: data.user.id,
+      name,
+      email: data.user.email || email,
+    },
   };
+};
+
+export const resendConfirmationEmail = async (email: string): Promise<void> => {
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email,
+    options: {
+      emailRedirectTo: `${window.location.origin}/app/auth/callback`,
+    },
+  });
+
+  if (error) {
+    throw new AuthError(error.message || 'Error al reenviar el email de confirmación.', 'RESEND_ERROR');
+  }
 };
 
 export const logout = async (): Promise<void> => {
@@ -97,6 +119,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
     id: user.id,
     name: user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario',
     email: user.email || '',
+    role: (user.app_metadata?.role as 'admin' | undefined) ?? undefined,
   };
 };
 
@@ -142,6 +165,23 @@ export const updateUser = async (userData: Partial<User>): Promise<User> => {
     ...currentUser,
     ...userData,
   };
+};
+
+export const changePassword = async (newPassword: string): Promise<void> => {
+  const validation = validatePassword(newPassword);
+  if (!validation.valid) {
+    throw new ValidationError(validation.error || 'Contraseña inválida');
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) {
+    handleSupabaseError(error);
+  }
+};
+
+export const verifyCurrentPassword = async (email: string, password: string): Promise<boolean> => {
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  return !error;
 };
 
 export const sendPasswordResetEmail = async (email: string): Promise<void> => {

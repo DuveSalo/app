@@ -9,7 +9,7 @@
  * Signature validation uses x-signature header with HMAC-SHA256.
  */
 
-import { corsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 import {
   getMpConfig,
   getMpHeaders,
@@ -216,17 +216,54 @@ async function syncSubscriptionState(
 }
 
 Deno.serve(async (req) => {
+  const cors = getCorsHeaders(req.headers.get('origin'));
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: cors });
+  }
+
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
   }
 
   try {
+    // Validate webhook signature BEFORE parsing body
+    const config = getMpConfig();
+    if (!config.webhookSecret) {
+      console.error('CRITICAL: MP_WEBHOOK_SECRET not configured');
+      return new Response(JSON.stringify({ error: 'Server configuration error' }), { status: 500 });
+    }
+
     const body = await req.json();
 
     const notificationId = body.id as string;
     const action = body.action as string;
     const type = body.type as string;
     const dataId = (body.data?.id as string) || '';
+
+    // Validate dataId format before using in URL construction
+    const isValidMPId = (id: string) => /^[a-zA-Z0-9_-]{1,100}$/.test(id);
+    if (dataId && !isValidMPId(dataId)) {
+      console.error('Invalid dataId format:', dataId);
+      return new Response(
+        JSON.stringify({ error: 'Invalid data ID format' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // Always verify signature
+    const isValid = await verifyWebhookSignature(
+      req.headers,
+      dataId,
+      config.webhookSecret,
+    );
+    if (!isValid) {
+      console.error('Webhook signature verification failed');
+      return new Response(
+        JSON.stringify({ error: 'Invalid signature' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
 
     // Only handle subscription_preapproval events
     if (type !== 'subscription_preapproval' && type !== 'subscription_authorized_payment') {
@@ -235,23 +272,6 @@ Deno.serve(async (req) => {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
-    }
-
-    // Validate webhook signature
-    const config = getMpConfig();
-    if (config.webhookSecret) {
-      const isValid = await verifyWebhookSignature(
-        req.headers,
-        dataId,
-        config.webhookSecret,
-      );
-      if (!isValid) {
-        console.error('Webhook signature verification failed');
-        return new Response(
-          JSON.stringify({ error: 'Invalid signature' }),
-          { status: 401, headers: { 'Content-Type': 'application/json' } },
-        );
-      }
     }
 
     // Idempotency check

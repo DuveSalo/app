@@ -34,15 +34,15 @@ export function SplitPaneLayout<T extends SplitPaneItem>({
     const count = totalCount ?? items.length;
 
     return (
-        <div className="flex flex-1 bg-white rounded-lg border border-neutral-200 overflow-hidden min-h-0 h-full">
+        <div className="flex flex-1 bg-background rounded-md border border-border overflow-hidden min-h-0 h-full">
             {/* ── Left Panel (Master List) ── */}
-            <aside className="w-1/3 min-w-[240px] max-w-[360px] border-r border-neutral-200 flex flex-col bg-neutral-50/50">
+            <aside className="w-1/3 min-w-[240px] max-w-[360px] border-r border-border flex flex-col bg-muted/50">
                 {/* Header */}
-                <div className="px-4 py-2.5 border-b border-neutral-200 flex items-center justify-between flex-shrink-0">
-                    <span className="text-xs font-medium text-neutral-500">
+                <div className="px-4 py-2.5 border-b border-border flex items-center justify-between flex-shrink-0">
+                    <span className="text-xs font-medium text-muted-foreground">
                         {listLabel}
                     </span>
-                    <span className="text-xs text-neutral-400">
+                    <span className="text-xs text-muted-foreground">
                         {count}
                     </span>
                 </div>
@@ -56,10 +56,10 @@ export function SplitPaneLayout<T extends SplitPaneItem>({
                                 key={item.id}
                                 onClick={() => onSelect(item.id)}
                                 className={cn(
-                                    'group flex items-center gap-3 px-4 py-3 border-b border-neutral-100 cursor-pointer transition-colors border-l-2',
+                                    'group flex items-center gap-3 px-4 py-3 border-b border-border cursor-pointer transition-colors border-l-2',
                                     isSelected
-                                        ? 'bg-white border-l-neutral-900'
-                                        : 'hover:bg-white/80 border-l-transparent'
+                                        ? 'bg-background border-l-primary'
+                                        : 'hover:bg-background/80 border-l-transparent'
                                 )}
                             >
                                 {renderListItem(item, isSelected)}
@@ -70,12 +70,12 @@ export function SplitPaneLayout<T extends SplitPaneItem>({
             </aside>
 
             {/* ── Right Panel (Detail View) ── */}
-            <section className="flex-1 flex flex-col p-6 bg-white overflow-y-auto custom-scrollbar min-h-0">
+            <section className="flex-1 flex flex-col p-6 bg-background overflow-y-auto custom-scrollbar min-h-0">
                 {selectedItem ? (
                     renderDetail(selectedItem)
                 ) : (
                     <div className="flex-1 flex items-center justify-center">
-                        <p className="text-xs text-neutral-500">{emptyDetailMessage}</p>
+                        <p className="text-xs text-muted-foreground">{emptyDetailMessage}</p>
                     </div>
                 )}
             </section>

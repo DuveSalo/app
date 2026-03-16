@@ -1,64 +1,123 @@
 import { Checkbox } from '../../../components/common/Checkbox';
 import { Textarea } from '../../../components/common/Textarea';
+import { FormField, FormItem, FormControl, FormMessage } from '@/components/ui/form';
 import { SectionProps } from '../types';
 
-export const ConditionsSection = ({ formData, onChange, onCheckChange }: SectionProps) => {
+export const ConditionsSection = ({ form }: SectionProps) => {
   return (
     <div className="space-y-6">
       <div>
-        <h4 className="text-sm font-medium text-neutral-900 mb-3">Verificaciones</h4>
-        <div className="space-y-3 bg-blue-50 p-4 border border-blue-200">
-          <Checkbox
-            label="Estan legibles las etiquetas identificatorias?"
-            id="labelsLegible"
+        <h4 className="text-sm font-medium text-foreground mb-3">Verificaciones</h4>
+        <div className="space-y-3 bg-info/10 p-4 border border-info/30 rounded-md">
+          <FormField
+            control={form.control}
             name="labelsLegible"
-            checked={formData.labelsLegible}
-            onChange={onCheckChange}
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Checkbox
+                    label="Estan legibles las etiquetas identificatorias?"
+                    id="labelsLegible"
+                    name="labelsLegible"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
           />
-          <Checkbox
-            label="La presion esta dentro del intervalo de funcionamiento?"
-            id="pressureWithinRange"
+          <FormField
+            control={form.control}
             name="pressureWithinRange"
-            checked={formData.pressureWithinRange}
-            onChange={onCheckChange}
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Checkbox
+                    label="La presion esta dentro del intervalo de funcionamiento?"
+                    id="pressureWithinRange"
+                    name="pressureWithinRange"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
           />
-          <Checkbox
-            label="Posee precinto y trabas de seguridad?"
-            id="hasSealAndSafety"
+          <FormField
+            control={form.control}
             name="hasSealAndSafety"
-            checked={formData.hasSealAndSafety}
-            onChange={onCheckChange}
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Checkbox
+                    label="Posee precinto y trabas de seguridad?"
+                    id="hasSealAndSafety"
+                    name="hasSealAndSafety"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
           />
-          <Checkbox
-            label="Las instrucciones de funcionamiento estan legibles?"
-            id="instructionsLegible"
+          <FormField
+            control={form.control}
             name="instructionsLegible"
-            checked={formData.instructionsLegible}
-            onChange={onCheckChange}
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Checkbox
+                    label="Las instrucciones de funcionamiento estan legibles?"
+                    id="instructionsLegible"
+                    name="instructionsLegible"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
           />
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Textarea
-          label="Estado del Recipiente"
-          id="containerCondition"
+        <FormField
+          control={form.control}
           name="containerCondition"
-          value={formData.containerCondition}
-          onChange={onChange}
-          placeholder="Describa el estado del recipiente"
-          rows={3}
-          required
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Textarea
+                  label="Estado del Recipiente"
+                  id="containerCondition"
+                  placeholder="Describa el estado del recipiente"
+                  rows={3}
+                  required
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        <Textarea
-          label="Estado de Tobera"
-          id="nozzleCondition"
+        <FormField
+          control={form.control}
           name="nozzleCondition"
-          value={formData.nozzleCondition}
-          onChange={onChange}
-          placeholder="Describa el estado de la tobera"
-          rows={3}
-          required
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Textarea
+                  label="Estado de Tobera"
+                  id="nozzleCondition"
+                  placeholder="Describa el estado de la tobera"
+                  rows={3}
+                  required
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
       </div>
     </div>

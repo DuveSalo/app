@@ -6,21 +6,21 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/landing/ui/accordion";
-import { FAQ_DATA } from "@/lib/landing-constants";
-import { useInView } from "@/hooks/useInView";
+} from "@/components/ui/accordion";
+import { FAQ_DATA } from "@/constants/landing";
+import { useInView } from "@/lib/hooks/useInView";
 
 export function FAQ() {
   const { ref, isInView } = useInView({ threshold: 0.1 });
 
   return (
-    <section id="faq" className="py-16 lg:py-24 bg-white">
-      <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 tracking-tight">
+    <section id="faq" className="bg-muted py-20 lg:py-24">
+      <div className="mx-auto max-w-6xl px-6">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-foreground tracking-tight">
             Preguntas Frecuentes
           </h2>
-          <p className="mt-3 text-neutral-500 text-sm leading-relaxed">
+          <p className="mt-3 text-muted-foreground">
             Todo lo que necesita saber sobre Escuela Segura.
           </p>
         </div>
@@ -30,18 +30,15 @@ export function FAQ() {
           initial={{ opacity: 0, y: 12 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
+          className="max-w-2xl mx-auto"
         >
-          <Accordion type="single" collapsible className="space-y-2">
+          <Accordion type="single" collapsible>
             {FAQ_DATA.map((item, i) => (
-              <AccordionItem
-                key={i}
-                value={`item-${i}`}
-                className="border border-neutral-200 px-4 data-[state=open]:bg-neutral-50/50 transition-colors rounded-lg"
-              >
-                <AccordionTrigger className="text-sm font-semibold text-neutral-800 hover:text-neutral-900 py-3.5 hover:no-underline">
+              <AccordionItem key={i} value={`item-${i}`}>
+                <AccordionTrigger className="text-sm font-medium text-left hover:no-underline">
                   {item.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-sm text-neutral-500 leading-relaxed pb-3.5">
+                <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
                   {item.answer}
                 </AccordionContent>
               </AccordionItem>

@@ -33,7 +33,7 @@ export const Pagination = ({
 
     return (
         <div className="flex items-center justify-between w-full">
-            <span className="text-xs text-neutral-500">
+            <span className="text-xs text-muted-foreground">
                 Mostrando {startItem}-{endItem} de {totalItems} documentos
             </span>
 
@@ -43,9 +43,9 @@ export const Pagination = ({
                     type="button"
                     onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="flex items-center justify-center w-8 h-8 rounded-md border border-neutral-200 bg-white hover:bg-neutral-50 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none disabled:opacity-30 disabled:pointer-events-none"
+                    className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-background hover:bg-muted transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none disabled:opacity-30 disabled:pointer-events-none"
                 >
-                    <ChevronLeft className={`h-3.5 w-3.5 ${currentPage === 1 ? 'text-neutral-400' : 'text-neutral-900'}`} />
+                    <ChevronLeft className={`h-3.5 w-3.5 ${currentPage === 1 ? 'text-muted-foreground' : 'text-foreground'}`} />
                 </button>
 
                 {/* Page numbers */}
@@ -54,10 +54,10 @@ export const Pagination = ({
                         key={page}
                         type="button"
                         onClick={() => onPageChange(page)}
-                        className={`flex items-center justify-center w-8 h-8 text-xs rounded-md transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none ${
+                        className={`flex items-center justify-center w-8 h-8 text-xs rounded-md transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none ${
                             page === currentPage
-                                ? 'bg-neutral-900 font-medium text-white'
-                                : 'border border-neutral-200 bg-white text-neutral-500 hover:bg-neutral-50'
+                                ? 'bg-primary font-medium text-primary-foreground'
+                                : 'border border-border bg-background text-muted-foreground hover:bg-muted'
                         }`}
                     >
                         {page}
@@ -69,9 +69,9 @@ export const Pagination = ({
                     type="button"
                     onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
                     disabled={currentPage === totalPages}
-                    className="flex items-center justify-center w-8 h-8 rounded-md border border-neutral-200 bg-white hover:bg-neutral-50 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 outline-none disabled:opacity-30 disabled:pointer-events-none"
+                    className="flex items-center justify-center w-8 h-8 rounded-md border border-border bg-background hover:bg-muted transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none disabled:opacity-30 disabled:pointer-events-none"
                 >
-                    <ChevronRight className={`h-3.5 w-3.5 ${currentPage === totalPages ? 'text-neutral-400' : 'text-neutral-900'}`} />
+                    <ChevronRight className={`h-3.5 w-3.5 ${currentPage === totalPages ? 'text-muted-foreground' : 'text-foreground'}`} />
                 </button>
             </div>
         </div>

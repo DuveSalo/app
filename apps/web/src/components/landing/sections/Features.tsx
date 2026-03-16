@@ -9,7 +9,7 @@ import {
   Bell,
   ClipboardList,
 } from "lucide-react";
-import { useInView } from "@/hooks/useInView";
+import { useInView } from "@/lib/hooks/useInView";
 
 const FEATURES = [
   {
@@ -70,13 +70,13 @@ export function Features() {
   const { ref, isInView } = useInView({ threshold: 0.15 });
 
   return (
-    <section id="funcionalidades" className="py-16 lg:py-24 bg-white">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+    <section id="funcionalidades" className="bg-muted py-20 lg:py-24">
+      <div className="mx-auto max-w-6xl px-6">
         <div className="text-center max-w-xl mx-auto mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold text-neutral-900 tracking-tight">
+          <h2 className="text-3xl font-bold text-foreground tracking-tight">
             Todo lo que necesita para cumplir
           </h2>
-          <p className="mt-3 text-neutral-500 text-sm leading-relaxed">
+          <p className="mt-3 text-muted-foreground">
             Herramientas diseñadas para simplificar la gestión de seguridad en
             instituciones educativas.
           </p>
@@ -95,15 +95,15 @@ export function Features() {
               <motion.div
                 key={feature.title}
                 variants={itemVariants}
-                className="group border border-neutral-200 bg-white p-5 transition-colors hover:border-neutral-300 rounded-lg"
+                className="border border-border rounded-lg p-6 bg-background hover:border-foreground/20 transition-colors"
               >
-                <div className="flex h-9 w-9 items-center justify-center bg-neutral-100 text-neutral-900 mb-3 transition-colors group-hover:bg-neutral-200 rounded-md">
-                  <Icon className="h-4 w-4" strokeWidth={1.75} />
+                <div className="inline-flex items-center justify-center bg-muted rounded-lg p-2.5">
+                  <Icon className="h-5 w-5 text-foreground" />
                 </div>
-                <h3 className="text-sm font-semibold text-neutral-900 mb-1.5">
+                <h3 className="text-base font-semibold text-foreground mt-4">
                   {feature.title}
                 </h3>
-                <p className="text-sm text-neutral-500 leading-relaxed">
+                <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
                   {feature.description}
                 </p>
               </motion.div>

@@ -2,95 +2,183 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project Overview
+
+**Escuela Segura** — Safety compliance management SaaS for Argentine schools. Tracks fire extinguishers, conservation certificates, self-protection systems, QR documents, and event information with expiration monitoring and notification workflows.
+
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router for landing/SEO) + React Router SPA (for `/app/*` dashboard)
+- **React 19**, **TypeScript 5.8** (strict mode), **Tailwind CSS v4** (PostCSS, no v3 config file)
+- **UI**: shadcn/ui (neutral theme, new-york style) + custom composed components
+- **Backend**: Supabase (PostgreSQL + Auth with PKCE + Edge Functions in Deno)
+- **Payments**: MercadoPago subscriptions via Edge Functions
+- **Package manager**: pnpm monorepo (`apps/web/` + `packages/` + `supabase/`)
+
 ## Commands
 
 ```bash
-# Development
-pnpm install                          # Install all workspace dependencies
-pnpm dev                              # Start Next.js dev server (port 3000)
-pnpm build                            # Production build (all workspaces)
+# Development (from root)
+pnpm install              # Install all dependencies
+pnpm dev                  # Start Next.js dev server (port 3000)
+pnpm build                # Production build (~6s with Turbopack)
 
-# Testing
+# Unit tests (Vitest + React Testing Library)
+pnpm test                 # Watch mode
+pnpm test -- run          # Single run
+pnpm test -- run src/lib/utils/dateUtils.test.ts   # Single file
+
+# E2E tests (Playwright, from apps/web/)
 cd apps/web
-pnpm test                             # Vitest watch mode
-pnpm test:run                         # Vitest single run
-pnpm vitest run src/lib/utils/dateUtils.test.ts   # Run a single test file
-pnpm test:coverage                    # Unit tests with coverage
-pnpm test:e2e                         # Playwright E2E (must have dev server running)
-pnpm test:e2e:headed                  # E2E in headed browser
+pnpm test:e2e             # Headless Chromium
+pnpm test:e2e:ui          # Playwright UI mode
 
 # Formatting
-cd apps/web && pnpm format            # Prettier
+cd apps/web && pnpm format  # Prettier (single quotes, trailing commas, 100 char width, 2-space indent)
 
 # Supabase
-npx supabase start                    # Local Supabase
-npx supabase functions serve          # Serve Edge Functions locally
-npx supabase db push                  # Push migrations to remote
-npx supabase functions deploy <name>  # Deploy a single Edge Function
+npx supabase start                      # Local Supabase
+npx supabase functions serve             # Serve Edge Functions locally
+npx supabase functions deploy <name>     # Deploy single function
+npx supabase db push                     # Push migrations
 ```
 
 ## Architecture
 
-**Monorepo**: pnpm workspace — `apps/web` (Next.js 16 + React 19), `supabase/` (Edge Functions + migrations), `e2e/` (Playwright).
+### Dual Routing System
 
-**Hybrid routing**: Next.js App Router handles SSR pages (`/`, `/privacidad`, `/terminos`). A catch-all route at `src/app/app/[[...slug]]/` mounts a React Router SPA (basename `/app`) for the entire authenticated dashboard. All SPA page components are `React.lazy()` loaded.
+1. **Next.js App Router** (`src/app/`): Landing page (`/`), legal pages (`/privacidad`, `/terminos`), SEO (sitemap, robots)
+2. **React Router SPA** (`src/App.tsx`): Dashboard at `/app/*`, mounted via catch-all `src/app/app/[[...slug]]/client.tsx` with `BrowserRouter` (basename `/app`)
 
-**State**: Single `AuthContext` (user + company + auth methods). No Redux/Zustand — pages use local `useState`/`useEffect`. Custom `useForm` and `useEntityForm` hooks for form management.
+All SPA page components are lazy-loaded via `src/routes/routes.config.ts`.
 
-**Backend**: Supabase (Postgres + Auth + Storage + Edge Functions). Auth uses PKCE flow. All DB interaction goes through service files in `src/lib/api/services/` with mapper functions converting snake_case rows to camelCase domain types.
+### ProtectedRoute Guard (3-level)
 
-**Payments**: MercadoPago subscriptions managed via Supabase Edge Functions (`supabase/functions/mp-*`).
+1. No user → redirect to `/login`
+2. No company → redirect to `/create-company`
+3. No subscription → redirect to `/subscribe` (allows `/settings` through)
+4. Fully onboarded user on auth routes → redirect to `/dashboard`
 
-### Key directories (`apps/web/src/`)
+### Feature Module Pattern
 
-| Path | Purpose |
-|---|---|
-| `features/{name}/` | Domain modules — page components + feature-specific components/hooks |
-| `components/common/` | Shared UI: Button, Input, Select, Table, Modal, Toast, etc. (custom CVA-based) |
-| `components/ui/` | **shadcn/ui primitives — do NOT modify** |
-| `components/layout/` | MainLayout, Sidebar, MobileNav, PageLayout, AuthLayout |
-| `lib/api/services/` | One service file per entity (auth, company, certificate, etc.) |
-| `lib/api/mappers.ts` | DB row → domain type converters |
-| `lib/supabase/client.ts` | Typed Supabase client singleton |
-| `lib/utils/` | Error classes, logger, dateUtils, validation, sanitization |
-| `lib/env.ts` | Zod-validated env config — always import `env` from here, never `process.env` |
-| `routes/` | Route config (`routes.config.ts`) + `ProtectedRoute` auth guard |
-| `constants/` | `ROUTE_PATHS`, `MODULE_TITLES`, config values |
-| `types/` | Domain types + `database.types.ts` (auto-generated from Supabase) |
+Each domain lives in `src/features/{name}/` with:
+- `{Name}ListPage.tsx` — list with filters, sorting, pagination
+- `CreateEdit{Name}Page.tsx` — form with sections
+- `components/` — feature-specific UI
+- `types.ts` — feature types (when beyond `src/types/`)
 
-### Feature module pattern
+Canonical example: `src/features/fire-extinguishers/`
 
-Canonical example: `features/fire-extinguishers/`
+### API Layer (`src/lib/api/services/`)
 
-```
-fire-extinguishers/
-├── components/          # Feature-specific UI
-├── hooks/               # Feature-specific hooks
-├── types.ts             # Feature-specific types (when needed)
-├── FireExtinguisherListPage.tsx
-└── CreateEditFireExtinguisherPage.tsx
-```
+One service file per entity. Conventions:
+- Prefer explicit `.select('id, name')` over `.select('*')`
+- Use relational queries for N+1 prevention
+- `mapXFromDb` functions (in `mappers.ts`) convert snake_case DB → camelCase domain types
+- Error handling via `handleSupabaseError()` + custom error classes in `lib/utils/errors.ts`
+- Environment variables: always import from `@/lib/env` (Zod-validated), never `process.env` directly
 
-### Layout hierarchy
+### Component Hierarchy
 
-`MainLayout` (sidebar + content) → `PageLayout` (header + body + optional footer) → feature page content. Auth flows use `AuthLayout` with `split` (login/register) or `wizard` (onboarding) variants.
+| Layer | Location | Rule |
+|---|---|---|
+| shadcn primitives | `components/ui/` | **Do NOT modify** — managed by shadcn CLI |
+| Composed components | `components/common/` | Project-specific components that don't exist in shadcn |
+| Layout | `components/layout/` | MainLayout, Sidebar, PageLayout, AuthLayout |
+| Landing | `components/landing/` | Landing page sections, import from `components/ui/` |
+| Feature UI | `features/*/components/` | Module-specific components |
 
-### ProtectedRoute guard (4 levels)
+If shadcn has the component, use it from `ui/`. Never duplicate in `common/`.
 
-1. No user → `/login`
-2. No company → `/create-company`
-3. No active subscription/trial → `/trial-expired` or `/subscribe`
-4. Already-onboarded user on auth pages → `/dashboard`
+### Supabase Edge Functions (`supabase/functions/`)
 
-## Conventions
+- Shared utilities in `_shared/` (CORS, admin client, MercadoPago auth, Resend email)
+- Every function must validate JWT from Authorization header before business logic
+- `service_role` key is only used in Edge Functions, never in client code
+- Webhook handlers must verify signatures and be idempotent
+- MercadoPago retry: `mpFetch()` retries 3x with exponential backoff
 
-- **Env vars**: Use `NEXT_PUBLIC_` prefix. Add to Zod schema in `lib/env.ts` before use. Import `env` from `@/lib/env`, never `process.env` directly.
-- **Services**: One file per entity. Use explicit `.select('col1, col2')` over `.select('*')`. Always run results through `mapXFromDb()` mappers.
-- **Error handling**: Use `handleSupabaseError()` to wrap Supabase errors. Typed hierarchy: `AppError` → `AuthError`, `ValidationError`, `NotFoundError`, `DatabaseError`, `NetworkError`.
-- **Icons**: Lucide exclusively (`lucide-react`).
-- **Styling**: Tailwind v4 (CSS-first config in `globals.css`). shadcn/ui `new-york` style with `neutral` palette. CVA for component variants.
-- **Dates**: `date-fns` for all date operations.
-- **XSS**: Sanitize user input with `lib/utils/sanitize.ts` (DOMPurify).
-- **Supabase Edge Functions**: Auth pattern is extract JWT → verify → business logic. Use `_shared/supabase-admin.ts` for RLS bypass. CORS via `_shared/cors.ts`.
-- **Migrations**: Name as `YYYYMMDD[_sequence]_description.sql`. Use `IF NOT EXISTS`. Every new table must have RLS policies.
-- **Types**: `database.types.ts` is auto-generated from Supabase — don't edit manually.
+## Design System Rules
+
+Full spec in `DESIGN-SYSTEM.md`. Key rules:
+
+- **Colors**: Always use semantic tokens. Never hardcode Tailwind colors. Only exception: status badges (emerald/amber/red)
+- **Border radius**: `rounded-lg` (10px) on everything
+- **Typography**: Inter (sans + headings), JetBrains Mono (mono). Scale: text-2xl (page title), text-base (section title), text-sm (body), text-xs (small)
+- **Buttons**: 4 variants only — default, destructive, outline, ghost
+- **Icons**: Lucide exclusively
+- **Shadows**: No shadows on cards (border only). shadow-md (dropdowns), shadow-lg (modals)
+- **Toasts**: Sonner — toast.success() for actions, toast.error() for errors, toast.info() for neutral
+- **AlertDialog**: Always destructive (red button) for delete, logout, cancel subscription
+- **Tables**: DataTable with @tanstack/react-table. Filters from column headers. No row click navigation. Pagination always visible.
+- **Forms**: No Card wrapper. Sections separated by border-t. react-hook-form + zod + shadcn Form/FormField
+- **Settings**: Accessed from user DropdownMenu in sidebar footer, NOT from sidebar nav
+
+## Key File Locations
+
+- Auth context: `src/lib/auth/AuthContext.tsx`
+- Route paths: `src/constants/routes.ts` (ROUTE_PATHS)
+- Module metadata: `src/constants/modules.ts` (MODULE_TITLES)
+- DB types (auto-generated): `src/types/database.types.ts`
+- Supabase client: `src/lib/supabase/client.ts` (PKCE flow)
+- Theme tokens: `src/app/globals.css` (`:root` CSS variables)
+- Test setup: `src/test/setup.ts` (mocks matchMedia, IntersectionObserver, Supabase)
+- Form schemas: `src/features/{name}/schemas.ts` (zod schemas + inferred types per feature)
+- shadcn Form: `src/components/ui/form.tsx` (Form/FormField/FormItem/FormLabel/FormControl/FormMessage)
+
+## Path Alias
+
+`@/*` maps to `apps/web/src/*` — use `@/lib/...`, `@/components/...`, `@/features/...`
+
+## Workflow
+
+### 1. Planning First
+- Enter planning mode for ANY non-trivial task (more than 3 steps or architectural decisions)
+- If something goes wrong, STOP and go back to planning immediately; don't keep pushing
+- Use planning mode for verification steps, not just for building
+- Write detailed specs upfront to reduce ambiguity
+
+### 2. Subagent Strategy
+- Use subagents frequently to keep the main context window clean
+- Delegate research, exploration, and parallel analysis to subagents
+- For complex problems, dedicate more compute via subagents
+- One task per subagent for focused execution
+
+### 3. Self-Improvement Loop
+- After ANY user correction: update `tasks/lessons.md` with the pattern
+- Write rules for yourself that prevent the same mistake
+- Iterate relentlessly on these lessons until the error rate drops
+- Review lessons at the start of each session for the corresponding project
+
+### 4. Verify Before Finishing
+- Never mark a task as complete without proving it works
+- Compare the diff between the main branch and your changes when relevant
+- Ask yourself: "Would a Staff Engineer approve this?"
+- Run tests, check logs, and prove code correctness
+
+### 5. Demand Elegance (Balanced)
+- For non-trivial changes: pause and ask "is there a more elegant way?"
+- If a fix looks like a patch (hacky): "Knowing everything I know now, implement the elegant solution"
+- Skip this for simple and obvious fixes; don't over-engineer
+- Question your own work before presenting it
+
+### 6. Autonomous Error Correction
+- When you receive an error report: just fix it. Don't ask for hand-holding.
+- Identify logs, errors, or failing tests and then resolve them
+- Zero need for context switching from the user
+- Go fix failing CI tests without being told how
+
+## Task Management
+
+1. **Plan First**: Write the plan in `tasks/todo.md` with verifiable items
+2. **Verify Plan**: Confirm before starting implementation
+3. **Track Progress**: Mark items as completed as you advance
+4. **Explain Changes**: High-level summary at each step
+5. **Document Results**: Add a review section to `tasks/todo.md`
+6. **Capture Lessons**: Update `tasks/lessons.md` after corrections
+
+## Core Principles
+
+- **Simplicity First**: Make each change as simple as possible. Affect minimum code necessary.
+- **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
+- **Minimum Impact**: Changes should only touch what's necessary. Avoid introducing errors.

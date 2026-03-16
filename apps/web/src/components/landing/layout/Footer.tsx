@@ -1,4 +1,4 @@
-import { APP_ROUTES } from "@/lib/landing-constants";
+import { APP_ROUTES } from "@/constants/landing";
 
 const FOOTER_LINKS = {
   Producto: [
@@ -18,65 +18,33 @@ const FOOTER_LINKS = {
 
 export function Footer() {
   return (
-    <footer className="bg-neutral-900 text-neutral-400">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+    <footer className="bg-background border-t border-border">
+      <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand column */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="flex h-9 w-9 items-center justify-center bg-neutral-900 text-white rounded-md">
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M12 2L2 7L12 12L22 7L12 2Z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M2 17L12 22L22 17"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M2 12L12 17L22 12"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+              <div className="flex h-8 w-8 items-center justify-center bg-primary text-primary-foreground rounded-lg">
+                <span className="text-xs font-bold">ES</span>
               </div>
-              <span className="text-lg font-semibold text-white ">
-                Escuela Segura
-              </span>
+              <span className="text-sm font-semibold text-foreground">Escuela Segura</span>
             </div>
-            <p className="text-sm leading-relaxed text-neutral-500 max-w-xs">
-              Plataforma integral para la gestión de seguridad, documentación y
-              cumplimiento normativo en instituciones educativas.
+            <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
+              Plataforma integral para la gestión de seguridad, documentación y cumplimiento
+              normativo en instituciones educativas.
             </p>
           </div>
 
           {/* Link columns */}
           {Object.entries(FOOTER_LINKS).map(([title, links]) => (
             <div key={title}>
-              <h3 className="text-sm font-semibold text-white mb-4 ">
-                {title}
-              </h3>
+              <h3 className="text-sm font-semibold text-foreground mb-4">{title}</h3>
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.label}>
                     <a
                       href={link.href}
-                      className="text-sm text-neutral-500 hover:text-white transition-colors"
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {link.label}
                     </a>
@@ -88,12 +56,11 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 pt-8 border-t border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-neutral-600">
-            &copy; {new Date().getFullYear()} Escuela Segura. Todos los
-            derechos reservados.
+        <div className="mt-8 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-muted-foreground">
+            &copy; {new Date().getFullYear()} Escuela Segura. Todos los derechos reservados.
           </p>
-          <p className="text-xs text-neutral-600">Hecho en Argentina</p>
+          <p className="text-xs text-muted-foreground">Hecho en Argentina</p>
         </div>
       </div>
     </footer>

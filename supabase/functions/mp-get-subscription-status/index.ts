@@ -6,7 +6,7 @@
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 import {
   getMpConfig,
   getMpHeaders,
@@ -15,8 +15,10 @@ import {
 import { supabaseAdmin } from '../_shared/supabase-admin.ts';
 
 Deno.serve(async (req) => {
+  const cors = getCorsHeaders(req.headers.get('origin'));
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: cors });
   }
 
   try {
@@ -24,7 +26,7 @@ Deno.serve(async (req) => {
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 401, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -41,15 +43,22 @@ Deno.serve(async (req) => {
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 401, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
     const { mpPreapprovalId } = await req.json() as { mpPreapprovalId: string };
+    const isValidMPId = (id: string) => /^[a-zA-Z0-9_-]{1,100}$/.test(id);
     if (!mpPreapprovalId) {
       return new Response(
         JSON.stringify({ error: 'Missing mpPreapprovalId' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
+      );
+    }
+    if (!isValidMPId(mpPreapprovalId)) {
+      return new Response(
+        JSON.stringify({ error: 'Formato de ID inválido' }),
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -63,7 +72,7 @@ Deno.serve(async (req) => {
     if (subError || !subscription) {
       return new Response(
         JSON.stringify({ error: 'Subscription not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 404, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -77,7 +86,7 @@ Deno.serve(async (req) => {
     if (companyError || !company) {
       return new Response(
         JSON.stringify({ error: 'Access denied' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 403, headers: { ...cors, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -135,13 +144,13 @@ Deno.serve(async (req) => {
         paymentMethodId,
         cardLastFour,
       }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { status: 200, headers: { ...cors, 'Content-Type': 'application/json' } },
     );
   } catch (error) {
     console.error('mp-get-subscription-status error:', error);
     return new Response(
       JSON.stringify({ error: 'Error al obtener estado de suscripción' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } },
     );
   }
 });

@@ -35,11 +35,11 @@ export const PdfPreview = ({ file }: { file: File | string | null | undefined })
   return (
     <div className="mt-3">
       <h4 className="text-sm font-medium text-neutral-900 mb-1.5">Vista previa del PDF</h4>
-      <div className="w-full h-96 rounded-md border border-neutral-200 bg-neutral-50 relative overflow-hidden">
+      <div className="w-full h-96 rounded-md border border-neutral-200 bg-muted relative overflow-hidden">
         {loading && !hasError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-neutral-50 z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-muted z-10">
             <div className="flex flex-col items-center gap-2">
-              <div className="w-5 h-5 border-2 border-neutral-300 border-t-neutral-900 rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-neutral-300 border-t-foreground rounded-full animate-spin" />
               <span className="text-xs text-neutral-500">Cargando vista previa...</span>
             </div>
           </div>

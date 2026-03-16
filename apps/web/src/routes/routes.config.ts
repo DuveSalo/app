@@ -14,6 +14,8 @@ export const LazyPages = {
     CreateCompanyPage: lazy(() => import('../features/auth/CreateCompanyPage')),
     SubscriptionPage: lazy(() => import('../features/auth/SubscriptionPage')),
     TrialExpiredPage: lazy(() => import('../features/auth/TrialExpiredPage')),
+    BankTransferUploadPage: lazy(() => import('../features/auth/BankTransferUploadPage')),
+    BankTransferStatusPage: lazy(() => import('../features/auth/BankTransferStatusPage')),
 
     // Main pages
     DashboardPage: lazy(() => import('../features/dashboard/DashboardPage')),
@@ -43,6 +45,15 @@ export const LazyPages = {
 
     // Placeholders
     PlaceholderPage: lazy(() => import('../features/placeholders/PlaceholderPage')),
+
+    // Admin
+    AdminDashboardPage: lazy(() => import('../features/admin/AdminDashboardPage')),
+    AdminSchoolsPage: lazy(() => import('../features/admin/AdminSchoolsPage')),
+    AdminSchoolDetailPage: lazy(() => import('../features/admin/AdminSchoolDetailPage')),
+    AdminPaymentsPage: lazy(() => import('../features/admin/AdminPaymentsPage')),
+    AdminActivityPage: lazy(() => import('../features/admin/AdminActivityPage')),
+    AdminMetricsPage: lazy(() => import('../features/admin/AdminMetricsPage')),
+    AdminPlansPage: lazy(() => import('../features/admin/AdminPlansPage')),
 };
 
 // QR Module route configuration

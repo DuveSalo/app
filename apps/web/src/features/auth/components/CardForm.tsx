@@ -27,7 +27,7 @@ interface IdentificationType {
 }
 
 const inputClass =
-  'w-full h-10 border border-neutral-200 px-3 text-sm text-neutral-900 placeholder:text-neutral-400 bg-white focus:outline-none focus:ring-1 focus:ring-neutral-900 focus:border-neutral-900 transition-shadow';
+  'w-full h-10 border border-border px-3 text-sm text-foreground placeholder:text-muted-foreground bg-background focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring transition-shadow';
 
 /**
  * MercadoPago card form using Secure Fields API (mp.fields).
@@ -61,7 +61,6 @@ export const CardForm = ({
 
     async function init() {
       try {
-        console.log('[MP] CardForm: Initializing MercadoPago SDK...');
         await loadMercadoPago();
         if (destroyed) return;
 
@@ -69,7 +68,6 @@ export const CardForm = ({
           locale: 'es-AR',
         });
         mpRef.current = mp;
-        console.log('[MP] CardForm: SDK loaded, creating secure fields');
 
         const cardNumber = mp.fields.create('cardNumber', {
           placeholder: '1234 5678 9012 3456',
@@ -87,12 +85,9 @@ export const CardForm = ({
         await expirationDate.mount('mp-expiration-date');
         await securityCode.mount('mp-security-code');
 
-        console.log('[MP] CardForm: Secure fields mounted');
-
         const types = await mp.getIdentificationTypes();
         if (!destroyed && Array.isArray(types)) {
           setIdTypes(types);
-          console.log('[MP] CardForm: Identification types loaded:', types.length);
         }
 
         if (!destroyed) {
@@ -148,17 +143,11 @@ export const CardForm = ({
 
       setSubmitting(true);
       try {
-        console.log('[MP] CardForm: Creating card token with Secure Fields...');
         const tokenData: Record<string, string> = { cardholderName };
         if (identificationType) tokenData.identificationType = identificationType;
         if (identificationNumber) tokenData.identificationNumber = identificationNumber;
 
         const tokenResponse = await mpRef.current.fields.createCardToken(tokenData);
-
-        console.log('[MP] CardForm: Token response:', {
-          hasId: !!tokenResponse?.id,
-          status: tokenResponse?.status,
-        });
 
         if (!tokenResponse?.id) {
           console.error('[MP] CardForm: No token in response');
@@ -166,7 +155,6 @@ export const CardForm = ({
           return;
         }
 
-        console.log('[MP] CardForm: Token generated successfully, calling onTokenReady');
         onTokenReady({
           token: tokenResponse.id,
           paymentMethodId: '',
@@ -192,8 +180,8 @@ export const CardForm = ({
     <div>
       {isLoading && (
         <div className="flex items-center justify-center py-8">
-          <div className="w-6 h-6 border-2 border-neutral-300 border-t-neutral-900 rounded-full animate-spin" />
-          <span className="ml-2 text-sm text-neutral-500">Cargando formulario...</span>
+          <div className="w-6 h-6 border-2 border-border border-t-neutral-900 rounded-full animate-spin" />
+          <span className="ml-2 text-sm text-muted-foreground">Cargando formulario...</span>
         </div>
       )}
 
@@ -204,31 +192,31 @@ export const CardForm = ({
       >
         {/* Card number */}
         <div>
-          <label className="block text-sm font-medium text-neutral-900 mb-1">Numero de tarjeta</label>
+          <label className="block text-sm font-medium text-foreground mb-1">Numero de tarjeta</label>
           <div
             id="mp-card-number"
-            className="h-10 border border-neutral-200 px-3 bg-white [&_iframe]:!h-full"
+            className="h-10 border border-border px-3 bg-background [&_iframe]:!h-full"
           />
         </div>
 
         {/* Expiration + CVV + Titular row */}
         <div className="grid grid-cols-5 gap-3">
           <div className="col-span-2">
-            <label className="block text-sm font-medium text-neutral-900 mb-1">Vencimiento</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Vencimiento</label>
             <div
               id="mp-expiration-date"
-              className="h-10 border border-neutral-200 px-3 bg-white [&_iframe]:!h-full"
+              className="h-10 border border-border px-3 bg-background [&_iframe]:!h-full"
             />
           </div>
           <div className="col-span-1">
-            <label className="block text-sm font-medium text-neutral-900 mb-1">CVV</label>
+            <label className="block text-sm font-medium text-foreground mb-1">CVV</label>
             <div
               id="mp-security-code"
-              className="h-10 border border-neutral-200 px-3 bg-white [&_iframe]:!h-full"
+              className="h-10 border border-border px-3 bg-background [&_iframe]:!h-full"
             />
           </div>
           <div className="col-span-2">
-            <label htmlFor="cardholderName" className="block text-sm font-medium text-neutral-900 mb-1">
+            <label htmlFor="cardholderName" className="block text-sm font-medium text-foreground mb-1">
               Titular
             </label>
             <input
@@ -246,7 +234,7 @@ export const CardForm = ({
         {!compact && (
           <>
             <div>
-              <label htmlFor="cardholderEmail" className="block text-sm font-medium text-neutral-900 mb-1">
+              <label htmlFor="cardholderEmail" className="block text-sm font-medium text-foreground mb-1">
                 Email
               </label>
               <input
@@ -261,7 +249,7 @@ export const CardForm = ({
 
             <div className="grid grid-cols-5 gap-3">
               <div className="col-span-2">
-                <label htmlFor="identificationType" className="block text-sm font-medium text-neutral-900 mb-1">
+                <label htmlFor="identificationType" className="block text-sm font-medium text-foreground mb-1">
                   Tipo doc.
                 </label>
                 <select
@@ -278,7 +266,7 @@ export const CardForm = ({
                 </select>
               </div>
               <div className="col-span-3">
-                <label htmlFor="identificationNumber" className="block text-sm font-medium text-neutral-900 mb-1">
+                <label htmlFor="identificationNumber" className="block text-sm font-medium text-foreground mb-1">
                   Numero de documento
                 </label>
                 <input

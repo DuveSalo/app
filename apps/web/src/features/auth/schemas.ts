@@ -1,0 +1,55 @@
+import { z } from 'zod';
+
+// ─── Login ──────────────────────────────────────────────
+export const loginSchema = z.object({
+  email: z.string().min(1, 'Email requerido').max(254).email('Email inválido'),
+  password: z.string().min(1, 'Contraseña requerida').max(100),
+});
+
+export type LoginFormValues = z.infer<typeof loginSchema>;
+
+// ─── Register ───────────────────────────────────────────
+export const registerSchema = z
+  .object({
+    name: z.string().min(1, 'Nombre requerido').max(100),
+    email: z.string().min(1, 'Email requerido').max(254).email('Email inválido'),
+    password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres').max(100),
+    confirmPassword: z.string().min(1, 'Confirmar contraseña').max(100),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Las contraseñas no coinciden',
+    path: ['confirmPassword'],
+  });
+
+export type RegisterFormValues = z.infer<typeof registerSchema>;
+
+// ─── Create Company ─────────────────────────────────────
+export const createCompanySchema = z.object({
+  name: z
+    .string()
+    .min(1, 'El nombre es obligatorio.')
+    .max(100)
+    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s0-9°#'-]+$/, 'Nombre inválido.'),
+  cuit: z
+    .string()
+    .min(1, 'El CUIT es obligatorio.')
+    .max(50)
+    .regex(/^\d{2}-\d{8}-\d{1}$/, 'Formato inválido. Use XX-XXXXXXXX-X.'),
+  address: z.string().min(1, 'La dirección es obligatoria.').max(500),
+  postalCode: z
+    .string()
+    .min(1, 'El código postal es obligatorio.')
+    .max(50)
+    .regex(/^\d{4,8}$/, 'Entre 4 y 8 dígitos.'),
+  city: z.string().max(100).or(z.literal('')),
+  province: z.string().min(1, 'La provincia es obligatoria.').max(100),
+  country: z.string().min(1, 'El país es obligatorio.').max(100),
+  phone: z
+    .string()
+    .min(1, 'El teléfono es obligatorio.')
+    .max(30)
+    .regex(/^[\d\s\-+()]+$/, 'Formato de teléfono inválido.'),
+  services: z.array(z.string().max(100)).max(50),
+});
+
+export type CreateCompanyFormValues = z.infer<typeof createCompanySchema>;

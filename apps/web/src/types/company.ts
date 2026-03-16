@@ -56,6 +56,8 @@ export interface Company {
   services?: CompanyServices;
   subscriptionRenewalDate?: string;
   subscriptionStatus?: 'active' | 'pending' | 'approval_pending' | 'suspended' | 'canceled' | 'expired';
+  paymentMethod?: 'mercadopago' | 'bank_transfer';
+  bankTransferStatus?: 'pending' | 'active' | 'suspended' | null;
   paymentMethods?: PaymentMethod[];
 }
 

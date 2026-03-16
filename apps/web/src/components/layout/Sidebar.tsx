@@ -1,12 +1,21 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
-import { useAuth } from '../../features/auth/AuthContext';
+import { LogOut, Building2, CreditCard, Users, User, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { ROUTE_PATHS } from '@/constants/index';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { useNavigationItems } from './useNavigationItems';
 
 const Sidebar = () => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, isAdmin, logout } = useAuth();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,54 +30,96 @@ const Sidebar = () => {
 
   return (
     <>
-      <aside className="hidden md:flex flex-col justify-between flex-shrink-0 border-r border-[var(--sidebar-border)] bg-[var(--sidebar-background)] w-[256px]">
+      <aside className="hidden md:flex flex-col justify-between flex-shrink-0 border-r border-sidebar-border bg-sidebar w-[256px]">
         {/* Logo */}
-        <div className="flex items-center shrink-0 h-14 border-b border-neutral-200 px-4">
-          <div className="bg-neutral-900 rounded-md flex-shrink-0 w-8 h-8 flex items-center justify-center">
-            <span className="text-white text-xs font-bold">ES</span>
+        <div className="flex items-center shrink-0 h-14 px-4">
+          <div className="bg-primary rounded-md flex-shrink-0 w-8 h-8 flex items-center justify-center">
+            <span className="text-primary-foreground text-xs font-bold">ES</span>
           </div>
-          <span className="ml-3 text-sm font-semibold text-neutral-900 truncate">
+          <span className="ml-3 text-sm font-semibold text-foreground truncate">
             Escuela Segura
           </span>
         </div>
 
         {/* Navigation */}
-        <nav className="flex flex-col gap-0.5 mt-2 overflow-y-auto min-h-0 flex-1 custom-scrollbar px-2">
+        <nav className="flex flex-col gap-0.5 overflow-y-auto min-h-0 flex-1 custom-scrollbar px-2">
           {navItems.map((item) => {
             const active = isActive(item.path);
+            const Icon = item.icon;
             return (
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`w-full flex items-center text-left rounded-md transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 gap-2.5 py-1.5 px-2.5 text-sm ${
+                className={`w-full flex items-center text-left rounded-md transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1 gap-2.5 py-2 px-3 text-sm ${
                   active
-                    ? 'font-medium text-white bg-neutral-900'
-                    : 'text-neutral-500 hover:bg-[var(--sidebar-accent)] hover:text-neutral-900'
+                    ? 'font-medium text-sidebar-accent-foreground bg-sidebar-accent'
+                    : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                 }`}
               >
+                <Icon className="w-4 h-4 flex-shrink-0" strokeWidth={active ? 2 : 1.75} />
                 <span className="truncate">{item.label}</span>
               </button>
             );
           })}
+
+          {isAdmin && (
+            <div className="mt-2 pt-2 border-t border-sidebar-border">
+              <button
+                onClick={() => navigate(ROUTE_PATHS.ADMIN_DASHBOARD)}
+                className="w-full flex items-center text-left rounded-md transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1 gap-2.5 py-2 px-3 text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              >
+                <ArrowRight className="w-4 h-4 flex-shrink-0" strokeWidth={1.75} />
+                <span className="truncate">Ir al admin</span>
+              </button>
+            </div>
+          )}
         </nav>
 
         {/* Bottom section */}
-        <div className="border-t border-neutral-200 p-2">
-          {/* User */}
-          <button
-            onClick={() => setIsLogoutModalOpen(true)}
-            className="w-full flex items-center rounded-md transition-colors duration-150 hover:bg-neutral-100 outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1 mt-0.5 gap-2.5 py-1.5 px-2.5"
-          >
-            <div className="flex items-center justify-center bg-neutral-900 text-white rounded-md flex-shrink-0 w-7 h-7 text-[10px] font-medium">
-              {userInitials}
-            </div>
-            <div className="flex-1 min-w-0 flex items-center justify-between">
-              <span className="text-sm font-medium text-neutral-900 truncate">
-                {currentUser?.name}
-              </span>
-              <LogOut className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" strokeWidth={1.75} />
-            </div>
-          </button>
+        <div className="border-t border-sidebar-border p-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="w-full flex items-center rounded-md transition-colors duration-150 hover:bg-sidebar-accent outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1 mt-0.5 gap-2.5 py-2 px-3"
+              >
+                <div className="flex items-center justify-center bg-primary text-primary-foreground rounded-md flex-shrink-0 w-7 h-7 text-[10px] font-medium">
+                  {userInitials}
+                </div>
+                <div className="flex-1 min-w-0 flex items-center justify-between">
+                  <span className="text-sm font-medium text-sidebar-foreground truncate">
+                    {currentUser?.name}
+                  </span>
+                </div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="top" align="start" className="w-56">
+              <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+                {currentUser?.email}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate('/settings?tab=company')}>
+                <Building2 className="h-4 w-4" />
+                Empresa
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/settings?tab=billing')}>
+                <CreditCard className="h-4 w-4" />
+                Facturación
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/settings?tab=employees')}>
+                <Users className="h-4 w-4" />
+                Empleados
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/settings?tab=profile')}>
+                <User className="h-4 w-4" />
+                Mi Perfil
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setIsLogoutModalOpen(true)}>
+                <LogOut className="h-4 w-4 text-destructive" />
+                Cerrar sesión
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </aside>
 
@@ -87,4 +138,3 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
-

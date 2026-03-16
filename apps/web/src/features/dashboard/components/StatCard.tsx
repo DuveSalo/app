@@ -10,20 +10,25 @@ interface StatCardProps {
     variant: StatCardVariant;
 }
 
-export const StatCard = ({ label, value, icon, changeText }: StatCardProps) => {
+const variantStyles: Record<StatCardVariant, string> = {
+    total: 'border-border bg-background',
+    valid: 'border-emerald-200 bg-emerald-50',
+    expiring: 'border-amber-200 bg-amber-50',
+    expired: 'border-red-200 bg-red-50',
+};
+
+export const StatCard = ({ label, value, icon, changeText, variant }: StatCardProps) => {
     return (
-        <div className="flex items-center gap-4 border border-neutral-200 shadow-sm bg-white rounded-lg p-4">
-            <div className="flex-1 min-w-0">
-                <span className="text-xs font-medium text-neutral-500 block">
-                    {label}
-                </span>
-                <span className="text-2xl font-bold text-neutral-900 tracking-tight block mt-1">
-                    {value}
-                </span>
-            </div>
-            <div className="flex items-center gap-1.5 flex-shrink-0">
+        <div className={`rounded-md border p-5 ${variantStyles[variant]}`}>
+            <span className="text-sm text-muted-foreground block">
+                {label}
+            </span>
+            <span className="text-2xl font-bold text-foreground block mt-1">
+                {value}
+            </span>
+            <div className="flex items-center gap-1.5 mt-2">
                 {icon}
-                <span className="text-xs text-neutral-500">
+                <span className="text-xs text-muted-foreground">
                     {changeText}
                 </span>
             </div>
