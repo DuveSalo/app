@@ -4,14 +4,17 @@ CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;
 
 -- Schedule: run daily at 03:00 UTC
 -- Calls the cron-check-subscriptions Edge Function via pg_net
--- The CRON_SECRET is also stored in Supabase Edge Function secrets
+-- Uses runtime settings (app.settings.*) instead of hardcoded credentials
 SELECT cron.schedule(
   'check-subscriptions-daily',
   '0 3 * * *',
   $$
   SELECT net.http_post(
-    url := 'https://wmjafcqvgqnbxwxvhpui.supabase.co/functions/v1/cron-check-subscriptions',
-    headers := '{"Content-Type": "application/json", "Authorization": "Bearer ec28877cad2f0a5b7b08a6bf2874c70f33c3f4702bea88c77ec681ba48e4ed29"}'::jsonb,
+    url := current_setting('app.settings.supabase_url') || '/functions/v1/cron-check-subscriptions',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key')
+    ),
     body := '{}'::jsonb
   );
   $$
