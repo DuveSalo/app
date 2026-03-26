@@ -45,7 +45,7 @@ export const getMetricsSummary = async (): Promise<MetricsSummary> => {
   const { data: transactions } = await supabase
     .from('payment_transactions')
     .select('gross_amount')
-    .eq('status', 'approved')
+    .in('status', ['approved', 'completed'])
     .gte('created_at', startOfMonth.toISOString());
 
   const manualRevenue = (approvedPayments || []).reduce(
@@ -109,7 +109,7 @@ export const getMonthlyMetrics = async (): Promise<MonthlyMetric[]> => {
         supabase
           .from('payment_transactions')
           .select('gross_amount')
-          .eq('status', 'approved')
+          .in('status', ['approved', 'completed'])
           .gte('created_at', start)
           .lt('created_at', end),
       ]);

@@ -1,0 +1,219 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { getActiveSubscription, mpManageSubscription } from './subscription';
+
+vi.mock('../../supabase/client', () => ({
+  supabase: {
+    auth: {
+      getSession: vi.fn().mockResolvedValue({
+        data: { session: { access_token: 'mock-token' } },
+      }),
+    },
+    functions: { invoke: vi.fn() },
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
+      single: vi.fn(),
+      maybeSingle: vi.fn(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+    }),
+  },
+}));
+
+vi.mock('./context', () => ({
+  getAuthenticatedCompanyId: vi.fn().mockResolvedValue('company-123'),
+}));
+
+// Import supabase after mocking so we get the mocked version
+import { supabase } from '../../supabase/client';
+
+const COMPANY_ID = 'company-123';
+
+const mockDbRow = {
+  id: 'sub-1',
+  company_id: COMPANY_ID,
+  mp_preapproval_id: 'mp-pre-1',
+  mp_plan_id: 'mp-plan-1',
+  plan_key: 'basic',
+  plan_name: 'Básico',
+  amount: 5000,
+  currency: 'ARS',
+  status: 'active',
+  subscriber_email: 'school@example.com',
+  current_period_start: '2026-03-01',
+  current_period_end: '2026-04-01',
+  next_billing_time: '2026-04-01',
+  activated_at: '2026-02-01',
+  cancelled_at: null,
+  suspended_at: null,
+  failed_payments_count: 0,
+  created_at: '2026-02-01T00:00:00Z',
+  updated_at: '2026-03-01T00:00:00Z',
+  payment_provider: 'mercadopago',
+  paypal_plan_id: null,
+  paypal_subscription_id: null,
+};
+
+describe('subscription service', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('getActiveSubscription', () => {
+    it('returns mapped subscription when one exists', async () => {
+      const fromMock = supabase.from as ReturnType<typeof vi.fn>;
+      const chainMock = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        in: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: mockDbRow, error: null }),
+      };
+      fromMock.mockReturnValue(chainMock);
+
+      const result = await getActiveSubscription(COMPANY_ID);
+
+      expect(result).not.toBeNull();
+      expect(result?.id).toBe('sub-1');
+      expect(result?.companyId).toBe(COMPANY_ID);
+      expect(result?.mpPreapprovalId).toBe('mp-pre-1');
+      expect(result?.mpPlanId).toBe('mp-plan-1');
+      expect(result?.planKey).toBe('basic');
+      expect(result?.planName).toBe('Básico');
+      expect(result?.amount).toBe(5000);
+      expect(result?.currency).toBe('ARS');
+      expect(result?.status).toBe('active');
+      expect(result?.subscriberEmail).toBe('school@example.com');
+      expect(result?.failedPaymentsCount).toBe(0);
+      expect(result?.cancelledAt).toBeNull();
+      expect(result?.createdAt).toBe('2026-02-01T00:00:00Z');
+
+      expect(fromMock).toHaveBeenCalledWith('subscriptions');
+      expect(chainMock.eq).toHaveBeenCalledWith('company_id', COMPANY_ID);
+    });
+
+    it('returns null when no subscription exists', async () => {
+      const fromMock = supabase.from as ReturnType<typeof vi.fn>;
+      const chainMock = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        in: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      };
+      fromMock.mockReturnValue(chainMock);
+
+      const result = await getActiveSubscription(COMPANY_ID);
+
+      expect(result).toBeNull();
+    });
+
+    it('throws when supabase returns an error', async () => {
+      const fromMock = supabase.from as ReturnType<typeof vi.fn>;
+      const chainMock = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        in: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: 'Database error' },
+        }),
+      };
+      fromMock.mockReturnValue(chainMock);
+
+      await expect(getActiveSubscription(COMPANY_ID)).rejects.toThrow('Database error');
+    });
+
+    it('uses ARS as default currency when currency is null', async () => {
+      const fromMock = supabase.from as ReturnType<typeof vi.fn>;
+      const rowWithNullCurrency = { ...mockDbRow, currency: null };
+      const chainMock = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        in: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: rowWithNullCurrency, error: null }),
+      };
+      fromMock.mockReturnValue(chainMock);
+
+      const result = await getActiveSubscription(COMPANY_ID);
+
+      expect(result?.currency).toBe('ARS');
+    });
+
+    it('defaults failedPaymentsCount to 0 when null in DB', async () => {
+      const fromMock = supabase.from as ReturnType<typeof vi.fn>;
+      const rowWithNullCount = { ...mockDbRow, failed_payments_count: null };
+      const chainMock = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        in: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: rowWithNullCount, error: null }),
+      };
+      fromMock.mockReturnValue(chainMock);
+
+      const result = await getActiveSubscription(COMPANY_ID);
+
+      expect(result?.failedPaymentsCount).toBe(0);
+    });
+  });
+
+  describe('mpManageSubscription (cancel action)', () => {
+    it('calls the mp-manage-subscription edge function with cancel action', async () => {
+      const invokeMock = supabase.functions.invoke as ReturnType<typeof vi.fn>;
+      invokeMock.mockResolvedValue({
+        data: { success: true, action: 'cancel', status: 'cancelled' },
+        error: null,
+      });
+
+      const result = await mpManageSubscription({
+        action: 'cancel',
+        mpPreapprovalId: 'mp-pre-1',
+        reason: 'User requested cancellation',
+      });
+
+      expect(invokeMock).toHaveBeenCalledWith('mp-manage-subscription', {
+        body: {
+          action: 'cancel',
+          mpPreapprovalId: 'mp-pre-1',
+          reason: 'User requested cancellation',
+        },
+        headers: { Authorization: 'Bearer mock-token' },
+      });
+      expect(result.success).toBe(true);
+      expect(result.action).toBe('cancel');
+      expect(result.status).toBe('cancelled');
+    });
+
+    it('throws when no active session exists', async () => {
+      const { supabase: supabaseMock } = await import('../../supabase/client');
+      (supabaseMock.auth.getSession as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        data: { session: null },
+      });
+
+      await expect(
+        mpManageSubscription({ action: 'cancel', mpPreapprovalId: 'mp-pre-1' }),
+      ).rejects.toThrow('No hay sesión activa');
+    });
+
+    it('throws when the edge function returns an error', async () => {
+      const invokeMock = supabase.functions.invoke as ReturnType<typeof vi.fn>;
+      invokeMock.mockResolvedValue({
+        data: null,
+        error: { message: 'Edge function error' },
+      });
+
+      await expect(
+        mpManageSubscription({ action: 'cancel', mpPreapprovalId: 'mp-pre-1' }),
+      ).rejects.toThrow('Edge function error');
+    });
+  });
+});

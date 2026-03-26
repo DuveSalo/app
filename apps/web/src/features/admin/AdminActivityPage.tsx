@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown } from 'lucide-react';
-import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PageLayout from '@/components/layout/PageLayout';
@@ -10,10 +10,8 @@ import { DataTable } from '@/components/common/DataTable';
 import { ColorBadge } from '@/components/common/StatusBadge';
 import { formatDateLocal } from '@/lib/utils/dateUtils';
 import * as api from '@/lib/api/services';
-import { createLogger } from '@/lib/utils/logger';
+import { queryKeys } from '@/lib/queryKeys';
 import type { ActivityLogRow } from './types';
-
-const logger = createLogger('AdminActivityPage');
 
 // --- Action labels (Spanish) ---
 
@@ -27,6 +25,7 @@ const ACTION_LABELS: Record<string, string> = {
   create_plan: 'Crear plan',
   delete_plan: 'Eliminar plan',
   toggle_plan: 'Cambiar estado plan',
+  delete_account: 'Eliminar cuenta',
 };
 
 // --- Target type labels ---
@@ -36,6 +35,7 @@ const TARGET_TYPE_LABELS: Record<string, string> = {
   company: 'Escuela',
   subscription: 'Suscripción',
   subscription_plan: 'Plan',
+  user: 'Usuario',
 };
 
 // --- Action badge colors ---
@@ -50,6 +50,7 @@ const ACTION_VARIANTS: Record<string, ColorVariant> = {
   suspend_school: 'red',
   delete_school: 'red',
   delete_plan: 'red',
+  delete_account: 'red',
   update_plan: 'amber',
   toggle_plan: 'amber',
 };
@@ -67,12 +68,14 @@ const FILTER_TABS = [
   { value: 'payments', label: 'Pagos' },
   { value: 'schools', label: 'Escuelas' },
   { value: 'plans', label: 'Planes' },
+  { value: 'users', label: 'Usuarios' },
 ] as const;
 
 const FILTER_ACTIONS: Record<string, string[]> = {
   payments: ['approve_payment', 'reject_payment'],
   schools: ['suspend_school', 'activate_school', 'delete_school'],
   plans: ['update_plan', 'create_plan', 'delete_plan', 'toggle_plan'],
+  users: ['delete_account'],
 };
 
 // --- Metadata display helper ---
@@ -80,6 +83,7 @@ const FILTER_ACTIONS: Record<string, string[]> = {
 function formatMetadata(metadata: Record<string, unknown>): string {
   if (!metadata || Object.keys(metadata).length === 0) return '—';
   if (metadata.reason) return String(metadata.reason);
+  if (metadata.user_email) return `Usuario: ${String(metadata.user_email)}`;
   if (metadata.company_id) return `Escuela: ${String(metadata.company_id).substring(0, 8)}...`;
   const entries = Object.entries(metadata)
     .slice(0, 2)
@@ -91,26 +95,12 @@ function formatMetadata(metadata: Record<string, unknown>): string {
 // --- Page ---
 
 const AdminActivityPage = () => {
-  const [logs, setLogs] = useState<ActivityLogRow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
 
-  const fetchLogs = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await api.getActivityLogs();
-      setLogs(data);
-    } catch (err) {
-      logger.error('Error fetching activity logs', err);
-      toast.error('Error al cargar los registros de actividad');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchLogs();
-  }, [fetchLogs]);
+  const { data: logs = [], isLoading } = useQuery({
+    queryKey: queryKeys.adminActivity(),
+    queryFn: api.getActivityLogs,
+  });
 
   const filteredLogs = useMemo(() => {
     if (filter === 'all') return logs;
@@ -229,7 +219,7 @@ const AdminActivityPage = () => {
         searchKey="adminEmail"
         searchPlaceholder="Buscar por admin..."
         toolbar={toolbar}
-        pageSize={15}
+        pageSize={10}
       />
     </PageLayout>
   );

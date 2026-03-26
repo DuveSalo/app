@@ -132,8 +132,9 @@ const SelfProtectionSystemListPage = () => {
                                 <p className="text-xs text-muted-foreground mb-1">Disposición Aprobatoria</p>
                                 <p>{formatDateLocal(sys.probatoryDispositionDate)}</p>
                                 {sys.probatoryDispositionPdfUrl && (
-                                  <Button variant="ghost" size="icon" className="h-7 w-7 mt-1" onClick={() => window.open(sys.probatoryDispositionPdfUrl, '_blank')}>
-                                    <Eye className="h-4 w-4" />
+                                  <Button variant="ghost" className="h-7 px-2 mt-1 text-xs" onClick={() => window.open(sys.probatoryDispositionPdfUrl, '_blank')}>
+                                    <Eye className="h-3.5 w-3.5" />
+                                    Ver PDF
                                   </Button>
                                 )}
                               </div>
@@ -141,8 +142,9 @@ const SelfProtectionSystemListPage = () => {
                                 <p className="text-xs text-muted-foreground mb-1">Extensión</p>
                                 <p>{sys.extensionDate ? formatDateLocal(sys.extensionDate) : '—'}</p>
                                 {sys.extensionPdfUrl && (
-                                  <Button variant="ghost" size="icon" className="h-7 w-7 mt-1" onClick={() => window.open(sys.extensionPdfUrl, '_blank')}>
-                                    <Eye className="h-4 w-4" />
+                                  <Button variant="ghost" className="h-7 px-2 mt-1 text-xs" onClick={() => window.open(sys.extensionPdfUrl, '_blank')}>
+                                    <Eye className="h-3.5 w-3.5" />
+                                    Ver PDF
                                   </Button>
                                 )}
                               </div>
@@ -160,8 +162,9 @@ const SelfProtectionSystemListPage = () => {
                                       <span className="text-muted-foreground">{i + 1}.</span>
                                       <span>{drill.date ? formatDateLocal(drill.date) : '—'}</span>
                                       {drill.pdfUrl && (
-                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => window.open(drill.pdfUrl, '_blank')}>
-                                          <Eye className="h-3.5 w-3.5" />
+                                        <Button variant="ghost" className="h-6 px-1.5 text-xs" onClick={() => window.open(drill.pdfUrl, '_blank')}>
+                                          <Eye className="h-3 w-3" />
+                                          PDF
                                         </Button>
                                       )}
                                     </div>

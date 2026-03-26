@@ -151,7 +151,13 @@ const AdminSchoolDetailPage = () => {
             </div>
             <InfoItem
               label="Método de pago"
-              value={school.paymentMethod === 'bank_transfer' ? 'Transferencia bancaria' : 'MercadoPago'}
+              value={
+                {
+                  bank_transfer: 'Transferencia bancaria',
+                  credit_card: 'Tarjeta de crédito',
+                  debit_card: 'Tarjeta de débito',
+                }[school.paymentMethod] || school.paymentMethod
+              }
             />
             <InfoItem
               label="Fecha de renovación"

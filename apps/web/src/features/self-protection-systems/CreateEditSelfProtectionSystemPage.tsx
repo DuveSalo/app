@@ -60,13 +60,17 @@ const CreateEditSelfProtectionSystemPage = () => {
 
   const probatoryDispositionDate = form.watch('probatoryDispositionDate');
   const drills = form.watch('drills');
+  const drill0Date = form.watch('drills.0.date');
+  const drill1Date = form.watch('drills.1.date');
+  const drill2Date = form.watch('drills.2.date');
+  const drill3Date = form.watch('drills.3.date');
   const intervener = form.watch('intervener');
   const registrationNumber = form.watch('registrationNumber');
 
-  const isPrincipalComplete = useMemo(() => !!probatoryDispositionDate, [probatoryDispositionDate]);
-  const isSimulacrosComplete = useMemo(() => drills.every(drill => !!drill.date), [drills]);
-  const isProfesionalComplete = useMemo(() => !!intervener && !!registrationNumber, [intervener, registrationNumber]);
-  const isFormComplete = useMemo(() => isPrincipalComplete && isSimulacrosComplete && isProfesionalComplete, [isPrincipalComplete, isSimulacrosComplete, isProfesionalComplete]);
+  const isPrincipalComplete = !!probatoryDispositionDate;
+  const isSimulacrosComplete = !!drill0Date && !!drill1Date && !!drill2Date && !!drill3Date;
+  const isProfesionalComplete = !!intervener && !!registrationNumber;
+  const isFormComplete = isPrincipalComplete && isSimulacrosComplete && isProfesionalComplete;
 
   useEffect(() => {
     if (isPrincipalComplete && isSimulacrosComplete) {

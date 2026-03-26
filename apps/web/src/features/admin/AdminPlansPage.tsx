@@ -6,7 +6,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
@@ -114,7 +113,7 @@ const AdminPlansPage = () => {
     form.reset({
       key: plan.key,
       name: plan.name,
-      price: plan.price,
+      price: plan.price / 100,
       features: plan.features.join(', '),
       sortOrder: plan.sortOrder,
       description: plan.description,
@@ -138,11 +137,13 @@ const AdminPlansPage = () => {
       .map((f) => f.trim())
       .filter(Boolean);
 
+    const priceInCents = Math.round(values.price * 100);
+
     try {
       if (editingPlan) {
         await api.updateSubscriptionPlan(editingPlan.id, {
           name: values.name,
-          price: values.price,
+          price: priceInCents,
           features,
           sortOrder: values.sortOrder,
           description: values.description,
@@ -154,7 +155,7 @@ const AdminPlansPage = () => {
         await api.createSubscriptionPlan({
           key: values.key,
           name: values.name,
-          price: values.price,
+          price: priceInCents,
           features,
           sortOrder: values.sortOrder,
           description: values.description,
@@ -380,7 +381,7 @@ const AdminPlansPage = () => {
               name="price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Precio (centavos)</FormLabel>
+                  <FormLabel>Precio (ARS)</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -456,18 +457,6 @@ const AdminPlansPage = () => {
                 )}
               />
             </div>
-            <FormField
-              control={form.control}
-              name="highlighted"
-              render={({ field }) => (
-                <FormItem className="flex items-center gap-2">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <FormLabel className="!mt-0">Destacar en landing page</FormLabel>
-                </FormItem>
-              )}
-            />
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="ghost" type="button" onClick={closeDialog}>
                 Cancelar

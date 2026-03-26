@@ -39,6 +39,58 @@
       "C:\\Users\\david\\OneDrive\\Escritorio\\app\\testsprite_tests\\tmp"
     ]
   },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/secret-scan.sh",
+            "timeout": 30000
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/push-reminder.sh",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/console-log-check.sh",
+            "timeout": 15000
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/format-file.sh",
+            "timeout": 30000
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/typecheck.sh",
+            "timeout": 60000
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/compact-save.sh",
+            "timeout": 10000
+          }
+        ]
+      }
+    ]
+  },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "supabase",

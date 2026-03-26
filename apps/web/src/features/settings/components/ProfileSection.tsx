@@ -1,18 +1,7 @@
 import { useState, useRef } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@/components/ui/input';
-import { PasswordInput } from '@/components/common/PasswordInput';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,7 +18,6 @@ import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth/AuthContext';
 import * as api from '@/lib/api/services';
 import type { User } from '@/types/index';
-import { changePasswordSchema, type ChangePasswordFormValues } from '../schemas';
 
 interface ProfileSectionProps {
   currentUser: User;
@@ -46,25 +34,14 @@ function getInitials(name: string): string {
 }
 
 export const ProfileSection = ({ currentUser }: ProfileSectionProps) => {
-  const { updateUserDetails } = useAuth();
+  const { updateUserDetails, logout } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Personal info state (kept as-is, not part of the form migration)
+  // Personal info state
   const [name, setName] = useState(currentUser.name);
   const [isSavingName, setIsSavingName] = useState(false);
-
-  // Password form
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
-
-  const passwordForm = useForm<ChangePasswordFormValues>({
-    resolver: zodResolver(changePasswordSchema),
-    mode: 'onBlur',
-    defaultValues: {
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
-    },
-  });
+  const [isSendingReset, setIsSendingReset] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   const handleAvatarUpload = () => {
     // TODO: Upload to Supabase Storage bucket "avatars" and update user profile
@@ -84,32 +61,29 @@ export const ProfileSection = ({ currentUser }: ProfileSectionProps) => {
     }
   };
 
-  const handleChangePassword = async (values: ChangePasswordFormValues) => {
-    setIsChangingPassword(true);
+  const handleSendPasswordReset = async () => {
+    setIsSendingReset(true);
     try {
-      // Verify current password
-      const isValid = await api.verifyCurrentPassword(currentUser.email, values.currentPassword);
-      if (!isValid) {
-        passwordForm.setError('currentPassword', { message: 'Contraseña actual incorrecta' });
-        setIsChangingPassword(false);
-        return;
-      }
-
-      // Update password
-      await api.changePassword(values.newPassword);
-      toast.success('Contraseña actualizada');
-      passwordForm.reset();
+      await api.sendPasswordResetEmail(currentUser.email);
+      toast.success('Revisá tu email para restablecer tu contraseña.');
+      setResetDialogOpen(false);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error al cambiar contraseña';
-      toast.error('Error al cambiar contraseña', { description: message });
+      const message = err instanceof Error ? err.message : 'Error al enviar el email';
+      toast.error(message);
     } finally {
-      setIsChangingPassword(false);
+      setIsSendingReset(false);
     }
   };
 
-  const handleDeleteAccount = () => {
-    // TODO: Implement account deletion
-    toast.info('Función disponible próximamente');
+  const handleDeleteAccount = async () => {
+    try {
+      await api.deleteAccount();
+      toast.success('Cuenta eliminada');
+      await logout();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al eliminar la cuenta';
+      toast.error(message);
+    }
   };
 
   return (
@@ -164,60 +138,31 @@ export const ProfileSection = ({ currentUser }: ProfileSectionProps) => {
       </div>
 
       {/* Section 3: Security */}
-      <div className="border-t border-border pt-6 mt-6 space-y-4">
+      <div className="border-t border-border pt-6 mt-6 space-y-3">
         <h3 className="text-base font-medium">Seguridad de la cuenta</h3>
-        <Form {...passwordForm}>
-          <form
-            onSubmit={passwordForm.handleSubmit(handleChangePassword)}
-            className="space-y-3 max-w-sm"
-          >
-            <FormField
-              control={passwordForm.control}
-              name="currentPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contraseña actual</FormLabel>
-                  <FormControl>
-                    <PasswordInput {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={passwordForm.control}
-              name="newPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nueva contraseña</FormLabel>
-                  <FormControl>
-                    <PasswordInput {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={passwordForm.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirmar nueva contraseña</FormLabel>
-                  <FormControl>
-                    <PasswordInput {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Button type="submit" loading={isChangingPassword}>
-              Cambiar contraseña
-            </Button>
-          </form>
-        </Form>
+        <p className="text-sm text-muted-foreground">
+          Podés cambiar tu contraseña a través de un enlace enviado a tu email.
+        </p>
+        <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+          <AlertDialogTrigger asChild>
+            <Button>Cambiar contraseña</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Cambiar contraseña?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Te enviaremos un email a <span className="font-medium">{currentUser.email}</span>{' '}
+                con un enlace para establecer tu nueva contraseña.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isSendingReset}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleSendPasswordReset} disabled={isSendingReset}>
+                {isSendingReset ? 'Enviando...' : 'Enviar email'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {/* Section 4: Danger zone */}

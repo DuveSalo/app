@@ -187,13 +187,7 @@ Deno.serve(async (req) => {
           external_reference: companyId,
           payer_email: payerEmail,
           card_token_id: cardTokenId,
-          auto_recurring: {
-            frequency: 1,
-            frequency_type: 'months',
-            transaction_amount: planMeta.amount,
-            currency_id: planMeta.currency,
-          },
-          back_url: `${config.mode === 'sandbox' ? 'http://localhost:3000' : 'https://escuelasegura.com'}/#/subscribe`,
+          back_url: `${Deno.env.get('APP_URL') || 'http://localhost:3000'}/app/settings`,
           status: 'authorized',
         }),
       },
@@ -208,21 +202,25 @@ Deno.serve(async (req) => {
     });
     const now = new Date().toISOString();
 
-    const { error: insertError } = await supabaseAdmin.from('subscriptions').insert({
-      company_id: companyId,
-      payment_provider: 'mercadopago',
-      mp_preapproval_id: preapproval.id,
-      mp_plan_id: mpPlanId,
-      plan_key: planKey,
-      plan_name: planMeta.name,
-      amount: planMeta.amount,
-      currency: planMeta.currency,
-      status: preapproval.status === 'authorized' ? 'active' : 'pending',
-      subscriber_email: payerEmail,
-      activated_at: preapproval.status === 'authorized' ? now : null,
-      current_period_start: now,
-      next_billing_time: preapproval.next_payment_date || null,
-    });
+    const { data: subscriptionRow, error: insertError } = await supabaseAdmin
+      .from('subscriptions')
+      .insert({
+        company_id: companyId,
+        payment_provider: 'mercadopago',
+        mp_preapproval_id: preapproval.id,
+        mp_plan_id: mpPlanId,
+        plan_key: planKey,
+        plan_name: planMeta.name,
+        amount: planMeta.amount,
+        currency: planMeta.currency,
+        status: preapproval.status === 'authorized' ? 'active' : 'pending',
+        subscriber_email: payerEmail,
+        activated_at: preapproval.status === 'authorized' ? now : null,
+        current_period_start: now,
+        next_billing_time: preapproval.next_payment_date || null,
+      })
+      .select('id')
+      .single();
 
     if (insertError) {
       console.error(
@@ -233,38 +231,72 @@ Deno.serve(async (req) => {
       console.log('[MP] mp-create-subscription: DB subscription record inserted');
     }
 
-    // Update company subscription status
-    if (preapproval.status === 'authorized') {
-      await supabaseAdmin
-        .from('companies')
-        .update({
-          is_subscribed: true,
-          subscription_status: 'active',
-          selected_plan: planKey,
-          subscription_renewal_date: preapproval.next_payment_date || null,
-        })
-        .eq('id', companyId);
-      console.log('[MP] mp-create-subscription: Company updated to subscribed');
+    // Payment transaction is recorded by the webhook-mercadopago handler
+    // when it receives the subscription_authorized_payment event with the
+    // actual transaction amount from MercadoPago.
 
-      // Send subscription activated email
-      await sendEmailSafe({
-        to: payerEmail,
-        subject: '¡Tu suscripción a Escuela Segura está activa!',
-        html: subscriptionActivatedEmail(
-          user.user_metadata?.name || user.email || 'Usuario',
-          planMeta.name,
-          planMeta.amount,
-          planMeta.currency,
-        ),
+    // If MP didn't authorize the subscription, return a payment error
+    if (preapproval.status !== 'authorized') {
+      console.error('[MP] mp-create-subscription: Preapproval not authorized', {
+        preapprovalId: preapproval.id,
+        status: preapproval.status,
       });
+      return new Response(
+        JSON.stringify({ error: 'El pago no fue autorizado por MercadoPago. Verificá los datos de la tarjeta e intentá nuevamente.' }),
+        { status: 402, headers: { ...cors, 'Content-Type': 'application/json' } },
+      );
     }
+
+    // Update company subscription status
+    const { error: companyUpdateError } = await supabaseAdmin
+      .from('companies')
+      .update({
+        is_subscribed: true,
+        subscription_status: 'active',
+        selected_plan: planKey,
+        subscription_renewal_date: preapproval.next_payment_date || null,
+      })
+      .eq('id', companyId);
+
+    if (companyUpdateError) {
+      console.error('[MP] mp-create-subscription: Company update FAILED:', companyUpdateError.message);
+    } else {
+      console.log('[MP] mp-create-subscription: Company updated to subscribed');
+    }
+
+    // Log activity
+    await supabaseAdmin.from('activity_logs').insert({
+      action: 'subscription_created',
+      target_type: 'subscription',
+      target_id: subscriptionRow?.id || preapproval.id,
+      metadata: {
+        user_email: payerEmail,
+        plan_key: planKey,
+        plan_name: planMeta.name,
+        amount: planMeta.amount,
+        payment_method: 'card',
+        mp_preapproval_id: preapproval.id,
+      },
+    });
+
+    // Send subscription activated email
+    await sendEmailSafe({
+      to: payerEmail,
+      subject: '¡Tu suscripción a Escuela Segura está activa!',
+      html: subscriptionActivatedEmail(
+        user.user_metadata?.name || user.email || 'Usuario',
+        planMeta.name,
+        planMeta.amount,
+        planMeta.currency,
+      ),
+    });
 
     console.log('[MP] mp-create-subscription: SUCCESS', { subscriptionId: preapproval.id, status: preapproval.status });
     return new Response(
       JSON.stringify({
         success: true,
         subscriptionId: preapproval.id,
-        status: preapproval.status === 'authorized' ? 'active' : preapproval.status,
+        status: 'active',
       }),
       {
         status: 200,
@@ -272,11 +304,15 @@ Deno.serve(async (req) => {
       },
     );
   } catch (error) {
-    console.error('mp-create-subscription error:', error instanceof MercadoPagoError ? error.message : error);
-    const status = error instanceof MercadoPagoError ? error.statusCode || 500 : 500;
+    console.error('mp-create-subscription error:', error);
+    const isMpError = error instanceof MercadoPagoError;
+    const status = isMpError ? error.statusCode || 500 : 500;
+    const message = isMpError
+      ? `MercadoPago: ${error.message}${error.details ? ` — ${JSON.stringify(error.details)}` : ''}`
+      : (error instanceof Error ? error.message : 'Error al procesar la solicitud');
 
     return new Response(
-      JSON.stringify({ error: 'Error al procesar la solicitud' }),
+      JSON.stringify({ error: message }),
       { status, headers: { ...cors, 'Content-Type': 'application/json' } },
     );
   }

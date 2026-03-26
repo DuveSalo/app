@@ -1,48 +1,67 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth/AuthContext';
 import * as api from '@/lib/api/services';
 import type { Subscription, PaymentTransaction } from '../../../types/subscription';
 import { toast } from 'sonner';
+import { queryKeys } from '@/lib/queryKeys';
 
 export const useBillingData = () => {
   const { currentCompany, refreshCompany } = useAuth();
+  const queryClient = useQueryClient();
+  const companyId = currentCompany?.id ?? '';
 
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [payments, setPayments] = useState<PaymentTransaction[]>([]);
+  // --- Queries ---
+
+  const { data: subscription = null, isLoading: isLoadingSubscription } = useQuery({
+    queryKey: queryKeys.subscription(companyId),
+    queryFn: () => api.getActiveSubscription(companyId),
+    enabled: !!companyId,
+  });
+
+  const { data: payments = [], isLoading: isLoadingPayments } = useQuery({
+    queryKey: queryKeys.payments(companyId),
+    queryFn: () => api.getPaymentHistory(companyId, 5),
+    enabled: !!companyId,
+  });
+
+  // --- Card info (local state, fetched on demand) ---
+
   const [cardBrand, setCardBrand] = useState<string | null>(null);
   const [cardLastFour, setCardLastFour] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Fetch subscription and payment data
-  useEffect(() => {
-    if (currentCompany) {
-      api.getActiveSubscription(currentCompany.id)
-        .then(setSubscription)
-        .catch(console.error);
-      api.getPaymentHistory(currentCompany.id, 5)
-        .then(setPayments)
-        .catch(console.error);
-    }
-  }, [currentCompany]);
+  const invalidateAll = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.subscription(companyId) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.payments(companyId) }),
+    ]);
+  };
 
-  // Sync fresh data from MercadoPago when subscription is active
+  // --- Sync from MercadoPago (with DB fallback for card info) ---
+
   const syncMercadoPagoStatus = () => {
     if (!subscription?.mpPreapprovalId) return;
     if (subscription.status !== 'active' && subscription.status !== 'suspended') return;
 
-    api.mpGetSubscriptionStatus(subscription.mpPreapprovalId)
-      .then((status) => {
+    api
+      .mpGetSubscriptionStatus(subscription.mpPreapprovalId)
+      .then(async (status) => {
         setCardBrand(status.paymentMethodId);
-        setCardLastFour(status.cardLastFour);
-        if (status.nextPaymentDate) {
-          setSubscription((prev) =>
-            prev ? { ...prev, nextBillingTime: status.nextPaymentDate } : prev,
-          );
+        if (status.cardLastFour) {
+          setCardLastFour(status.cardLastFour);
+        } else if (companyId) {
+          // Fallback: read card info from latest completed payment
+          const cardInfo = await api.getCardInfoFromPayments(companyId);
+          if (cardInfo.cardLastFour) setCardLastFour(cardInfo.cardLastFour);
+          if (cardInfo.cardBrand && !status.paymentMethodId) setCardBrand(cardInfo.cardBrand);
         }
       })
       .catch(console.error);
   };
+
+  // --- Mutation handlers ---
 
   const handleCancelSubscription = async () => {
     if (!subscription?.mpPreapprovalId) return;
@@ -54,8 +73,7 @@ export const useBillingData = () => {
         mpPreapprovalId: subscription.mpPreapprovalId,
       });
       await refreshCompany();
-      const updated = await api.getActiveSubscription(currentCompany!.id);
-      setSubscription(updated);
+      await invalidateAll();
       toast.success('Suscripción cancelada');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error al cancelar la suscripción';
@@ -76,8 +94,7 @@ export const useBillingData = () => {
         mpPreapprovalId: subscription.mpPreapprovalId,
       });
       await refreshCompany();
-      const updated = await api.getActiveSubscription(currentCompany!.id);
-      setSubscription(updated);
+      await invalidateAll();
       toast.success('Suscripción reactivada');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error al reactivar la suscripción';
@@ -99,10 +116,7 @@ export const useBillingData = () => {
         newPlanKey,
       });
       await refreshCompany();
-      const updated = await api.getActiveSubscription(currentCompany.id);
-      setSubscription(updated);
-      const updatedPayments = await api.getPaymentHistory(currentCompany.id, 5);
-      setPayments(updatedPayments);
+      await invalidateAll();
       toast.success('Plan actualizado');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error al cambiar de plan';
@@ -113,7 +127,11 @@ export const useBillingData = () => {
     }
   };
 
-  const handleCreateSubscription = async (data: { planKey: string; cardTokenId: string; payerEmail: string }) => {
+  const handleCreateSubscription = async (data: {
+    planKey: string;
+    cardTokenId: string;
+    payerEmail: string;
+  }) => {
     if (!currentCompany) return;
     setIsLoading(true);
     setError('');
@@ -125,10 +143,7 @@ export const useBillingData = () => {
         payerEmail: data.payerEmail,
       });
       await refreshCompany(true);
-      const updated = await api.getActiveSubscription(currentCompany.id);
-      setSubscription(updated);
-      const updatedPayments = await api.getPaymentHistory(currentCompany.id, 5);
-      setPayments(updatedPayments);
+      await invalidateAll();
       toast.success('Suscripción creada');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error al crear la suscripción';
@@ -139,13 +154,56 @@ export const useBillingData = () => {
     }
   };
 
+  const handleChangeCard = async (cardTokenId: string) => {
+    if (!subscription?.mpPreapprovalId || !currentCompany) return;
+    setIsLoading(true);
+    setError('');
+    try {
+      await api.mpManageSubscription({
+        action: 'change_card',
+        mpPreapprovalId: subscription.mpPreapprovalId,
+        cardTokenId,
+      });
+      const status = await api.mpGetSubscriptionStatus(subscription.mpPreapprovalId);
+      setCardBrand(status.paymentMethodId);
+      setCardLastFour(status.cardLastFour);
+      toast.success('Tarjeta actualizada correctamente');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al actualizar la tarjeta';
+      setError(message);
+      toast.error(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBankTransferPayment = async (data: { planKey: string; amount: number }) => {
+    if (!currentCompany) return;
+    setIsLoading(true);
+    setError('');
+    try {
+      await api.submitBankTransferPayment({
+        companyId: currentCompany.id,
+        planKey: data.planKey,
+        amount: data.amount,
+      });
+      await refreshCompany(true);
+      await invalidateAll();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al registrar la transferencia';
+      setError(message);
+      toast.error(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubscriptionChange = async () => {
     if (!currentCompany) return;
     await refreshCompany(true);
-    const updated = await api.getActiveSubscription(currentCompany.id);
-    setSubscription(updated);
-    const updatedPayments = await api.getPaymentHistory(currentCompany.id, 5);
-    setPayments(updatedPayments);
+    await invalidateAll();
     toast.success('Suscripcion actualizada');
   };
 
@@ -158,9 +216,11 @@ export const useBillingData = () => {
     handleCancelSubscription,
     handleReactivateSubscription,
     handleSubscriptionChange,
+    handleBankTransferPayment,
     handleChangePlan,
+    handleChangeCard,
     handleCreateSubscription,
-    isLoading,
+    isLoading: isLoading || isLoadingSubscription || isLoadingPayments,
     error,
   };
 };

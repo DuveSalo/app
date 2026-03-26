@@ -81,14 +81,21 @@ export const AdminDocumentTable = ({
     }
   };
 
+  const handleViewUrl = (url: string) => {
+    setPdfUrl(url);
+    setPdfModalOpen(true);
+  };
+
   const ActionsCell = ({
     id,
     bucket,
     pdfPath,
+    pdfItems,
   }: {
     id: string;
     bucket?: string;
     pdfPath?: string;
+    pdfItems?: { label: string; bucket?: string; path?: string; url?: string }[];
   }) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -103,9 +110,24 @@ export const AdminDocumentTable = ({
             Ver PDF
           </DropdownMenuItem>
         )}
+        {pdfItems?.map((item, idx) => (
+          <DropdownMenuItem
+            key={`${item.label}-${idx}`}
+            onClick={() =>
+              item.bucket && item.path
+                ? handleViewPdf(item.bucket, item.path)
+                : item.url
+                  ? handleViewUrl(item.url)
+                  : undefined
+            }
+          >
+            <Eye className="mr-2 h-4 w-4" />
+            {item.label}
+          </DropdownMenuItem>
+        ))}
         <DropdownMenuItem
+          variant="destructive"
           onClick={() => setDeleteId(id)}
-          className="text-destructive focus:text-destructive"
         >
           <Trash2 className="mr-2 h-4 w-4" />
           Eliminar
@@ -193,13 +215,58 @@ export const AdminDocumentTable = ({
           {
             id: 'actions',
             header: '',
-            cell: ({ row }) => (
-              <ActionsCell
-                id={row.original.id}
-                bucket="self-protection-systems"
-                pdfPath={row.original.probatoryDispositionPdfPath}
-              />
-            ),
+            cell: ({ row }) => {
+              const bucket = 'self-protection-systems';
+              const items: { label: string; bucket?: string; path?: string; url?: string }[] = [];
+              if (row.original.probatoryDispositionPdfPath) {
+                items.push({
+                  label: 'Disposición probatoria',
+                  bucket,
+                  path: row.original.probatoryDispositionPdfPath,
+                });
+              } else if (row.original.probatoryDispositionPdfUrl) {
+                items.push({
+                  label: 'Disposición probatoria',
+                  url: row.original.probatoryDispositionPdfUrl,
+                });
+              }
+              if (row.original.extensionPdfPath) {
+                items.push({
+                  label: 'Prórroga',
+                  bucket,
+                  path: row.original.extensionPdfPath,
+                });
+              } else if (row.original.extensionPdfUrl) {
+                items.push({
+                  label: 'Prórroga',
+                  url: row.original.extensionPdfUrl,
+                });
+              }
+              if (row.original.drillPdfPaths) {
+                for (const drill of row.original.drillPdfPaths) {
+                  items.push({
+                    label: `Simulacro ${drill.date ? formatDateLocal(drill.date) : ''}`.trim(),
+                    bucket,
+                    path: drill.path,
+                  });
+                }
+              } else if (row.original.drills) {
+                for (const drill of row.original.drills) {
+                  if (drill.pdfUrl) {
+                    items.push({
+                      label: `Simulacro ${drill.date ? formatDateLocal(drill.date) : ''}`.trim(),
+                      url: drill.pdfUrl,
+                    });
+                  }
+                }
+              }
+              return (
+                <ActionsCell
+                  id={row.original.id}
+                  pdfItems={items.length > 0 ? items : undefined}
+                />
+              );
+            },
           },
         ];
 

@@ -55,9 +55,9 @@ export interface Company {
   trialEndsAt?: string;
   services?: CompanyServices;
   subscriptionRenewalDate?: string;
-  subscriptionStatus?: 'active' | 'pending' | 'approval_pending' | 'suspended' | 'canceled' | 'expired';
+  subscriptionStatus?: 'active' | 'pending' | 'cancelled' | 'paused';
   paymentMethod?: 'mercadopago' | 'bank_transfer';
-  bankTransferStatus?: 'pending' | 'active' | 'suspended' | null;
+  bankTransferStatus?: 'pending' | 'active' | 'approved' | 'suspended' | null;
   paymentMethods?: PaymentMethod[];
 }
 

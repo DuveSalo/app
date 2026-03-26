@@ -1,10 +1,73 @@
 import { supabase } from '../../../supabase/client';
 import { handleSupabaseError } from '../../../utils/errors';
-import { formatPlanName } from '../../../../constants/plans';
-import type {
-  AdminPaymentRow,
-  AdminSaleRow,
-} from '../../../../features/admin/types';
+import type { AdminPaymentRow } from '../../../../features/admin/types';
+
+/**
+ * Card detail columns (payment_type_id, card_brand, card_last_four) are available
+ * after migration 20260325130000. Until then, these fields will be null.
+ * After applying the migration, add these columns to the TX_COLS select string:
+ *   payment_type_id, card_brand, card_last_four
+ */
+
+const TX_COLS_BASE = 'id, company_id, gross_amount, currency, status, created_at, paid_at, subscriptions(current_period_end)';
+const TX_COLS_WITH_CARD = 'id, company_id, gross_amount, currency, status, created_at, paid_at, payment_type_id, card_brand, card_last_four, subscriptions(current_period_end)';
+
+// Cached result of whether card detail columns exist in the DB schema
+let cardColumnsAvailable: boolean | null = null;
+
+async function probeCardColumns(): Promise<boolean> {
+  if (cardColumnsAvailable !== null) return cardColumnsAvailable;
+  const { error } = await supabase
+    .from('payment_transactions')
+    .select('payment_type_id')
+    .limit(0);
+  cardColumnsAvailable = !error;
+  return cardColumnsAvailable;
+}
+
+function mapTxRow(
+  row: Record<string, unknown>,
+  companyName: string,
+): AdminPaymentRow {
+  const sub = row.subscriptions as { current_period_end: string | null } | null;
+  const paymentTypeId = (row.payment_type_id as string) || null;
+  let paymentMethod: AdminPaymentRow['paymentMethod'] = 'card';
+  if (paymentTypeId === 'credit_card' || paymentTypeId === 'debit_card') {
+    paymentMethod = paymentTypeId;
+  }
+  return {
+    id: row.id as string,
+    companyId: row.company_id as string,
+    companyName,
+    amount: (row.gross_amount as number) || 0,
+    periodStart: (row.paid_at as string) || (row.created_at as string),
+    periodEnd: sub?.current_period_end || '',
+    status: (row.status === 'completed' || row.status === 'approved') ? 'approved' : 'pending',
+    createdAt: row.created_at as string,
+    rejectionReason: null,
+    receiptUrl: null,
+    paymentMethod,
+    cardBrand: (row.card_brand as string) || null,
+    cardLastFour: (row.card_last_four as string) || null,
+  };
+}
+
+/**
+ * Fetch payment_transactions, gracefully falling back if card columns don't exist yet.
+ */
+async function queryTransactions(
+  filters?: { status?: string[]; companyId?: string; limit?: number },
+) {
+  const hasCard = await probeCardColumns();
+  const cols = hasCard ? TX_COLS_WITH_CARD : TX_COLS_BASE;
+
+  let q = supabase.from('payment_transactions').select(cols);
+  if (filters?.status) q = q.in('status', filters.status);
+  if (filters?.companyId) q = q.eq('company_id', filters.companyId);
+  q = q.order('created_at', { ascending: false });
+  if (filters?.limit) q = q.limit(filters.limit);
+  return q;
+}
 
 /**
  * Fetch pending bank transfer payments.
@@ -39,6 +102,9 @@ export const getPendingPayments = async (): Promise<AdminPaymentRow[]> => {
     createdAt: row.created_at,
     rejectionReason: row.rejection_reason,
     receiptUrl: row.receipt_url || null,
+    paymentMethod: 'bank_transfer',
+    cardBrand: null,
+    cardLastFour: null,
   }));
 };
 
@@ -46,7 +112,8 @@ export const getPendingPayments = async (): Promise<AdminPaymentRow[]> => {
  * Fetch ALL bank transfer payments (all statuses).
  */
 export const getAllPayments = async (): Promise<AdminPaymentRow[]> => {
-  const { data, error } = await supabase
+  // Fetch manual (bank transfer) payments
+  const { data: manualData, error } = await supabase
     .from('manual_payments')
     .select(
       'id, company_id, amount, period_start, period_end, status, created_at, rejection_reason, receipt_url'
@@ -54,20 +121,28 @@ export const getAllPayments = async (): Promise<AdminPaymentRow[]> => {
     .order('created_at', { ascending: false });
 
   if (error) handleSupabaseError(error);
-  if (!data || data.length === 0) return [];
 
-  // Fetch company names for all payments
-  const companyIds: string[] = Array.from(
-    new Set<string>(data.map((r) => String(r.company_id)))
+  // Fetch MercadoPago card payments (join subscriptions for period end)
+  const { data: txData } = await queryTransactions();
+
+  // Collect all company IDs from both sources
+  const allCompanyIds: string[] = Array.from(
+    new Set<string>([
+      ...(manualData || []).map((r) => String(r.company_id)),
+      ...(txData || []).map((r: Record<string, unknown>) => String(r.company_id)),
+    ])
   );
-  const { data: companies } = await supabase
-    .from('companies')
-    .select('id, name')
-    .in('id', companyIds);
 
-  const companyMap = new Map((companies || []).map((c) => [c.id, c.name]));
+  let companyMap = new Map<string, string>();
+  if (allCompanyIds.length > 0) {
+    const { data: companies } = await supabase
+      .from('companies')
+      .select('id, name')
+      .in('id', allCompanyIds);
+    companyMap = new Map((companies || []).map((c) => [c.id, c.name]));
+  }
 
-  return data.map((row) => ({
+  const manualRows: AdminPaymentRow[] = (manualData || []).map((row) => ({
     id: row.id,
     companyId: row.company_id,
     companyName: companyMap.get(row.company_id) || 'Desconocido',
@@ -78,7 +153,19 @@ export const getAllPayments = async (): Promise<AdminPaymentRow[]> => {
     createdAt: row.created_at,
     rejectionReason: row.rejection_reason,
     receiptUrl: row.receipt_url || null,
+    paymentMethod: 'bank_transfer',
+    cardBrand: null,
+    cardLastFour: null,
   }));
+
+  const txRows: AdminPaymentRow[] = (txData || []).map((row: Record<string, unknown>) =>
+    mapTxRow(row, companyMap.get(row.company_id as string) || 'Desconocido')
+  );
+
+  // Merge and sort by date descending
+  return [...manualRows, ...txRows].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
 };
 
 /**
@@ -96,6 +183,12 @@ export const getReceiptSignedUrl = async (path: string): Promise<string> => {
 
 /**
  * Approve a bank transfer payment.
+ * Delegates to the admin_approve_payment RPC which atomically:
+ * - marks the payment approved
+ * - activates the company's subscription (idempotent: update approval_pending or insert)
+ * - updates company status
+ * - logs the action
+ * - sends a notification
  */
 export const approvePayment = async (paymentId: string): Promise<void> => {
   const {
@@ -103,61 +196,21 @@ export const approvePayment = async (paymentId: string): Promise<void> => {
   } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
 
-  const { error } = await supabase
-    .from('manual_payments')
-    .update({
-      status: 'approved',
-      reviewed_by: user.id,
-      reviewed_at: new Date().toISOString(),
-    })
-    .eq('id', paymentId);
+  const { error } = await supabase.rpc('admin_approve_payment', {
+    p_payment_id: paymentId,
+    p_admin_id: user.id,
+    p_admin_email: user.email ?? '',
+  });
 
   if (error) handleSupabaseError(error);
-
-  // Fetch the payment to get company_id for activation and audit metadata
-  const { data: payment } = await supabase
-    .from('manual_payments')
-    .select('company_id')
-    .eq('id', paymentId)
-    .single();
-
-  // Log the action (include company_id for audit trail)
-  const { error: logError } = await supabase.from('activity_logs').insert({
-    admin_id: user.id,
-    action: 'approve_payment',
-    target_type: 'manual_payment',
-    target_id: paymentId,
-    metadata: { company_id: payment?.company_id ?? null },
-  });
-  if (logError) console.error('Failed to log approve_payment:', logError);
-
-  if (payment) {
-    await supabase
-      .from('companies')
-      .update({
-        is_subscribed: true,
-        subscription_status: 'active',
-        bank_transfer_status: 'active',
-      })
-      .eq('id', payment.company_id);
-
-    // Notify the company that their payment was approved
-    await supabase.from('notifications').insert({
-      company_id: payment.company_id,
-      type: 'system',
-      category: 'system',
-      title: 'Pago aprobado',
-      message: 'Tu transferencia bancaria fue aprobada. Tu suscripcion esta activa.',
-      link: '/bank-transfer/status',
-      related_table: 'manual_payments',
-      related_id: paymentId,
-      is_read: false,
-    });
-  }
 };
 
 /**
  * Reject a bank transfer payment.
+ * Delegates to the admin_reject_payment RPC which atomically:
+ * - marks the payment rejected with reason
+ * - logs the action
+ * - sends a notification
  */
 export const rejectPayment = async (
   paymentId: string,
@@ -168,115 +221,79 @@ export const rejectPayment = async (
   } = await supabase.auth.getUser();
   if (!user) throw new Error('No autenticado');
 
-  const { error } = await supabase
-    .from('manual_payments')
-    .update({
-      status: 'rejected',
-      reviewed_by: user.id,
-      reviewed_at: new Date().toISOString(),
-      rejection_reason: reason,
-    })
-    .eq('id', paymentId);
+  const { error } = await supabase.rpc('admin_reject_payment', {
+    p_payment_id: paymentId,
+    p_admin_id: user.id,
+    p_admin_email: user.email ?? '',
+    p_reason: reason || undefined,
+  });
 
   if (error) handleSupabaseError(error);
-
-  // Log the action
-  const { error: logError } = await supabase.from('activity_logs').insert({
-    admin_id: user.id,
-    action: 'reject_payment',
-    target_type: 'manual_payment',
-    target_id: paymentId,
-    metadata: { reason },
-  });
-  if (logError) console.error('Failed to log reject_payment:', logError);
-
-  // Notify the company that their payment was rejected
-  const { data: payment } = await supabase
-    .from('manual_payments')
-    .select('company_id')
-    .eq('id', paymentId)
-    .single();
-
-  if (payment) {
-    await supabase.from('notifications').insert({
-      company_id: payment.company_id,
-      type: 'info',
-      category: 'system',
-      title: 'Pago rechazado',
-      message: reason
-        ? `Tu transferencia fue rechazada: ${reason}`
-        : 'Tu transferencia bancaria fue rechazada. Por favor subi un nuevo comprobante.',
-      link: '/bank-transfer/status',
-      related_table: 'manual_payments',
-      related_id: paymentId,
-      is_read: false,
-    });
-  }
 };
 
 /**
  * Fetch recent sales/transactions (approved payments + MercadoPago transactions).
  */
-export const getRecentSales = async (limit = 10): Promise<AdminSaleRow[]> => {
+export const getRecentSales = async (limit = 10): Promise<AdminPaymentRow[]> => {
   // Approved manual payments
   const { data: manualData, error: e1 } = await supabase
     .from('manual_payments')
-    .select('id, amount, reviewed_at, company_id')
+    .select('id, company_id, amount, period_start, period_end, status, created_at, rejection_reason, receipt_url, reviewed_at')
     .eq('status', 'approved')
     .order('reviewed_at', { ascending: false })
     .limit(limit);
 
   if (e1) handleSupabaseError(e1);
 
-  // Fetch company info for manual payments
-  const companyIds: string[] = Array.from(new Set<string>((manualData || []).map((r) => String(r.company_id))));
-  let companyMap = new Map<string, { name: string; plan: string }>();
-  if (companyIds.length > 0) {
-    const { data: companies } = await supabase
-      .from('companies')
-      .select('id, name, selected_plan')
-      .in('id', companyIds);
-    companyMap = new Map(
-      (companies || []).map((c) => [c.id, { name: c.name, plan: formatPlanName(c.selected_plan) }])
-    );
-  }
-
-  const sales: AdminSaleRow[] = (manualData || []).map((row) => {
-    const company = companyMap.get(row.company_id);
-    return {
-      id: row.id,
-      companyName: company?.name || 'Desconocido',
-      plan: company?.plan || 'Sin plan',
-      amount: row.amount,
-      status: 'Transferencia',
-      date: row.reviewed_at || '',
-    };
+  // Also fetch from payment_transactions (MercadoPago card payments)
+  const { data: txData } = await queryTransactions({
+    status: ['approved', 'completed'],
+    limit,
   });
 
-  // Also fetch from payment_transactions if table exists
-  const { data: txData } = await supabase
-    .from('payment_transactions')
-    .select('id, gross_amount, created_at, status')
-    .eq('status', 'approved')
-    .order('created_at', { ascending: false })
-    .limit(limit);
+  // Collect all company IDs from both sources
+  const allCompanyIds: string[] = Array.from(
+    new Set<string>([
+      ...(manualData || []).map((r) => String(r.company_id)),
+      ...(txData || []).map((r: Record<string, unknown>) => String(r.company_id)),
+    ])
+  );
 
-  if (txData) {
-    for (const tx of txData) {
-      sales.push({
-        id: tx.id,
-        companyName: '-',
-        plan: '-',
-        amount: tx.gross_amount || 0,
-        status: 'MercadoPago',
-        date: tx.created_at,
-      });
-    }
+  let companyMap = new Map<string, string>();
+  if (allCompanyIds.length > 0) {
+    const { data: companies } = await supabase
+      .from('companies')
+      .select('id, name')
+      .in('id', allCompanyIds);
+    companyMap = new Map((companies || []).map((c) => [c.id, c.name]));
   }
 
-  // Sort by date descending and take limit
-  sales.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  return sales.slice(0, limit);
+  const manualRows: AdminPaymentRow[] = (manualData || []).map((row) => ({
+    id: row.id,
+    companyId: row.company_id,
+    companyName: companyMap.get(row.company_id) || 'Desconocido',
+    amount: row.amount,
+    periodStart: row.period_start,
+    periodEnd: row.period_end,
+    status: row.status as AdminPaymentRow['status'],
+    createdAt: row.reviewed_at || row.created_at,
+    rejectionReason: row.rejection_reason,
+    receiptUrl: row.receipt_url || null,
+    paymentMethod: 'bank_transfer',
+    cardBrand: null,
+    cardLastFour: null,
+  }));
+
+  const txRows: AdminPaymentRow[] = (txData || []).map((row: Record<string, unknown>) => {
+    const mapped = mapTxRow(row, companyMap.get(row.company_id as string) || 'Desconocido');
+    mapped.status = 'approved';
+    return mapped;
+  });
+
+  // Merge, sort by date descending, and take limit
+  return [...manualRows, ...txRows]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, limit);
 };
 
 /**
@@ -301,27 +318,20 @@ export const getSchoolPaymentHistory = async (companyId: string): Promise<AdminP
     createdAt: row.created_at,
     rejectionReason: row.rejection_reason,
     receiptUrl: row.receipt_url || null,
+    paymentMethod: 'bank_transfer',
+    cardBrand: null,
+    cardLastFour: null,
   }));
 
   // Fetch MercadoPago transactions
-  const { data: txData } = await supabase
-    .from('payment_transactions')
-    .select('id, company_id, gross_amount, status, created_at, paid_at')
-    .eq('company_id', companyId)
-    .order('created_at', { ascending: false });
+  const { data: txData } = await queryTransactions({ companyId });
 
-  const txRows: AdminPaymentRow[] = (txData || []).map((row) => ({
-    id: row.id,
-    companyId: row.company_id,
-    companyName: '',
-    amount: row.gross_amount || 0,
-    periodStart: row.paid_at || row.created_at,
-    periodEnd: '',
-    status: row.status === 'approved' ? 'approved' : row.status === 'pending' ? 'pending' : 'rejected',
-    createdAt: row.created_at,
-    rejectionReason: null,
-    receiptUrl: null,
-  }));
+  const txRows: AdminPaymentRow[] = (txData || []).map((row: Record<string, unknown>) => {
+    const mapped = mapTxRow(row, '');
+    const st = row.status as string;
+    mapped.status = (st === 'approved' || st === 'completed') ? 'approved' : st === 'pending' ? 'pending' : 'rejected';
+    return mapped;
+  });
 
   // Merge and sort by date descending
   return [...manualRows, ...txRows].sort(

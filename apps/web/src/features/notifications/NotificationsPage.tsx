@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { queryKeys } from '@/lib/queryKeys';
 import { Notification, NotificationType } from '../../types/notification';
 import * as notificationService from '../../lib/api/services/notifications';
 import { Skeleton } from '../../components/common/SkeletonLoader';
@@ -58,52 +60,44 @@ const SkeletonNotifications = () => (
 
 const NotificationsPage = () => {
   const { currentCompany } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>('all');
-  const [stats, setStats] = useState({ total: 0, unread: 0 });
+  const companyId = currentCompany?.id ?? '';
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (!currentCompany?.id) return;
-    fetchNotifications();
-  }, [currentCompany?.id, filter]);
-
-  const fetchNotifications = async () => {
-    if (!currentCompany?.id) return;
-    setIsLoading(true);
-    try {
+  const { data, isLoading } = useQuery({
+    queryKey: [...queryKeys.notifications(companyId), filter],
+    queryFn: async () => {
       const filters: { isRead?: boolean } = {};
       if (filter === 'unread') filters.isRead = false;
       if (filter === 'read') filters.isRead = true;
       const [paginatedNotifs, statsData] = await Promise.all([
-        notificationService.getNotifications(currentCompany.id, { ...filters, limit: 50 }),
-        notificationService.getNotificationStats(currentCompany.id),
+        notificationService.getNotifications(companyId, { ...filters, limit: 50 }),
+        notificationService.getNotificationStats(companyId),
       ]);
-      setNotifications(paginatedNotifs.items);
-      setStats(statsData);
-    } catch {
-      toast.error('Error al cargar las notificaciones');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return { notifications: paginatedNotifs.items, stats: statsData };
+    },
+    enabled: !!companyId,
+  });
+
+  const notifications = data?.notifications ?? [];
+  const stats = data?.stats ?? { total: 0, unread: 0 };
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
       await notificationService.markAsRead(notificationId);
-      setNotifications(prev => prev.map(n => (n.id === notificationId ? { ...n, isRead: true } : n)));
-      setStats(prev => ({ ...prev, unread: Math.max(0, prev.unread - 1) }));
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications(companyId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notificationCount(companyId) });
     } catch {
       toast.error('Error al marcar como leída');
     }
   };
 
   const handleMarkAllAsRead = async () => {
-    if (!currentCompany?.id) return;
+    if (!companyId) return;
     try {
-      await notificationService.markAllAsRead(currentCompany.id);
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-      setStats(prev => ({ ...prev, unread: 0 }));
+      await notificationService.markAllAsRead(companyId);
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications(companyId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notificationCount(companyId) });
       toast.success('Todas las notificaciones marcadas como leídas');
     } catch {
       toast.error('Error al marcar todas como leídas');

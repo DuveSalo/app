@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, type DragEvent, type ChangeEvent } from 'react';
-import { Upload, File as FileIcon, X } from 'lucide-react';
+import { Upload, File as FileIcon, X, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
@@ -160,14 +160,31 @@ export const FileUpload = ({
                 </span>
               }
             </div>
-            <button
-              type="button"
-              onClick={clearFile}
-              className="text-neutral-400 hover:text-red-600 transition-colors duration-150 ml-2"
-              aria-label="Clear file"
-            >
-              <X className="w-4 h-4" strokeWidth={2} />
-            </button>
+            <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+              {selectedFile && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const url = URL.createObjectURL(selectedFile);
+                    window.open(url, '_blank');
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                  }}
+                  className="text-neutral-400 hover:text-neutral-900 transition-colors duration-150 flex items-center gap-1 text-xs px-1.5 py-1 rounded-md hover:bg-neutral-100"
+                  aria-label="Ver PDF"
+                >
+                  <Eye className="w-3.5 h-3.5" strokeWidth={2} />
+                  <span>Ver</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={clearFile}
+                className="text-neutral-400 hover:text-red-600 transition-colors duration-150 p-1 rounded-md hover:bg-red-50"
+                aria-label="Clear file"
+              >
+                <X className="w-4 h-4" strokeWidth={2} />
+              </button>
+            </div>
           </div>
         </div>
       )}

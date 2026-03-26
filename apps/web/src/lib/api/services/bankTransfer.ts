@@ -17,7 +17,9 @@ export interface ManualPayment {
 }
 
 /**
- * Submit a bank transfer payment (creates a manual_payment record + updates company).
+ * Submit a bank transfer payment.
+ * Atomically creates a manual_payment, updates the company, and inserts an
+ * approval_pending subscription — all via the submit_bank_transfer_payment RPC.
  */
 export async function submitBankTransferPayment(params: {
   companyId: string;
@@ -30,33 +32,23 @@ export async function submitBankTransferPayment(params: {
     .toISOString()
     .split('T')[0];
 
-  // Create manual payment record
-  const { data, error } = await db
-    .from('manual_payments')
-    .insert({
-      company_id: params.companyId,
-      amount: params.amount,
-      period_start: periodStart,
-      period_end: periodEnd,
-      status: 'pending',
-    })
-    .select()
-    .single();
+  const { data: paymentId, error } = await supabase.rpc('submit_bank_transfer_payment', {
+    p_company_id: params.companyId,
+    p_amount: params.amount,
+    p_period_start: periodStart,
+    p_period_end: periodEnd,
+    p_plan_key: params.planKey,
+  });
 
   if (error) handleSupabaseError(error);
 
-  // Update company payment method and plan
-  const { error: updateError } = await supabase
-    .from('companies')
-    .update({
-      payment_method: 'bank_transfer',
-      bank_transfer_status: 'pending',
-      selected_plan: params.planKey,
-      subscription_status: 'pending',
-    } as any)
-    .eq('id', params.companyId);
+  const { data, error: fetchError } = await db
+    .from('manual_payments')
+    .select('*')
+    .eq('id', paymentId)
+    .single();
 
-  if (updateError) handleSupabaseError(updateError);
+  if (fetchError) handleSupabaseError(fetchError);
 
   return {
     id: data.id,
@@ -89,7 +81,6 @@ export async function uploadReceipt(params: {
 
   if (uploadError) throw new Error(uploadError.message);
 
-  // Update manual_payment with receipt info
   const { error: updateError } = await db
     .from('manual_payments')
     .update({

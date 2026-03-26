@@ -30,7 +30,11 @@ export const getActivityLogs = async (): Promise<ActivityLogRow[]> => {
   return data.map((row) => ({
     id: row.id,
     adminId: row.admin_id || '',
-    adminEmail: adminMap.get(row.admin_id || '') || 'Admin',
+    adminEmail: row.admin_id
+      ? adminMap.get(row.admin_id) || 'Admin'
+      : (row.metadata as Record<string, unknown>)?.user_email
+        ? String((row.metadata as Record<string, unknown>).user_email)
+        : 'Sistema',
     action: row.action,
     targetType: row.target_type,
     targetId: row.target_id,

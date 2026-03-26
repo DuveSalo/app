@@ -44,26 +44,15 @@ export type CompanyInfoFormValues = z.infer<typeof companyInfoSchema>;
 
 export const employeeSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio.').max(100),
-  email: z
-    .string()
-    .min(1, 'El email es obligatorio.')
-    .max(254)
-    .email('Ingresá un email válido.'),
+  email: z.string().min(1, 'El email es obligatorio.').max(254).email('Ingresá un email válido.'),
   role: z.string().min(1, 'El rol es obligatorio.').max(500),
 });
 
 export type EmployeeFormValues = z.infer<typeof employeeSchema>;
 
-// ─── Change Password ────────────────────────────────────
-export const changePasswordSchema = z
-  .object({
-    currentPassword: z.string().min(1, 'Contraseña actual requerida').max(100),
-    newPassword: z.string().min(8, 'La nueva contraseña debe tener al menos 8 caracteres').max(100),
-    confirmPassword: z.string().min(1, 'Confirmar contraseña').max(100),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: 'Las contraseñas no coinciden',
-    path: ['confirmPassword'],
-  });
+// ─── Change Email ────────────────────────────────────────
+export const changeEmailSchema = z.object({
+  newEmail: z.string().min(1, 'Email requerido').max(254).email('Email inválido'),
+});
 
-export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
+export type ChangeEmailFormValues = z.infer<typeof changeEmailSchema>;

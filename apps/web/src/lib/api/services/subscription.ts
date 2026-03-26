@@ -23,6 +23,7 @@ function mapSubscriptionFromDb(data: Tables<'subscriptions'>): Subscription {
     amount: data.amount,
     currency: data.currency || 'ARS',
     status: data.status as SubscriptionStatus,
+    paymentProvider: data.payment_provider || 'mercadopago',
     subscriberEmail: data.subscriber_email || null,
     currentPeriodStart: data.current_period_start || null,
     currentPeriodEnd: data.current_period_end || null,
@@ -53,11 +54,23 @@ function mapTransactionFromDb(data: Tables<'payment_transactions'>): PaymentTran
 }
 
 /**
+ * Ensure the current session is alive by calling getUser() which validates
+ * the token server-side and triggers a refresh if the access token expired.
+ * This prevents "Invalid JWT" errors when calling Edge Functions with stale tokens.
+ */
+async function ensureValidSession(): Promise<void> {
+  const { error } = await supabase.auth.getUser();
+  if (error) throw new Error('Sesión expirada. Iniciá sesión nuevamente.');
+}
+
+/**
  * Create a MercadoPago subscription with card_token_id via Edge Function.
  */
 export async function mpCreateSubscription(
-  params: MpCreateSubscriptionRequest,
+  params: MpCreateSubscriptionRequest
 ): Promise<MpCreateSubscriptionResponse> {
+  await ensureValidSession();
+
   const { data, error } = await supabase.functions.invoke('mp-create-subscription', {
     body: params,
   });
@@ -69,14 +82,12 @@ export async function mpCreateSubscription(
  * Manage MercadoPago subscription (upgrade, downgrade, cancel, pause, reactivate, change card).
  */
 export async function mpManageSubscription(
-  params: MpManageSubscriptionRequest,
+  params: MpManageSubscriptionRequest
 ): Promise<MpManageSubscriptionResponse> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('No hay sesión activa');
+  await ensureValidSession();
 
   const { data, error } = await supabase.functions.invoke('mp-manage-subscription', {
     body: params,
-    headers: { Authorization: `Bearer ${session.access_token}` },
   });
   if (error) throw new Error(error.message);
   return data as MpManageSubscriptionResponse;
@@ -87,14 +98,12 @@ export async function mpManageSubscription(
  * Syncs next_billing_time in DB and returns card info.
  */
 export async function mpGetSubscriptionStatus(
-  mpPreapprovalId: string,
+  mpPreapprovalId: string
 ): Promise<MpSubscriptionStatusResponse> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('No hay sesión activa');
+  await ensureValidSession();
 
   const { data, error } = await supabase.functions.invoke('mp-get-subscription-status', {
     body: { mpPreapprovalId },
-    headers: { Authorization: `Bearer ${session.access_token}` },
   });
   if (error) throw new Error(error.message);
   return data as MpSubscriptionStatusResponse;
@@ -103,9 +112,7 @@ export async function mpGetSubscriptionStatus(
 /**
  * Get the active (or most recent) subscription for a company.
  */
-export async function getActiveSubscription(
-  companyId: string,
-): Promise<Subscription | null> {
+export async function getActiveSubscription(companyId: string): Promise<Subscription | null> {
   const { data, error } = await supabase
     .from('subscriptions')
     .select('*')
@@ -126,7 +133,7 @@ export async function getActiveSubscription(
  */
 export async function getPaymentHistory(
   companyId: string,
-  limit = 5,
+  limit = 5
 ): Promise<PaymentTransaction[]> {
   const { data, error } = await supabase
     .from('payment_transactions')
@@ -139,4 +146,27 @@ export async function getPaymentHistory(
   if (!data) return [];
 
   return data.map((row) => mapTransactionFromDb(row));
+}
+
+/**
+ * Get card brand and last four digits from the latest completed payment.
+ * Used as fallback when MercadoPago API doesn't return card details.
+ */
+export async function getCardInfoFromPayments(
+  companyId: string
+): Promise<{ cardBrand: string | null; cardLastFour: string | null }> {
+  const { data } = await supabase
+    .from('payment_transactions')
+    .select('card_brand, card_last_four')
+    .eq('company_id', companyId)
+    .eq('status', 'completed')
+    .not('card_last_four', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return {
+    cardBrand: data?.card_brand ?? null,
+    cardLastFour: data?.card_last_four ?? null,
+  };
 }

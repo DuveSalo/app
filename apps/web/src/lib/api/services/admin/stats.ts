@@ -45,7 +45,7 @@ export const getAdminStats = async (): Promise<AdminStats> => {
   const { data: transactions } = await supabase
     .from('payment_transactions')
     .select('gross_amount')
-    .eq('status', 'approved')
+    .in('status', ['approved', 'completed'])
     .gte('created_at', startOfMonth.toISOString());
 
   const txRevenue = (transactions || []).reduce(

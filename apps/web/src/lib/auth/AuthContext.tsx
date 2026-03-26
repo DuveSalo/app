@@ -24,6 +24,7 @@ interface AuthContextType {
   login: (email: string, pass: string) => Promise<void>;
   register: (name: string, email: string, pass: string) => Promise<{ confirmationSent: boolean; email: string }>;
   resendConfirmationEmail: (email: string) => Promise<void>;
+  verifyEmailOtp: (email: string, token: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   setCompany: (company: Company) => void;
@@ -47,12 +48,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const user = await api.getCurrentUser();
       setCurrentUser(user);
       if (user) {
-        try {
-          const company = await api.getCompanyByUserId(user.id);
-          setCurrentCompany(company);
-          setServiceContext(user.id, company.id);
-        } catch (error) {
+        // Admin users don't have a company — skip the lookup to avoid PGRST116
+        if (user.role === 'admin') {
           setCurrentCompany(null);
+        } else {
+          try {
+            const company = await api.getCompanyByUserId(user.id);
+            setCurrentCompany(company);
+            setServiceContext(user.id, company.id);
+          } catch (error) {
+            setCurrentCompany(null);
+          }
         }
       } else {
         setCurrentCompany(null);
@@ -167,6 +173,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await api.resendConfirmationEmail(email);
   };
 
+  const verifyEmailOtpUser = async (email: string, token: string) => {
+    const user = await api.verifyEmailOtp(email, token);
+    setCurrentUser(user);
+    navigate(ROUTE_PATHS.CREATE_COMPANY);
+  };
+
   const logoutUser = async () => {
     try {
       await api.logout();
@@ -237,6 +249,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       login: loginUser,
       register: registerUser,
       resendConfirmationEmail: resendConfirmationEmailUser,
+      verifyEmailOtp: verifyEmailOtpUser,
       loginWithGoogle: loginWithGoogleProvider,
       logout: logoutUser,
       setCompany: setCompanyContext,

@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
@@ -78,6 +79,7 @@ export const ChangePlanModal = ({
       <DialogContent className="sm:max-w-lg max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Cambiar plan</DialogTitle>
+          <DialogDescription className="sr-only">Seleccioná un nuevo plan de suscripción</DialogDescription>
         </DialogHeader>
 
         <div className="overflow-y-auto flex-1 -mx-6 px-6 space-y-4">

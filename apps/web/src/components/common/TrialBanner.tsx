@@ -29,7 +29,7 @@ export const TrialBanner = () => {
         <span className="font-semibold">{daysRemaining} {dayText}</span>
       </p>
       <button
-        onClick={() => navigate(ROUTE_PATHS.SUBSCRIPTION)}
+        onClick={() => navigate(`${ROUTE_PATHS.SETTINGS}?tab=billing`)}
         className={`rounded-md px-3 py-1 text-xs font-medium transition-colors duration-150 ${buttonClasses}`}
       >
         Suscribirse ahora

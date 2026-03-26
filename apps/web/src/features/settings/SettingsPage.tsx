@@ -83,7 +83,9 @@ export const SettingsPage = () => {
             onReactivate={billing.handleReactivateSubscription}
             onSubscriptionChange={billing.handleSubscriptionChange}
             onChangePlan={billing.handleChangePlan}
+            onChangeCard={billing.handleChangeCard}
             onCreateSubscription={billing.handleCreateSubscription}
+            onBankTransferPayment={billing.handleBankTransferPayment}
             userEmail={currentUser.email}
             trialEndsAt={currentCompany.trialEndsAt}
             cardBrand={billing.cardBrand}

@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { supabase } from '@/lib/supabase/client';
 import { Clock, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import AuthLayout from '../../components/layout/AuthLayout';
 import { ROUTE_PATHS } from '../../constants/index';
 import { getLatestManualPayment } from '../../lib/api/services/bankTransfer';
 import { Skeleton } from '../../components/common/SkeletonLoader';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 type PaymentStatus = 'pending' | 'approved' | 'rejected';
 
@@ -17,7 +19,7 @@ interface PaymentState {
   receiptUrl: string | null;
 }
 
-const POLL_INTERVAL = 10_000;
+const FALLBACK_POLL_INTERVAL = 60_000;
 
 const BankTransferStatusPage = () => {
   const navigate = useNavigate();
@@ -26,8 +28,9 @@ const BankTransferStatusPage = () => {
   const [payment, setPayment] = useState<PaymentState | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const autoRedirectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
-  const fetchPayment = async () => {
+  const fetchPayment = useCallback(async () => {
     if (!company?.id) return;
     try {
       const data = await getLatestManualPayment(company.id);
@@ -45,26 +48,56 @@ const BankTransferStatusPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [company?.id, navigate]);
 
+  // Set up Realtime subscription + fallback polling
   useEffect(() => {
+    if (!company?.id) return;
+
     fetchPayment();
 
-    intervalRef.current = setInterval(fetchPayment, POLL_INTERVAL);
+    // Realtime subscription for instant updates
+    const channel = supabase
+      .channel(`bank-transfer:${company.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'manual_payments',
+          filter: `company_id=eq.${company.id}`,
+        },
+        () => {
+          fetchPayment();
+        },
+      )
+      .subscribe();
+
+    channelRef.current = channel;
+
+    // Fallback poll every 60s in case Realtime connection drops
+    intervalRef.current = setInterval(fetchPayment, FALLBACK_POLL_INTERVAL);
 
     return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (autoRedirectRef.current) clearTimeout(autoRedirectRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [company?.id]);
+  }, [company?.id, fetchPayment]);
 
-  // Stop polling and auto-redirect when status is terminal
+  // Stop polling/realtime and auto-redirect when status is terminal
   useEffect(() => {
     if (payment?.status === 'approved' || payment?.status === 'rejected') {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
+      }
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
       }
     }
 

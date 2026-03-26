@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { PdfPreview } from '@/components/common/PdfPreview';
@@ -27,6 +28,7 @@ export const AdminPdfViewerModal = ({
       <DialogContent className="max-w-3xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription className="sr-only">{title}</DialogDescription>
         </DialogHeader>
         <div className="flex-1 min-h-0">
           <PdfPreview file={url} />

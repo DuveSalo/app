@@ -8,7 +8,6 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  ArrowLeft,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import {
@@ -92,16 +91,6 @@ const AdminSidebar = () => {
             );
           })}
 
-          {/* Back to app link */}
-          <div className="mt-2 pt-2 border-t border-sidebar-border">
-            <button
-              onClick={() => navigate(ROUTE_PATHS.DASHBOARD)}
-              className="w-full flex items-center text-left rounded-md transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1 gap-2.5 py-2 px-3 text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-            >
-              <ArrowLeft className="w-4 h-4 flex-shrink-0" strokeWidth={1.75} />
-              <span className="truncate">Volver a la app</span>
-            </button>
-          </div>
         </nav>
 
         {/* Bottom section */}

@@ -573,6 +573,8 @@ export type Database = {
       }
       payment_transactions: {
         Row: {
+          card_brand: string | null
+          card_last_four: string | null
           company_id: string
           created_at: string
           currency: string
@@ -581,11 +583,14 @@ export type Database = {
           id: string
           net_amount: number | null
           paid_at: string | null
+          payment_type_id: string | null
           paypal_transaction_id: string
           status: string
           subscription_id: string | null
         }
         Insert: {
+          card_brand?: string | null
+          card_last_four?: string | null
           company_id: string
           created_at?: string
           currency?: string
@@ -594,11 +599,14 @@ export type Database = {
           id?: string
           net_amount?: number | null
           paid_at?: string | null
+          payment_type_id?: string | null
           paypal_transaction_id: string
           status: string
           subscription_id?: string | null
         }
         Update: {
+          card_brand?: string | null
+          card_last_four?: string | null
           company_id?: string
           created_at?: string
           currency?: string
@@ -607,6 +615,7 @@ export type Database = {
           id?: string
           net_amount?: number | null
           paid_at?: string | null
+          payment_type_id?: string | null
           paypal_transaction_id?: string
           status?: string
           subscription_id?: string | null
@@ -928,6 +937,26 @@ export type Database = {
       }
     }
     Functions: {
+      admin_approve_payment: {
+        Args: {
+          p_admin_email: string
+          p_admin_id: string
+          p_amount?: number
+          p_payment_id: string
+          p_plan_key?: string
+          p_plan_name?: string
+        }
+        Returns: undefined
+      }
+      admin_reject_payment: {
+        Args: {
+          p_admin_email: string
+          p_admin_id: string
+          p_payment_id: string
+          p_reason?: string
+        }
+        Returns: undefined
+      }
       create_certificate_expiration_notifications: {
         Args: never
         Returns: undefined
@@ -951,7 +980,32 @@ export type Database = {
         Args: { p_company_id: string }
         Returns: Json
       }
+      insert_notification: {
+        Args: {
+          p_category: string
+          p_company_id: string
+          p_is_read?: boolean
+          p_link?: string
+          p_message: string
+          p_related_id?: string
+          p_related_table?: string
+          p_title: string
+          p_type: string
+          p_user_id?: string
+        }
+        Returns: undefined
+      }
       is_admin: { Args: never; Returns: boolean }
+      submit_bank_transfer_payment: {
+        Args: {
+          p_amount: number
+          p_company_id: string
+          p_period_end: string
+          p_period_start: string
+          p_plan_key: string
+        }
+        Returns: string
+      }
       update_self_protection_system: {
         Args: {
           p_company_id: string

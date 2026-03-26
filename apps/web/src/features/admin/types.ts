@@ -30,15 +30,9 @@ export interface AdminPaymentRow {
   createdAt: string;
   rejectionReason: string | null;
   receiptUrl: string | null;
-}
-
-export interface AdminSaleRow {
-  id: string;
-  companyName: string;
-  plan: string;
-  amount: number;
-  status: string;
-  date: string;
+  paymentMethod: 'bank_transfer' | 'card' | 'credit_card' | 'debit_card';
+  cardBrand: string | null;
+  cardLastFour: string | null;
 }
 
 export interface AdminSchoolDetail {

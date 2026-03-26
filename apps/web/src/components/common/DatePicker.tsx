@@ -69,8 +69,24 @@ export const DatePicker = ({
     setOpen(false);
   };
 
+  const applyDateMask = (raw: string): string => {
+    const digits = raw.replace(/\D/g, '').slice(0, 8);
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+  };
+
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
+    const masked = applyDateMask(e.target.value);
+    setInputValue(masked);
+
+    // Auto-commit when fully typed (dd/MM/yyyy = 10 chars)
+    if (masked.length === 10) {
+      const parsed = parse(masked, 'dd/MM/yyyy', new Date());
+      if (isValid(parsed) && parsed.getFullYear() > 1900) {
+        onChange(format(parsed, 'yyyy-MM-dd'));
+      }
+    }
   };
 
   const commitInputValue = () => {
@@ -123,6 +139,8 @@ export const DatePicker = ({
               ref={inputRef}
               id={id}
               type="text"
+              inputMode="numeric"
+              maxLength={10}
               disabled={disabled}
               value={inputValue}
               onChange={handleInputChange}

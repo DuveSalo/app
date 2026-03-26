@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import type { Plan } from '@/types/company';
 import { getActivePlans } from '@/lib/api/services/plans';
 import { mapPlanFromDb } from '@/lib/api/mappers';
+import { queryKeys } from '@/lib/queryKeys';
 
 const TRIAL_PLAN: Plan = {
   id: 'trial',
@@ -12,33 +13,21 @@ const TRIAL_PLAN: Plan = {
   features: ['Acceso completo', 'Sin tarjeta', '14 días'],
 };
 
-// Module-level cache to avoid refetching on re-renders
-let cachedPlans: Plan[] | null = null;
-
 export function usePlans(opts?: { includeTrial?: boolean }) {
-  const [plans, setPlans] = useState<Plan[]>(cachedPlans ?? []);
-  const [isLoading, setIsLoading] = useState(!cachedPlans);
-
-  useEffect(() => {
-    if (cachedPlans) return;
-    let cancelled = false;
-
-    getActivePlans()
-      .then((rows) => {
-        if (cancelled) return;
-        const mapped = rows.map(mapPlanFromDb);
-        cachedPlans = mapped;
-        setPlans(mapped);
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { data: plans = [], isLoading } = useQuery({
+    queryKey: queryKeys.plans(),
+    queryFn: async () => {
+      const rows = await getActivePlans();
+      return rows.map(mapPlanFromDb);
+    },
+    staleTime: 15 * 60 * 1000, // 15 minutes
+  });
 
   const result = opts?.includeTrial ? [TRIAL_PLAN, ...plans] : plans;
   return { plans: result, isLoading };
+}
+
+/** @deprecated Use queryClient.invalidateQueries({ queryKey: queryKeys.plans() }) instead */
+export function invalidatePlansCache(): void {
+  // Keep for backwards compat — callers should migrate to useQueryClient
 }

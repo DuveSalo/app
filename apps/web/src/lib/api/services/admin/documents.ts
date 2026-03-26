@@ -82,17 +82,31 @@ export const getSchoolCertificates = async (
 
 export const getSchoolSystems = async (
   companyId: string
-): Promise<(SelfProtectionSystem & { probatoryDispositionPdfPath?: string })[]> => {
+): Promise<
+  (SelfProtectionSystem & {
+    probatoryDispositionPdfPath?: string;
+    extensionPdfPath?: string;
+    drillPdfPaths?: { date: string; path: string }[];
+  })[]
+> => {
   const { data, error } = await supabase
     .from('self_protection_systems')
     .select('*')
     .eq('company_id', companyId)
     .order('expiration_date', { ascending: false });
   if (error) handleSupabaseError(error);
-  return (data || []).map((row) => ({
-    ...mapSystemFromDb(row),
-    probatoryDispositionPdfPath: row.probatory_disposition_pdf_path || undefined,
-  }));
+  return (data || []).map((row) => {
+    const drills = (row.drills as { date?: string; pdfPath?: string }[] | null) || [];
+    const drillPdfPaths = drills
+      .filter((d) => d.pdfPath)
+      .map((d) => ({ date: d.date || '', path: d.pdfPath! }));
+    return {
+      ...mapSystemFromDb(row),
+      probatoryDispositionPdfPath: row.probatory_disposition_pdf_path || undefined,
+      extensionPdfPath: row.extension_pdf_path || undefined,
+      drillPdfPaths: drillPdfPaths.length > 0 ? drillPdfPaths : undefined,
+    };
+  });
 };
 
 export const getSchoolQRDocuments = async (

@@ -8,109 +8,127 @@ import { ROUTE_PATHS, MODULE_TITLES } from '../constants/index';
 
 // Lazy-loaded page components
 export const LazyPages = {
-    // Auth pages
-    AuthPage: lazy(() => import('../features/auth/AuthPage')),
-    AuthCallbackPage: lazy(() => import('../features/auth/AuthCallbackPage')),
-    CreateCompanyPage: lazy(() => import('../features/auth/CreateCompanyPage')),
-    SubscriptionPage: lazy(() => import('../features/auth/SubscriptionPage')),
-    TrialExpiredPage: lazy(() => import('../features/auth/TrialExpiredPage')),
-    BankTransferUploadPage: lazy(() => import('../features/auth/BankTransferUploadPage')),
-    BankTransferStatusPage: lazy(() => import('../features/auth/BankTransferStatusPage')),
+  // Auth pages
+  LoginForm: lazy(() => import('../features/auth/components/LoginForm')),
+  RegisterForm: lazy(() => import('../features/auth/components/RegisterForm')),
+  AuthCallbackPage: lazy(() => import('../features/auth/AuthCallbackPage')),
+  CreateCompanyPage: lazy(() => import('../features/auth/CreateCompanyPage')),
+  SubscriptionPage: lazy(() => import('../features/auth/SubscriptionPage')),
+  TrialExpiredPage: lazy(() => import('../features/auth/TrialExpiredPage')),
+  BankTransferUploadPage: lazy(() => import('../features/auth/BankTransferUploadPage')),
+  BankTransferStatusPage: lazy(() => import('../features/auth/BankTransferStatusPage')),
+  ResetPasswordPage: lazy(() => import('../features/auth/ResetPasswordPage')),
 
-    // Main pages
-    DashboardPage: lazy(() => import('../features/dashboard/DashboardPage')),
-    SettingsPage: lazy(() => import('../features/settings/SettingsPage')),
-    NotificationsPage: lazy(() => import('../features/notifications/NotificationsPage')),
+  // Main pages
+  DashboardPage: lazy(() => import('../features/dashboard/DashboardPage')),
+  SettingsPage: lazy(() => import('../features/settings/SettingsPage')),
+  NotificationsPage: lazy(() => import('../features/notifications/NotificationsPage')),
 
-    // Conservation Certificates
-    ConservationCertificateListPage: lazy(() => import('../features/conservation-certificates/ConservationCertificateListPage')),
-    CreateEditConservationCertificatePage: lazy(() => import('../features/conservation-certificates/CreateEditConservationCertificatePage')),
+  // Conservation Certificates
+  ConservationCertificateListPage: lazy(
+    () => import('../features/conservation-certificates/ConservationCertificateListPage')
+  ),
+  CreateEditConservationCertificatePage: lazy(
+    () => import('../features/conservation-certificates/CreateEditConservationCertificatePage')
+  ),
 
-    // Self Protection Systems
-    SelfProtectionSystemListPage: lazy(() => import('../features/self-protection-systems/SelfProtectionSystemListPage')),
-    CreateEditSelfProtectionSystemPage: lazy(() => import('../features/self-protection-systems/CreateEditSelfProtectionSystemPage')),
+  // Self Protection Systems
+  SelfProtectionSystemListPage: lazy(
+    () => import('../features/self-protection-systems/SelfProtectionSystemListPage')
+  ),
+  CreateEditSelfProtectionSystemPage: lazy(
+    () => import('../features/self-protection-systems/CreateEditSelfProtectionSystemPage')
+  ),
 
-    // QR Documents
-    QRModuleListPage: lazy(() => import('../features/qr/QRModuleListPage')),
-    UploadQRDocumentPage: lazy(() => import('../features/qr/UploadQRDocumentPage')),
-    EditQRDocumentPage: lazy(() => import('../features/qr/EditQRDocumentPage')),
+  // QR Documents
+  QRModuleListPage: lazy(() => import('../features/qr/QRModuleListPage')),
+  UploadQRDocumentPage: lazy(() => import('../features/qr/UploadQRDocumentPage')),
+  EditQRDocumentPage: lazy(() => import('../features/qr/EditQRDocumentPage')),
 
-    // Event Information
-    EventInformationListPage: lazy(() => import('../features/event-information/EventInformationListPage')),
-    CreateEditEventInformationPage: lazy(() => import('../features/event-information/CreateEditEventInformationPage')),
+  // Event Information
+  EventInformationListPage: lazy(
+    () => import('../features/event-information/EventInformationListPage')
+  ),
+  CreateEditEventInformationPage: lazy(
+    () => import('../features/event-information/CreateEditEventInformationPage')
+  ),
 
-    // Fire Extinguishers
-    FireExtinguisherListPage: lazy(() => import('../features/fire-extinguishers/FireExtinguisherListPage')),
-    CreateEditFireExtinguisherPage: lazy(() => import('../features/fire-extinguishers/CreateEditFireExtinguisherPage')),
+  // Fire Extinguishers
+  FireExtinguisherListPage: lazy(
+    () => import('../features/fire-extinguishers/FireExtinguisherListPage')
+  ),
+  CreateEditFireExtinguisherPage: lazy(
+    () => import('../features/fire-extinguishers/CreateEditFireExtinguisherPage')
+  ),
 
-    // Placeholders
-    PlaceholderPage: lazy(() => import('../features/placeholders/PlaceholderPage')),
+  // Placeholders
+  PlaceholderPage: lazy(() => import('../features/placeholders/PlaceholderPage')),
 
-    // Admin
-    AdminDashboardPage: lazy(() => import('../features/admin/AdminDashboardPage')),
-    AdminSchoolsPage: lazy(() => import('../features/admin/AdminSchoolsPage')),
-    AdminSchoolDetailPage: lazy(() => import('../features/admin/AdminSchoolDetailPage')),
-    AdminPaymentsPage: lazy(() => import('../features/admin/AdminPaymentsPage')),
-    AdminActivityPage: lazy(() => import('../features/admin/AdminActivityPage')),
-    AdminMetricsPage: lazy(() => import('../features/admin/AdminMetricsPage')),
-    AdminPlansPage: lazy(() => import('../features/admin/AdminPlansPage')),
+  // Admin
+  AdminDashboardPage: lazy(() => import('../features/admin/AdminDashboardPage')),
+  AdminSchoolsPage: lazy(() => import('../features/admin/AdminSchoolsPage')),
+  AdminSchoolDetailPage: lazy(() => import('../features/admin/AdminSchoolDetailPage')),
+  AdminPaymentsPage: lazy(() => import('../features/admin/AdminPaymentsPage')),
+  AdminActivityPage: lazy(() => import('../features/admin/AdminActivityPage')),
+  AdminMetricsPage: lazy(() => import('../features/admin/AdminMetricsPage')),
+  AdminPlansPage: lazy(() => import('../features/admin/AdminPlansPage')),
 };
 
 // QR Module route configuration
 export interface QRModuleRouteConfig {
-    type: QRDocumentType;
-    title: string;
-    listPath: string;
-    uploadPath: string;
-    editPath: string;
+  type: QRDocumentType;
+  title: string;
+  listPath: string;
+  uploadPath: string;
+  editPath: string;
 }
 
 export const QR_MODULE_ROUTES: QRModuleRouteConfig[] = [
-    {
-        type: QRDocumentType.Elevators,
-        title: MODULE_TITLES.QR_ELEVATORS,
-        listPath: ROUTE_PATHS.QR_ELEVATORS,
-        uploadPath: ROUTE_PATHS.UPLOAD_QR_ELEVATORS,
-        editPath: ROUTE_PATHS.EDIT_QR_ELEVATORS,
-    },
-    {
-        type: QRDocumentType.WaterHeaters,
-        title: MODULE_TITLES.QR_WATER_HEATERS,
-        listPath: ROUTE_PATHS.QR_WATER_HEATERS,
-        uploadPath: ROUTE_PATHS.UPLOAD_QR_WATER_HEATERS,
-        editPath: ROUTE_PATHS.EDIT_QR_WATER_HEATERS,
-    },
-    {
-        type: QRDocumentType.FireSafetySystem,
-        title: MODULE_TITLES.QR_FIRE_SAFETY,
-        listPath: ROUTE_PATHS.QR_FIRE_SAFETY,
-        uploadPath: ROUTE_PATHS.UPLOAD_QR_FIRE_SAFETY,
-        editPath: ROUTE_PATHS.EDIT_QR_FIRE_SAFETY,
-    },
-    {
-        type: QRDocumentType.DetectionSystem,
-        title: MODULE_TITLES.QR_DETECTION,
-        listPath: ROUTE_PATHS.QR_DETECTION,
-        uploadPath: ROUTE_PATHS.UPLOAD_QR_DETECTION,
-        editPath: ROUTE_PATHS.EDIT_QR_DETECTION,
-    },
-    {
-        type: QRDocumentType.ElectricalInstallations,
-        title: MODULE_TITLES.ELECTRICAL_INSTALLATIONS,
-        listPath: ROUTE_PATHS.ELECTRICAL_INSTALLATIONS,
-        uploadPath: ROUTE_PATHS.UPLOAD_ELECTRICAL_INSTALLATIONS,
-        editPath: ROUTE_PATHS.EDIT_ELECTRICAL_INSTALLATIONS,
-    },
+  {
+    type: QRDocumentType.Elevators,
+    title: MODULE_TITLES.QR_ELEVATORS,
+    listPath: ROUTE_PATHS.QR_ELEVATORS,
+    uploadPath: ROUTE_PATHS.UPLOAD_QR_ELEVATORS,
+    editPath: ROUTE_PATHS.EDIT_QR_ELEVATORS,
+  },
+  {
+    type: QRDocumentType.WaterHeaters,
+    title: MODULE_TITLES.QR_WATER_HEATERS,
+    listPath: ROUTE_PATHS.QR_WATER_HEATERS,
+    uploadPath: ROUTE_PATHS.UPLOAD_QR_WATER_HEATERS,
+    editPath: ROUTE_PATHS.EDIT_QR_WATER_HEATERS,
+  },
+  {
+    type: QRDocumentType.FireSafetySystem,
+    title: MODULE_TITLES.QR_FIRE_SAFETY,
+    listPath: ROUTE_PATHS.QR_FIRE_SAFETY,
+    uploadPath: ROUTE_PATHS.UPLOAD_QR_FIRE_SAFETY,
+    editPath: ROUTE_PATHS.EDIT_QR_FIRE_SAFETY,
+  },
+  {
+    type: QRDocumentType.DetectionSystem,
+    title: MODULE_TITLES.QR_DETECTION,
+    listPath: ROUTE_PATHS.QR_DETECTION,
+    uploadPath: ROUTE_PATHS.UPLOAD_QR_DETECTION,
+    editPath: ROUTE_PATHS.EDIT_QR_DETECTION,
+  },
+  {
+    type: QRDocumentType.ElectricalInstallations,
+    title: MODULE_TITLES.ELECTRICAL_INSTALLATIONS,
+    listPath: ROUTE_PATHS.ELECTRICAL_INSTALLATIONS,
+    uploadPath: ROUTE_PATHS.UPLOAD_ELECTRICAL_INSTALLATIONS,
+    editPath: ROUTE_PATHS.EDIT_ELECTRICAL_INSTALLATIONS,
+  },
 ];
 
 // Placeholder module configuration
 export interface PlaceholderRouteConfig {
-    path: string;
-    title: string;
+  path: string;
+  title: string;
 }
 
 export const PLACEHOLDER_ROUTES: PlaceholderRouteConfig[] = [
-    { path: ROUTE_PATHS.WATER_TANKS, title: MODULE_TITLES.WATER_TANKS },
-    { path: ROUTE_PATHS.PLANT_SPECIES, title: MODULE_TITLES.PLANT_SPECIES },
-    { path: ROUTE_PATHS.SANITIZATION, title: MODULE_TITLES.SANITIZATION },
+  { path: ROUTE_PATHS.WATER_TANKS, title: MODULE_TITLES.WATER_TANKS },
+  { path: ROUTE_PATHS.PLANT_SPECIES, title: MODULE_TITLES.PLANT_SPECIES },
+  { path: ROUTE_PATHS.SANITIZATION, title: MODULE_TITLES.SANITIZATION },
 ];

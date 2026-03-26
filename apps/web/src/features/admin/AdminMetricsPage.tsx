@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 import PageLayout from '@/components/layout/PageLayout';
 import { SkeletonCards } from '@/components/common/SkeletonLoader';
 import * as api from '@/lib/api/services';
-import { createLogger } from '@/lib/utils/logger';
+import { queryKeys } from '@/lib/queryKeys';
 import { formatCurrency } from '@/lib/utils/dateUtils';
 import {
   BarChart,
@@ -17,9 +16,6 @@ import {
   LineChart,
   Line,
 } from 'recharts';
-import type { MonthlyMetric, MetricsSummary } from './types';
-
-const logger = createLogger('AdminMetricsPage');
 
 const tooltipStyle = {
   backgroundColor: 'hsl(var(--background))',
@@ -29,30 +25,15 @@ const tooltipStyle = {
 };
 
 const AdminMetricsPage = () => {
-  const [summary, setSummary] = useState<MetricsSummary | null>(null);
-  const [monthlyData, setMonthlyData] = useState<MonthlyMetric[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const [summaryData, monthly] = await Promise.all([
-        api.getMetricsSummary(),
-        api.getMonthlyMetrics(),
-      ]);
-      setSummary(summaryData);
-      setMonthlyData(monthly);
-    } catch (err) {
-      logger.error('Error fetching metrics', err);
-      toast.error('Error al cargar las metricas');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const { data: summary = null, isLoading: loadingSummary } = useQuery({
+    queryKey: queryKeys.adminMetricsSummary(),
+    queryFn: api.getMetricsSummary,
+  });
+  const { data: monthlyData = [], isLoading: loadingMonthly } = useQuery({
+    queryKey: queryKeys.adminMonthlyMetrics(),
+    queryFn: api.getMonthlyMetrics,
+  });
+  const isLoading = loadingSummary || loadingMonthly;
 
   if (isLoading) {
     return (
@@ -75,7 +56,7 @@ const AdminMetricsPage = () => {
     { label: 'Tasa de retencion', value: `${summary?.retentionRate ?? 0}%` },
     {
       label: 'Ingresos del mes',
-      value: formatCurrency((summary?.monthlyRevenue ?? 0) / 100),
+      value: formatCurrency(summary?.monthlyRevenue ?? 0),
     },
   ];
 
@@ -152,12 +133,12 @@ const AdminMetricsPage = () => {
                 <YAxis
                   className="text-xs"
                   tick={{ fontSize: 12 }}
-                  tickFormatter={(value: number) => formatCurrency(value / 100)}
+                  tickFormatter={(value: number) => formatCurrency(value)}
                 />
                 <Tooltip
                   contentStyle={tooltipStyle}
                   formatter={(value: number | undefined) => [
-                    formatCurrency((value ?? 0) / 100),
+                    formatCurrency(value ?? 0),
                     'Ingresos',
                   ]}
                 />

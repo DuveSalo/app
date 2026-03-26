@@ -4,7 +4,7 @@ export type StatCardVariant = 'total' | 'valid' | 'expiring' | 'expired';
 
 interface StatCardProps {
     label: string;
-    value: number;
+    value: number | string;
     icon: ReactNode;
     changeText: string;
     variant: StatCardVariant;

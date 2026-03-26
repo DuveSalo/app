@@ -1,4 +1,3 @@
-
 import { supabase } from '../../supabase/client';
 import { User } from '../../../types/index';
 import { AuthError, ValidationError, handleSupabaseError } from '../../utils/errors';
@@ -6,16 +5,16 @@ import { AuthError, ValidationError, handleSupabaseError } from '../../utils/err
 // Password validation
 const validatePassword = (password: string): { valid: boolean; error?: string } => {
   if (password.length < 8) {
-    return { valid: false, error: "La contraseña debe tener al menos 8 caracteres" };
+    return { valid: false, error: 'La contraseña debe tener al menos 8 caracteres' };
   }
   if (!/[A-Z]/.test(password)) {
-    return { valid: false, error: "La contraseña debe contener al menos una mayúscula" };
+    return { valid: false, error: 'La contraseña debe contener al menos una mayúscula' };
   }
   if (!/[a-z]/.test(password)) {
-    return { valid: false, error: "La contraseña debe contener al menos una minúscula" };
+    return { valid: false, error: 'La contraseña debe contener al menos una minúscula' };
   }
   if (!/[0-9]/.test(password)) {
-    return { valid: false, error: "La contraseña debe contener al menos un número" };
+    return { valid: false, error: 'La contraseña debe contener al menos un número' };
   }
   return { valid: true };
 };
@@ -27,11 +26,14 @@ export const login = async (email: string, password: string): Promise<User> => {
   });
 
   if (error) {
-    throw new AuthError("Credenciales inválidas. Por favor verifica tu email o regístrate.", 'INVALID_CREDENTIALS');
+    throw new AuthError(
+      'Credenciales inválidas. Por favor verifica tu email o regístrate.',
+      'INVALID_CREDENTIALS'
+    );
   }
 
   if (!data.user) {
-    throw new AuthError("Error al iniciar sesión.", 'LOGIN_ERROR');
+    throw new AuthError('Error al iniciar sesión.', 'LOGIN_ERROR');
   }
 
   return {
@@ -46,7 +48,11 @@ export type RegisterResult =
   | { status: 'ok'; user: User }
   | { status: 'confirmation_sent'; email: string };
 
-export const register = async (name: string, email: string, password: string): Promise<RegisterResult> => {
+export const register = async (
+  name: string,
+  email: string,
+  password: string
+): Promise<RegisterResult> => {
   // Validate password
   const validation = validatePassword(password);
   if (!validation.valid) {
@@ -65,11 +71,11 @@ export const register = async (name: string, email: string, password: string): P
   });
 
   if (error) {
-    throw new AuthError(error.message || "Error al registrar usuario.", 'REGISTRATION_ERROR');
+    throw new AuthError(error.message || 'Error al registrar usuario.', 'REGISTRATION_ERROR');
   }
 
   if (!data.user) {
-    throw new AuthError("Error al crear usuario.", 'USER_CREATION_ERROR');
+    throw new AuthError('Error al crear usuario.', 'USER_CREATION_ERROR');
   }
 
   // If no session, email confirmation link was sent
@@ -87,6 +93,28 @@ export const register = async (name: string, email: string, password: string): P
   };
 };
 
+export const verifyEmailOtp = async (email: string, token: string): Promise<User> => {
+  const { data, error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'signup',
+  });
+
+  if (error) {
+    throw new AuthError(error.message || 'Código inválido o expirado.', 'OTP_ERROR');
+  }
+
+  if (!data.user) {
+    throw new AuthError('Error al verificar el código.', 'OTP_ERROR');
+  }
+
+  return {
+    id: data.user.id,
+    name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'Usuario',
+    email: data.user.email || email,
+  };
+};
+
 export const resendConfirmationEmail = async (email: string): Promise<void> => {
   const { error } = await supabase.auth.resend({
     type: 'signup',
@@ -97,7 +125,10 @@ export const resendConfirmationEmail = async (email: string): Promise<void> => {
   });
 
   if (error) {
-    throw new AuthError(error.message || 'Error al reenviar el email de confirmación.', 'RESEND_ERROR');
+    throw new AuthError(
+      error.message || 'Error al reenviar el email de confirmación.',
+      'RESEND_ERROR'
+    );
   }
 };
 
@@ -109,7 +140,9 @@ export const logout = async (): Promise<void> => {
 };
 
 export const getCurrentUser = async (): Promise<User | null> => {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return null;
@@ -125,7 +158,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
 
 export const updateUser = async (userData: Partial<User>): Promise<User> => {
   const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError("Usuario no autenticado");
+  if (!currentUser) throw new AuthError('Usuario no autenticado');
 
   const { data, error } = await supabase.auth.updateUser({
     data: {
@@ -140,10 +173,10 @@ export const updateUser = async (userData: Partial<User>): Promise<User> => {
   // Also update in company employees if exists
   if (userData.name) {
     const { data: company } = await supabase
-        .from('companies')
-        .select('id')
-        .eq('user_id', currentUser.id)
-        .single();
+      .from('companies')
+      .select('id')
+      .eq('user_id', currentUser.id)
+      .single();
 
     if (company) {
       const { data: employees } = await supabase
@@ -153,10 +186,7 @@ export const updateUser = async (userData: Partial<User>): Promise<User> => {
         .eq('email', currentUser.email);
 
       if (employees && employees.length > 0) {
-        await supabase
-          .from('employees')
-          .update({ name: userData.name })
-          .eq('id', employees[0].id);
+        await supabase.from('employees').update({ name: userData.name }).eq('id', employees[0].id);
       }
     }
   }
@@ -179,9 +209,14 @@ export const changePassword = async (newPassword: string): Promise<void> => {
   }
 };
 
-export const verifyCurrentPassword = async (email: string, password: string): Promise<boolean> => {
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  return !error;
+export const changeEmail = async (newEmail: string): Promise<void> => {
+  const { error } = await supabase.auth.updateUser(
+    { email: newEmail },
+    { emailRedirectTo: `${window.location.origin}/app/auth/callback` }
+  );
+  if (error) {
+    handleSupabaseError(error);
+  }
 };
 
 export const sendPasswordResetEmail = async (email: string): Promise<void> => {
@@ -191,6 +226,64 @@ export const sendPasswordResetEmail = async (email: string): Promise<void> => {
 
   if (error) {
     handleSupabaseError(error);
+  }
+};
+
+const getFunctionErrorMessage = async (
+  response: Response | undefined,
+  fallbackMessage: string
+): Promise<string> => {
+  if (!response) {
+    return fallbackMessage;
+  }
+
+  const contentType = response.headers.get('Content-Type') || '';
+  if (contentType.includes('application/json')) {
+    try {
+      const body = (await response.clone().json()) as unknown;
+      if (body && typeof body === 'object') {
+        if ('error' in body && typeof body.error === 'string') {
+          return body.error;
+        }
+        if ('message' in body && typeof body.message === 'string') {
+          return body.message;
+        }
+      }
+    } catch {
+      // Fall back to plain-text parsing below when the response body is malformed.
+    }
+  }
+
+  try {
+    const text = await response.text();
+    return text || fallbackMessage;
+  } catch {
+    return fallbackMessage;
+  }
+};
+
+export const deleteAccount = async (): Promise<void> => {
+  const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+
+  if (refreshError) {
+    throw new Error(refreshError.message || 'No se pudo refrescar la sesión');
+  }
+
+  const session = refreshData.session;
+  if (!session) {
+    throw new Error('No hay sesión activa');
+  }
+
+  const { error, response } = await supabase.functions.invoke('delete-account', {
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
+  if (error) {
+    const fallbackMessage = error.message || 'Error al eliminar la cuenta';
+    const message = await getFunctionErrorMessage(
+      response as Response | undefined,
+      fallbackMessage
+    );
+    throw new Error(message);
   }
 };
 
@@ -207,6 +300,9 @@ export const signInWithGoogle = async (): Promise<void> => {
   });
 
   if (error) {
-    throw new AuthError(error.message || "Error al iniciar sesión con Google.", 'GOOGLE_AUTH_ERROR');
+    throw new AuthError(
+      error.message || 'Error al iniciar sesión con Google.',
+      'GOOGLE_AUTH_ERROR'
+    );
   }
 };

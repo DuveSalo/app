@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
+import { ArrowUpDown, MoreHorizontal, FileText, Power, Trash2 } from 'lucide-react';
 import { type ColumnDef } from '@tanstack/react-table';
 import { toast } from 'sonner';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -27,6 +28,7 @@ import { SkeletonTable } from '@/components/common/SkeletonLoader';
 import { SubscriptionStatusBadge } from './components/SubscriptionStatusBadge';
 import { formatDateLocal } from '@/lib/utils/dateUtils';
 import * as api from '@/lib/api/services';
+import { queryKeys } from '@/lib/queryKeys';
 import { createLogger } from '@/lib/utils/logger';
 import type { AdminSchoolRow } from './types';
 
@@ -34,29 +36,16 @@ const logger = createLogger('AdminSchoolsPage');
 
 const AdminSchoolsPage = () => {
   const navigate = useNavigate();
-  const [schools, setSchools] = useState<AdminSchoolRow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; school: AdminSchoolRow | null }>({
     open: false,
     school: null,
   });
 
-  const fetchSchools = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await api.getAllSchools();
-      setSchools(data);
-    } catch (err) {
-      logger.error('Error fetching schools', err);
-      toast.error('Error al cargar las escuelas');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchSchools();
-  }, [fetchSchools]);
+  const { data: schools = [], isLoading } = useQuery({
+    queryKey: queryKeys.adminSchools(),
+    queryFn: api.getAllSchools,
+  });
 
   const handleToggleStatus = async (school: AdminSchoolRow) => {
     const isSuspended = school.subscriptionStatus === 'suspended';
@@ -68,7 +57,7 @@ const AdminSchoolsPage = () => {
         await api.suspendSchool(school.id);
         toast.success(`"${school.name}" suspendida`);
       }
-      await fetchSchools();
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminSchools() });
     } catch (err) {
       logger.error('Error toggling school status', err);
       toast.error(isSuspended ? 'Error al activar la escuela' : 'Error al suspender la escuela');
@@ -82,7 +71,7 @@ const AdminSchoolsPage = () => {
     try {
       await api.deleteSchool(school.id);
       toast.success(`"${school.name}" eliminada`);
-      await fetchSchools();
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminSchools() });
     } catch (err) {
       logger.error('Error deleting school', err);
       toast.error('Error al eliminar la escuela');
@@ -152,9 +141,11 @@ const AdminSchoolsPage = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => navigate(`/admin/schools/${school.id}`)}>
+                  <FileText className="mr-2 h-4 w-4" />
                   Ver detalle
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleToggleStatus(school)}>
+                  <Power className="mr-2 h-4 w-4" />
                   {isSuspended ? 'Activar' : 'Suspender'}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -162,6 +153,7 @@ const AdminSchoolsPage = () => {
                   variant="destructive"
                   onClick={() => setDeleteDialog({ open: true, school })}
                 >
+                  <Trash2 className="mr-2 h-4 w-4" />
                   Eliminar
                 </DropdownMenuItem>
               </DropdownMenuContent>

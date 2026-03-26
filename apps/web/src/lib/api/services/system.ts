@@ -103,8 +103,8 @@ export const getSelfProtectionSystemById = async (id: string): Promise<SelfProte
 export const createSelfProtectionSystem = async (systemData: Omit<SelfProtectionSystem, 'id' | 'companyId'>): Promise<SelfProtectionSystem> => {
   const companyId = await getAuthenticatedCompanyId();
 
-  // Upload all PDF files in parallel
-  const uploadProbatory = async (): Promise<string | null> => {
+  // Upload all PDF files in parallel — return both path and signed URL
+  const uploadProbatory = async (): Promise<{ path: string; url: string } | null> => {
     if (!(systemData.probatoryDispositionPdf instanceof File)) return null;
     const originalName = systemData.probatoryDispositionPdfName || systemData.probatoryDispositionPdf.name;
     const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -119,10 +119,10 @@ export const createSelfProtectionSystem = async (systemData: Omit<SelfProtection
     if (!uploadData) return null;
     const { data: urlData, error: urlError } = await supabase.storage.from('self-protection-systems').createSignedUrl(uploadData.path, 3600);
     if (urlError) throw urlError;
-    return urlData.signedUrl;
+    return { path: uploadData.path, url: urlData.signedUrl };
   };
 
-  const uploadExtension = async (): Promise<string | null> => {
+  const uploadExtension = async (): Promise<{ path: string; url: string } | null> => {
     if (!(systemData.extensionPdf instanceof File)) return null;
     const originalName = systemData.extensionPdfName || systemData.extensionPdf.name;
     const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -137,11 +137,12 @@ export const createSelfProtectionSystem = async (systemData: Omit<SelfProtection
     if (!uploadData) return null;
     const { data: urlData, error: urlError } = await supabase.storage.from('self-protection-systems').createSignedUrl(uploadData.path, 3600);
     if (urlError) throw urlError;
-    return urlData.signedUrl;
+    return { path: uploadData.path, url: urlData.signedUrl };
   };
 
   const uploadDrills = (systemData.drills || []).map(async (drill, index) => {
     let drillPdfUrl: string | null = null;
+    let drillPdfPath: string | null = null;
     if (drill.pdfFile instanceof File) {
       const originalName = drill.pdfFileName || drill.pdfFile.name;
       const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -154,15 +155,16 @@ export const createSelfProtectionSystem = async (systemData: Omit<SelfProtection
         });
       if (uploadError) handleSupabaseError(uploadError, 'Error al subir el PDF del simulacro');
       if (uploadData) {
+        drillPdfPath = uploadData.path;
         const { data: urlData, error: urlError } = await supabase.storage.from('self-protection-systems').createSignedUrl(uploadData.path, 3600);
         if (urlError) throw urlError;
         drillPdfUrl = urlData.signedUrl;
       }
     }
-    return { date: drill.date, pdfFileName: drill.pdfFileName || null, pdfUrl: drillPdfUrl };
+    return { date: drill.date, pdfFileName: drill.pdfFileName || null, pdfUrl: drillPdfUrl, pdfPath: drillPdfPath };
   });
 
-  const [probatoryPdfUrl, extensionPdfUrl, ...drillsWithUrls] = await Promise.all([
+  const [probatoryResult, extensionResult, ...drillsWithUrls] = await Promise.all([
     uploadProbatory(),
     uploadExtension(),
     ...uploadDrills,
@@ -175,10 +177,12 @@ export const createSelfProtectionSystem = async (systemData: Omit<SelfProtection
       company_id: companyId,
       probatory_disposition_date: systemData.probatoryDispositionDate || null,
       probatory_disposition_pdf_name: systemData.probatoryDispositionPdfName || null,
-      probatory_disposition_pdf_url: probatoryPdfUrl,
+      probatory_disposition_pdf_url: probatoryResult?.url || null,
+      probatory_disposition_pdf_path: probatoryResult?.path || null,
       extension_date: systemData.extensionDate,
       extension_pdf_name: systemData.extensionPdfName || null,
-      extension_pdf_url: extensionPdfUrl,
+      extension_pdf_url: extensionResult?.url || null,
+      extension_pdf_path: extensionResult?.path || null,
       expiration_date: systemData.expirationDate,
       drills: drillsWithUrls,
       intervener: systemData.intervener,
@@ -197,8 +201,8 @@ export const createSelfProtectionSystem = async (systemData: Omit<SelfProtection
 export const updateSelfProtectionSystem = async (systemData: SelfProtectionSystem): Promise<SelfProtectionSystem> => {
   const companyId = await getAuthenticatedCompanyId();
 
-  // Upload all PDF files in parallel
-  const uploadProbatory = async (): Promise<string | null> => {
+  // Upload all PDF files in parallel — return both path and signed URL
+  const uploadProbatory = async (): Promise<{ path: string; url: string } | null> => {
     if (!(systemData.probatoryDispositionPdf instanceof File)) return null;
     const originalName = systemData.probatoryDispositionPdfName || systemData.probatoryDispositionPdf.name;
     const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -213,10 +217,10 @@ export const updateSelfProtectionSystem = async (systemData: SelfProtectionSyste
     if (!uploadData) return null;
     const { data: urlData, error: urlError } = await supabase.storage.from('self-protection-systems').createSignedUrl(uploadData.path, 3600);
     if (urlError) throw urlError;
-    return urlData.signedUrl;
+    return { path: uploadData.path, url: urlData.signedUrl };
   };
 
-  const uploadExtension = async (): Promise<string | null> => {
+  const uploadExtension = async (): Promise<{ path: string; url: string } | null> => {
     if (!(systemData.extensionPdf instanceof File)) return null;
     const originalName = systemData.extensionPdfName || systemData.extensionPdf.name;
     const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -231,11 +235,12 @@ export const updateSelfProtectionSystem = async (systemData: SelfProtectionSyste
     if (!uploadData) return null;
     const { data: urlData, error: urlError } = await supabase.storage.from('self-protection-systems').createSignedUrl(uploadData.path, 3600);
     if (urlError) throw urlError;
-    return urlData.signedUrl;
+    return { path: uploadData.path, url: urlData.signedUrl };
   };
 
   const uploadDrills = (systemData.drills || []).map(async (drill, index) => {
     let drillPdfUrl: string | null = drill.pdfUrl || null;
+    let drillPdfPath: string | null = (drill as { pdfPath?: string }).pdfPath || null;
     if (drill.pdfFile instanceof File) {
       const originalName = drill.pdfFileName || drill.pdfFile.name;
       const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -248,15 +253,16 @@ export const updateSelfProtectionSystem = async (systemData: SelfProtectionSyste
         });
       if (uploadError) handleSupabaseError(uploadError, 'Error al subir el PDF del simulacro');
       if (uploadData) {
+        drillPdfPath = uploadData.path;
         const { data: urlData, error: urlError } = await supabase.storage.from('self-protection-systems').createSignedUrl(uploadData.path, 3600);
         if (urlError) throw urlError;
         drillPdfUrl = urlData.signedUrl;
       }
     }
-    return { date: drill.date, pdfFileName: drill.pdfFileName || null, pdfUrl: drillPdfUrl };
+    return { date: drill.date, pdfFileName: drill.pdfFileName || null, pdfUrl: drillPdfUrl, pdfPath: drillPdfPath };
   });
 
-  const [probatoryPdfUrl, extensionPdfUrl, ...drillsWithUrls] = await Promise.all([
+  const [probatoryResult, extensionResult, ...drillsWithUrls] = await Promise.all([
     uploadProbatory(),
     uploadExtension(),
     ...uploadDrills,
@@ -273,13 +279,15 @@ export const updateSelfProtectionSystem = async (systemData: SelfProtectionSyste
   };
 
   // Only update PDF fields if new files were uploaded
-  if (probatoryPdfUrl) {
-    updateData.probatory_disposition_pdf_url = probatoryPdfUrl;
+  if (probatoryResult) {
+    updateData.probatory_disposition_pdf_url = probatoryResult.url;
+    updateData.probatory_disposition_pdf_path = probatoryResult.path;
     updateData.probatory_disposition_pdf_name = systemData.probatoryDispositionPdfName;
   }
 
-  if (extensionPdfUrl) {
-    updateData.extension_pdf_url = extensionPdfUrl;
+  if (extensionResult) {
+    updateData.extension_pdf_url = extensionResult.url;
+    updateData.extension_pdf_path = extensionResult.path;
     updateData.extension_pdf_name = systemData.extensionPdfName;
   }
 

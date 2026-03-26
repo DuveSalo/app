@@ -339,6 +339,12 @@ Deno.serve(async (req) => {
               .maybeSingle();
 
             if (!existingTx) {
+              // Extract card details from authorized payment response
+              const cardObj = payment.card as Record<string, unknown> | undefined;
+              const cardBrand = (payment.payment_method_id as string) || null;
+              const cardLastFour = (cardObj?.last_four_digits as string) || null;
+              const paymentTypeId = (payment.payment_type_id as string) || null;
+
               await supabaseAdmin.from('payment_transactions').insert({
                 subscription_id: sub.id,
                 company_id: sub.company_id,
@@ -347,6 +353,9 @@ Deno.serve(async (req) => {
                 currency: currencyId || 'ARS',
                 status: paymentStatus === 'approved' ? 'completed' : 'pending',
                 paid_at: dateCreated || new Date().toISOString(),
+                payment_type_id: paymentTypeId,
+                card_brand: cardBrand,
+                card_last_four: cardLastFour,
               });
 
               // Update next_billing_time from preapproval state

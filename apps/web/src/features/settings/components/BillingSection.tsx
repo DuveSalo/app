@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -17,12 +18,23 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from '@/components/ui/dialog';
-import { CheckIcon, ReceiptIcon, XCircleIcon } from '../../../components/common/Icons';
+import {
+  CheckIcon,
+  CreditCardIcon,
+  ReceiptIcon,
+  XCircleIcon,
+} from '../../../components/common/Icons';
+import { Building2, Upload, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { FileUpload } from '@/components/common/FileUpload';
+import * as api from '@/lib/api/services';
+import { supabase } from '@/lib/supabase/client';
 import { CardForm } from '../../auth/components/CardForm';
+import { BankDetailsCard } from '../../auth/components/BankDetailsCard';
+import { ChangeCardForm } from './billing/ChangeCardForm';
 import { usePlans } from '../../../lib/hooks/usePlans';
 import { ChangePlanModal } from './ChangePlanModal';
-import * as api from '../../../lib/api/services';
 import { toast } from 'sonner';
 import { formatDateLocal, formatCurrency } from '../../../lib/utils/dateUtils';
 import type { Subscription, PaymentTransaction } from '../../../types/subscription';
@@ -36,7 +48,13 @@ interface BillingSectionProps {
   onReactivate: () => Promise<void>;
   onSubscriptionChange: () => Promise<void>;
   onChangePlan: (newPlanKey: string) => Promise<void>;
-  onCreateSubscription: (data: { planKey: string; cardTokenId: string; payerEmail: string }) => Promise<void>;
+  onChangeCard: (cardTokenId: string) => Promise<void>;
+  onCreateSubscription: (data: {
+    planKey: string;
+    cardTokenId: string;
+    payerEmail: string;
+  }) => Promise<void>;
+  onBankTransferPayment: (data: { planKey: string; amount: number }) => Promise<void>;
   userEmail?: string;
   trialEndsAt?: string;
   cardBrand?: string | null;
@@ -63,7 +81,10 @@ const CARD_BRANDS: Record<string, string> = {
 
 const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
   active: { label: 'Activa', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  approval_pending: { label: 'Pendiente', className: 'bg-amber-50 text-amber-700 border-amber-200' },
+  approval_pending: {
+    label: 'Pendiente',
+    className: 'bg-amber-50 text-amber-700 border-amber-200',
+  },
   pending: { label: 'Pendiente', className: 'bg-amber-50 text-amber-700 border-amber-200' },
   suspended: { label: 'Suspendida', className: 'bg-amber-50 text-amber-700 border-amber-200' },
   cancelled: { label: 'Cancelada', className: 'bg-red-50 text-red-700 border-red-200' },
@@ -71,7 +92,10 @@ const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
 };
 
 const PAYMENT_STATUS_CONFIG: Record<string, { label: string; className: string }> = {
-  completed: { label: 'Completado', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  completed: {
+    label: 'Completado',
+    className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  },
   pending: { label: 'Pendiente', className: 'bg-amber-50 text-amber-700 border-amber-200' },
   refunded: { label: 'Reembolsado', className: 'bg-info/10 text-info border-info/30' },
   failed: { label: 'Fallido', className: 'bg-red-50 text-red-700 border-red-200' },
@@ -87,9 +111,11 @@ export const BillingSection = ({
   isLoading,
   onCancel,
   onReactivate,
-  onSubscriptionChange,
   onChangePlan,
+  onChangeCard,
   onCreateSubscription,
+  onBankTransferPayment,
+  onSubscriptionChange,
   userEmail,
   trialEndsAt,
   cardBrand,
@@ -103,11 +129,28 @@ export const BillingSection = ({
   const [selectedPlanId, setSelectedPlanId] = useState(plansData[0]?.id || 'basic');
   const [planError, setPlanError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showChangePaymentDialog, setShowChangePaymentDialog] = useState(false);
+  const [showChangeCardForm, setShowChangeCardForm] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'bank_transfer'>('card');
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
-  const needsSubscription = !subscription || subscription.status === 'cancelled' || subscription.status === 'expired';
-  const canChangePlan = subscription?.status === 'active';
-  const statusConfig = subscription ? (STATUS_CONFIG[subscription.status] || STATUS_CONFIG.pending) : null;
+  // Bank transfer multi-step dialog state
+  type BankTransferStep = 'details' | 'upload' | 'status';
+  type BankPaymentStatus = 'pending' | 'approved' | 'rejected';
+  const [bankTransferStep, setBankTransferStep] = useState<BankTransferStep>('details');
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [bankPaymentStatus, setBankPaymentStatus] = useState<BankPaymentStatus | null>(null);
+  const [bankRejectionReason, setBankRejectionReason] = useState<string | null>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
+
+  const isBankTransfer = subscription?.paymentProvider === 'bank_transfer';
+
+  const needsSubscription = !subscription || subscription.status === 'cancelled';
+  const canChangePlan = subscription?.status === 'active' && !isBankTransfer;
+  const statusConfig = subscription
+    ? STATUS_CONFIG[subscription.status] || STATUS_CONFIG.pending
+    : null;
 
   // Auto-show plan selection when no active subscription
   if (needsSubscription && !showPlanSelection) {
@@ -133,6 +176,124 @@ export const BillingSection = ({
     }
   };
 
+  const selectedPlan = plansData.find((p) => p.id === selectedPlanId);
+
+  const handleOpenPaymentDialog = () => {
+    setPlanError('');
+    setShowPaymentDialog(true);
+  };
+
+  const handleClosePaymentDialog = (open: boolean) => {
+    if (!open && isProcessing) return;
+    setShowPaymentDialog(open);
+    if (!open) {
+      setBankTransferStep('details');
+      setUploadFile(null);
+      setBankPaymentStatus(null);
+      setBankRejectionReason(null);
+    }
+  };
+
+  const handleBankTransferConfirm = async () => {
+    if (!selectedPlan?.priceNumber) return;
+    setIsProcessing(true);
+    try {
+      await onBankTransferPayment({ planKey: selectedPlanId, amount: selectedPlan.priceNumber });
+      setBankTransferStep('upload');
+    } catch {
+      // Error already toasted by hook
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleUploadSubmit = async () => {
+    if (!uploadFile) return;
+    setIsProcessing(true);
+    try {
+      const payment = await api.getLatestManualPayment(companyId);
+      if (!payment) {
+        toast.error('No se encontró un pago pendiente.');
+        return;
+      }
+      await api.uploadReceipt({ companyId, paymentId: payment.id, file: uploadFile });
+      toast.success('Comprobante enviado correctamente');
+      setBankPaymentStatus('pending');
+      setBankTransferStep('status');
+    } catch {
+      toast.error('Error al enviar el comprobante.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Realtime subscription + fallback poll for payment status
+  useEffect(() => {
+    if (bankTransferStep !== 'status' || !companyId) return;
+
+    const poll = async () => {
+      try {
+        const payment = await api.getLatestManualPayment(companyId);
+        if (!payment) return;
+        setBankPaymentStatus(payment.status as BankPaymentStatus);
+        setBankRejectionReason(payment.rejectionReason ?? null);
+      } catch {
+        // Silently ignore poll errors
+      }
+    };
+
+    poll(); // Initial fetch
+
+    // Realtime subscription
+    channelRef.current = supabase
+      .channel(`billing-bank-transfer:${companyId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'manual_payments',
+          filter: `company_id=eq.${companyId}`,
+        },
+        () => {
+          poll();
+        }
+      )
+      .subscribe();
+
+    // Fallback poll every 60s
+    pollIntervalRef.current = setInterval(poll, 60_000);
+
+    return () => {
+      if (channelRef.current) supabase.removeChannel(channelRef.current);
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    };
+  }, [bankTransferStep, companyId]);
+
+  // Stop polling on terminal status; auto-close on approval
+  useEffect(() => {
+    if (bankPaymentStatus === 'approved' || bankPaymentStatus === 'rejected') {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    }
+    if (bankPaymentStatus === 'approved') {
+      autoCloseRef.current = setTimeout(async () => {
+        setShowPaymentDialog(false);
+        setBankTransferStep('details');
+        await onSubscriptionChange();
+      }, 3000);
+      return () => {
+        if (autoCloseRef.current) clearTimeout(autoCloseRef.current);
+      };
+    }
+  }, [bankPaymentStatus]);
+
   // Plan selector (for new subscriptions only)
   const renderPlanSelector = () => (
     <>
@@ -141,7 +302,10 @@ export const BillingSection = ({
         {plansData.map((plan) => (
           <div
             key={plan.id}
-            onClick={() => { setSelectedPlanId(plan.id); setPlanError(''); }}
+            onClick={() => {
+              setSelectedPlanId(plan.id);
+              setPlanError('');
+            }}
             className={`flex items-center gap-3 p-3 rounded-md border cursor-pointer transition-all ${
               selectedPlanId === plan.id
                 ? 'border-primary ring-1 ring-primary bg-background'
@@ -149,9 +313,11 @@ export const BillingSection = ({
             }`}
           >
             {/* Radio */}
-            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-              selectedPlanId === plan.id ? 'border-primary bg-primary' : 'border-border'
-            }`}>
+            <div
+              className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                selectedPlanId === plan.id ? 'border-primary bg-primary' : 'border-border'
+              }`}
+            >
               {selectedPlanId === plan.id && (
                 <div className="w-1.5 h-1.5 rounded-full bg-background" />
               )}
@@ -186,44 +352,43 @@ export const BillingSection = ({
         ))}
       </div>
 
-      {/* Payment Form */}
-      <div className="relative">
-        {isProcessing && (
-          <div className="absolute inset-0 bg-background/90 flex items-center justify-center z-10">
-            <div className="text-center">
-              <div className="w-6 h-6 border-2 border-border border-t-neutral-900 rounded-full animate-spin mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Procesando suscripcion...</p>
+      {/* Payment method picker */}
+      <div className="space-y-3">
+        <p className="text-xs text-muted-foreground">Método de pago</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div
+            onClick={() => setPaymentMethod('card')}
+            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+              paymentMethod === 'card'
+                ? 'border-primary ring-1 ring-primary bg-background'
+                : 'border-border hover:border-border bg-background'
+            }`}
+          >
+            <CreditCardIcon className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-foreground">Tarjeta</p>
+              <p className="text-xs text-muted-foreground">Crédito o débito</p>
             </div>
           </div>
-        )}
+          <div
+            onClick={() => setPaymentMethod('bank_transfer')}
+            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+              paymentMethod === 'bank_transfer'
+                ? 'border-primary ring-1 ring-primary bg-background'
+                : 'border-border hover:border-border bg-background'
+            }`}
+          >
+            <Building2 className="w-5 h-5 text-muted-foreground flex-shrink-0" strokeWidth={1.5} />
+            <div>
+              <p className="text-sm font-medium text-foreground">Transferencia</p>
+              <p className="text-xs text-muted-foreground">Bancaria</p>
+            </div>
+          </div>
+        </div>
 
-        {needsSubscription && (
-          <CardForm
-            key={selectedPlanId}
-            amount={plansData.find((p) => p.id === selectedPlanId)?.priceNumber || 0}
-            onTokenReady={async (data) => {
-              setPlanError('');
-              setIsProcessing(true);
-              try {
-                await onCreateSubscription({
-                  planKey: selectedPlanId,
-                  cardTokenId: data.token,
-                  payerEmail: data.email || userEmail || '',
-                });
-                setShowPlanSelection(false);
-              } catch (err) {
-                console.error('[MP] BillingSection: Create subscription error:', err);
-                const msg = 'Error al crear la suscripción. Intente nuevamente.';
-                setPlanError(msg);
-                toast.error(msg);
-              } finally {
-                setIsProcessing(false);
-              }
-            }}
-            onError={(msg) => setPlanError(msg)}
-            isProcessing={isProcessing}
-          />
-        )}
+        <Button onClick={handleOpenPaymentDialog} className="w-full">
+          Continuar
+        </Button>
       </div>
 
       {planError && <p className="text-sm text-destructive text-center mt-3">{planError}</p>}
@@ -232,7 +397,6 @@ export const BillingSection = ({
 
   return (
     <div className="space-y-5">
-
       {/* Trial info card */}
       {!subscription && trialEndsAt && (
         <div className="pb-5">
@@ -246,10 +410,12 @@ export const BillingSection = ({
             Tu prueba gratuita finaliza el{' '}
             <span className="font-medium">
               {new Date(trialEndsAt).toLocaleDateString('es-AR', {
-                day: '2-digit', month: '2-digit', year: 'numeric',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
               })}
-            </span>.
-            Suscribite a un plan antes de esa fecha para mantener el acceso.
+            </span>
+            . Suscribite a un plan antes de esa fecha para mantener el acceso.
           </p>
         </div>
       )}
@@ -260,17 +426,15 @@ export const BillingSection = ({
           <div className="flex items-center gap-2">
             <h3 className="text-base font-medium text-foreground">Plan</h3>
             {statusConfig && (
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium border ${statusConfig.className}`}>
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium border ${statusConfig.className}`}
+              >
                 {statusConfig.label}
               </span>
             )}
           </div>
           {canChangePlan && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowChangePlanModal(true)}
-            >
+            <Button type="button" variant="outline" onClick={() => setShowChangePlanModal(true)}>
               Cambiar plan
             </Button>
           )}
@@ -291,10 +455,19 @@ export const BillingSection = ({
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Proximo cobro</p>
-                <p className="text-sm font-medium text-foreground">
-                  {formatDate(subscription.nextBillingTime)}
-                </p>
+                {isBankTransfer ? (
+                  <>
+                    <p className="text-xs text-muted-foreground mb-1">Método de pago</p>
+                    <p className="text-sm font-medium text-foreground">Transferencia bancaria</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-muted-foreground mb-1">Proximo cobro</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {formatDate(subscription.nextBillingTime)}
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 
@@ -311,7 +484,9 @@ export const BillingSection = ({
         {/* Plan selector (new subscription only) */}
         {showPlanSelection && needsSubscription && (
           <div>
-            <p className="text-xs text-muted-foreground mb-3">Selecciona un plan para suscribirte</p>
+            <p className="text-xs text-muted-foreground mb-3">
+              Selecciona un plan para suscribirte
+            </p>
             {renderPlanSelector()}
           </div>
         )}
@@ -322,18 +497,14 @@ export const BillingSection = ({
         )}
       </div>
 
-      {/* SECTION 2: Payment method */}
-      {subscription && !needsSubscription && (
+      {/* SECTION 2: Payment method (MercadoPago only) */}
+      {subscription && !needsSubscription && !isBankTransfer && (
         <div className="border-t border-border pt-5 mt-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-medium text-foreground">Método de pago</h3>
-            {canChangePlan && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowChangePaymentDialog(true)}
-              >
-                Cambiar
+            {canChangePlan && subscription.mpPreapprovalId && (
+              <Button type="button" variant="outline" onClick={() => setShowChangeCardForm(true)}>
+                Cambiar tarjeta
               </Button>
             )}
           </div>
@@ -349,7 +520,13 @@ export const BillingSection = ({
             </div>
             <div>
               <p className="text-sm font-medium text-foreground">
-                {cardBrand ? (CARD_BRANDS[cardBrand] || cardBrand) : 'Tarjeta de crédito/débito'}
+                {cardBrand ? CARD_BRANDS[cardBrand] || cardBrand : 'Tarjeta de crédito/débito'}
+                {cardLastFour && (
+                  <span className="text-muted-foreground font-normal">
+                    {' '}
+                    terminada en {cardLastFour}
+                  </span>
+                )}
               </p>
               <p className="text-xs text-muted-foreground">MercadoPago</p>
             </div>
@@ -357,29 +534,27 @@ export const BillingSection = ({
         </div>
       )}
 
-      {/* Change payment method Dialog */}
-      <Dialog open={showChangePaymentDialog} onOpenChange={setShowChangePaymentDialog}>
+      {/* Change card dialog */}
+      <Dialog
+        open={showChangeCardForm}
+        onOpenChange={(open) => {
+          if (!open) setShowChangeCardForm(false);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cambiar método de pago</DialogTitle>
+            <DialogTitle>Cambiar tarjeta</DialogTitle>
             <DialogDescription>
-              Serás redirigido a MercadoPago para actualizar tu método de pago.
+              Ingresá los datos de tu nueva tarjeta de crédito o débito.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => setShowChangePaymentDialog(false)}>
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                window.open('https://www.mercadopago.com.ar/subscriptions', '_blank');
-                setShowChangePaymentDialog(false);
-              }}
-            >
-              Ir a MercadoPago
-            </Button>
-          </DialogFooter>
+          <ChangeCardForm
+            onTokenReady={async (cardTokenId) => {
+              await onChangeCard(cardTokenId);
+              setShowChangeCardForm(false);
+            }}
+            onCancel={() => setShowChangeCardForm(false)}
+          />
         </DialogContent>
       </Dialog>
 
@@ -392,7 +567,8 @@ export const BillingSection = ({
           </div>
           <div className="space-y-3">
             {payments.map((payment) => {
-              const paymentStatus = PAYMENT_STATUS_CONFIG[payment.status] || PAYMENT_STATUS_CONFIG.pending;
+              const paymentStatus =
+                PAYMENT_STATUS_CONFIG[payment.status] || PAYMENT_STATUS_CONFIG.pending;
               return (
                 <div
                   key={payment.id}
@@ -402,11 +578,11 @@ export const BillingSection = ({
                     <p className="text-sm text-foreground">
                       {formatCurrency(payment.grossAmount, payment.currency)}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(payment.paidAt)}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{formatDate(payment.paidAt)}</p>
                   </div>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium border ${paymentStatus.className}`}>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium border ${paymentStatus.className}`}
+                  >
                     {paymentStatus.label}
                   </span>
                 </div>
@@ -416,8 +592,8 @@ export const BillingSection = ({
         </div>
       )}
 
-      {/* SECTION 4: Cancel plan */}
-      {subscription && !needsSubscription && (
+      {/* SECTION 4: Cancel plan (MercadoPago only) */}
+      {subscription && !needsSubscription && !isBankTransfer && (
         <div className="border-t border-border pt-5 mt-5">
           <div className="flex items-center gap-2 mb-4">
             <XCircleIcon className="w-4 h-4 text-destructive" />
@@ -428,9 +604,8 @@ export const BillingSection = ({
             <>
               <p className="text-sm text-muted-foreground mb-4">
                 Al cancelar, mantendras acceso hasta el final del periodo de facturacion actual
-                {subscription.nextBillingTime && (
-                  <> ({formatDate(subscription.nextBillingTime)})</>
-                )}. Despues de eso, perderas acceso a las funcionalidades del plan.
+                {subscription.nextBillingTime && <> ({formatDate(subscription.nextBillingTime)})</>}
+                . Despues de eso, perderas acceso a las funcionalidades del plan.
               </p>
               <Button
                 type="button"
@@ -471,15 +646,17 @@ export const BillingSection = ({
       )}
 
       {/* Cancel subscription AlertDialog */}
-      <AlertDialog open={showCancelConfirm} onOpenChange={(open) => !open && setShowCancelConfirm(false)}>
+      <AlertDialog
+        open={showCancelConfirm}
+        onOpenChange={(open) => !open && setShowCancelConfirm(false)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Cancelar suscripción?</AlertDialogTitle>
             <AlertDialogDescription>
               Al cancelar, mantendrás acceso hasta el final del periodo de facturación actual
-              {subscription?.nextBillingTime && (
-                <> ({formatDate(subscription.nextBillingTime)})</>
-              )}. Después de eso, perderás acceso a las funcionalidades del plan.
+              {subscription?.nextBillingTime && <> ({formatDate(subscription.nextBillingTime)})</>}.
+              Después de eso, perderás acceso a las funcionalidades del plan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -504,6 +681,188 @@ export const BillingSection = ({
           onConfirm={onChangePlan}
         />
       )}
+
+      {/* Card Payment Dialog */}
+      <Dialog
+        open={showPaymentDialog && paymentMethod === 'card'}
+        onOpenChange={handleClosePaymentDialog}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Pagar con tarjeta</DialogTitle>
+            <DialogDescription>
+              {selectedPlan
+                ? `${selectedPlan.name} — ${selectedPlan.price}${selectedPlan.priceSuffix}`
+                : 'Seleccioná un plan'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="relative">
+            {isProcessing && (
+              <div className="absolute inset-0 bg-background/90 flex items-center justify-center z-10 rounded-lg">
+                <div className="text-center">
+                  <div className="w-6 h-6 border-2 border-border border-t-neutral-900 rounded-full animate-spin mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">Procesando suscripción...</p>
+                </div>
+              </div>
+            )}
+            <CardForm
+              key={selectedPlanId}
+              amount={selectedPlan?.priceNumber || 0}
+              onTokenReady={async (data) => {
+                setPlanError('');
+                setIsProcessing(true);
+                try {
+                  await onCreateSubscription({
+                    planKey: selectedPlanId,
+                    cardTokenId: data.token,
+                    payerEmail: data.email || userEmail || '',
+                  });
+                  setShowPaymentDialog(false);
+                  setShowPlanSelection(false);
+                } catch (err) {
+                  console.error('[MP] BillingSection: Create subscription error:', err);
+                  const msg = 'Error al crear la suscripción. Intente nuevamente.';
+                  setPlanError(msg);
+                  toast.error(msg);
+                } finally {
+                  setIsProcessing(false);
+                }
+              }}
+              onError={(msg) => setPlanError(msg)}
+              isProcessing={isProcessing}
+            />
+          </div>
+          {planError && <p className="text-sm text-destructive text-center">{planError}</p>}
+        </DialogContent>
+      </Dialog>
+
+      {/* Bank Transfer Dialog (multi-step: details → upload → status) */}
+      <Dialog
+        open={showPaymentDialog && paymentMethod === 'bank_transfer'}
+        onOpenChange={handleClosePaymentDialog}
+      >
+        <DialogContent className="sm:max-w-md">
+          {/* Step 1: Bank details */}
+          {bankTransferStep === 'details' && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Transferencia bancaria</DialogTitle>
+                <DialogDescription>
+                  {selectedPlan
+                    ? `${selectedPlan.name} — ${selectedPlan.price}${selectedPlan.priceSuffix}`
+                    : 'Seleccioná un plan'}
+                </DialogDescription>
+              </DialogHeader>
+              <BankDetailsCard />
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="ghost" disabled={isProcessing}>
+                    Cancelar
+                  </Button>
+                </DialogClose>
+                <Button onClick={handleBankTransferConfirm} loading={isProcessing}>
+                  Confirmar
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+
+          {/* Step 2: Upload receipt */}
+          {bankTransferStep === 'upload' && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Subí tu comprobante</DialogTitle>
+                <DialogDescription>
+                  Adjuntá el comprobante de la transferencia para que podamos verificar tu pago.
+                </DialogDescription>
+              </DialogHeader>
+              <FileUpload
+                onFileSelect={setUploadFile}
+                accept=".pdf,.png,.jpg,.jpeg"
+                label="Comprobante de transferencia"
+              />
+              <DialogFooter>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleClosePaymentDialog(false)}
+                  disabled={isProcessing}
+                >
+                  Lo subiré más tarde
+                </Button>
+                <Button onClick={handleUploadSubmit} disabled={!uploadFile} loading={isProcessing}>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Enviar
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+
+          {/* Step 3: Payment status */}
+          {bankTransferStep === 'status' && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Estado del pago</DialogTitle>
+              </DialogHeader>
+              <div className="py-4 text-center space-y-4">
+                {bankPaymentStatus === 'pending' && (
+                  <>
+                    <div className="mx-auto h-14 w-14 rounded-lg bg-amber-50 border border-amber-200/50 flex items-center justify-center">
+                      <Clock className="w-7 h-7 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground mb-1">
+                        Pago pendiente de verificación
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Recibimos tu comprobante. Te notificaremos cuando sea aprobado.
+                      </p>
+                    </div>
+                  </>
+                )}
+                {bankPaymentStatus === 'approved' && (
+                  <>
+                    <div className="mx-auto h-14 w-14 rounded-lg bg-emerald-50 border border-emerald-200/50 flex items-center justify-center">
+                      <CheckCircle className="w-7 h-7 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground mb-1">¡Pago aprobado!</p>
+                      <p className="text-sm text-muted-foreground">Tu suscripción está activa.</p>
+                    </div>
+                  </>
+                )}
+                {bankPaymentStatus === 'rejected' && (
+                  <>
+                    <div className="mx-auto h-14 w-14 rounded-lg bg-red-50 border border-red-200/50 flex items-center justify-center">
+                      <XCircle className="w-7 h-7 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground mb-1">Pago rechazado</p>
+                      {bankRejectionReason && (
+                        <div className="rounded-lg bg-muted border border-border p-3 mt-2 text-left">
+                          <p className="text-sm text-muted-foreground">{bankRejectionReason}</p>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+              <DialogFooter>
+                {bankPaymentStatus === 'rejected' && (
+                  <Button variant="ghost" onClick={() => setBankTransferStep('upload')}>
+                    Subir nuevo comprobante
+                  </Button>
+                )}
+                <Button
+                  variant={bankPaymentStatus === 'approved' ? 'default' : 'ghost'}
+                  onClick={() => handleClosePaymentDialog(false)}
+                >
+                  Cerrar
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

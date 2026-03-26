@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, type MouseEvent as ReactMouseEvent } from 'react';
+import { useState, useEffect, useRef, useCallback, type MouseEvent as ReactMouseEvent } from 'react';
 import { Bell, Check, CheckCheck, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { supabase } from '@/lib/supabase/client';
 import { Notification } from '../../types/notification';
 import * as notificationService from '../../lib/api/services/notifications';
 import { NetworkError } from '../../lib/utils/errors';
@@ -27,28 +28,52 @@ const NotificationBell = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const fetchData = useCallback(async () => {
+    if (!currentCompany?.id) return;
+    try {
+      const [notifs, count] = await Promise.all([
+        notificationService.getNotifications(currentCompany.id, { limit: 5 }),
+        notificationService.getUnreadCount(currentCompany.id),
+      ]);
+      setNotifications(notifs.items ?? []);
+      setUnreadCount(count);
+    } catch (error) {
+      if (!(error instanceof NetworkError)) {
+        console.error('Error fetching notifications:', error);
+      }
+    }
+  }, [currentCompany?.id]);
+
+  // Initial fetch + Supabase Realtime subscription
   useEffect(() => {
     if (!currentCompany?.id) return;
 
-    const fetchData = async () => {
-      try {
-        const [notifs, count] = await Promise.all([
-          notificationService.getNotifications(currentCompany.id, { limit: 5 }),
-          notificationService.getUnreadCount(currentCompany.id),
-        ]);
-        setNotifications(notifs.items ?? []);
-        setUnreadCount(count);
-      } catch (error) {
-        if (!(error instanceof NetworkError)) {
-          console.error('Error fetching notifications:', error);
-        }
-      }
-    };
-
     fetchData();
-    const interval = setInterval(fetchData, 60000);
-    return () => clearInterval(interval);
-  }, [currentCompany?.id]);
+
+    const channel = supabase
+      .channel(`notifications:${currentCompany.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `company_id=eq.${currentCompany.id}`,
+        },
+        () => {
+          fetchData();
+        },
+      )
+      .subscribe();
+
+    // Fallback safety net in case Realtime connection drops
+    const fallbackInterval = setInterval(fetchData, 30000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(fallbackInterval);
+    };
+  }, [currentCompany?.id, fetchData]);
 
   const handleMarkAsRead = async (notificationId: string, e: ReactMouseEvent) => {
     e.stopPropagation();

@@ -5,6 +5,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
@@ -31,6 +32,7 @@ export const ViewReceiptDialog = ({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Comprobante de transferencia</DialogTitle>
+          <DialogDescription className="sr-only">Vista del comprobante de transferencia</DialogDescription>
         </DialogHeader>
 
         <div className="flex min-h-[200px] items-center justify-center">

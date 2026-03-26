@@ -23,6 +23,13 @@ export const registerSchema = z
 
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 
+// ─── OTP (email verification) ────────────────────────────
+export const otpSchema = z.object({
+  token: z.string().min(6, 'Código requerido').max(6),
+});
+
+export type OtpFormValues = z.infer<typeof otpSchema>;
+
 // ─── Create Company ─────────────────────────────────────
 export const createCompanySchema = z.object({
   name: z
@@ -53,3 +60,22 @@ export const createCompanySchema = z.object({
 });
 
 export type CreateCompanyFormValues = z.infer<typeof createCompanySchema>;
+
+// ─── Reset Password ──────────────────────────────────────
+export const resetPasswordSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .min(8, 'La contraseña debe tener al menos 8 caracteres')
+      .max(100)
+      .regex(/[A-Z]/, 'Debe contener al menos una mayúscula')
+      .regex(/[a-z]/, 'Debe contener al menos una minúscula')
+      .regex(/[0-9]/, 'Debe contener al menos un número'),
+    confirmPassword: z.string().min(1, 'Confirmar contraseña').max(100),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Las contraseñas no coinciden',
+    path: ['confirmPassword'],
+  });
+
+export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;

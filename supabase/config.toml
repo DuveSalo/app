@@ -18,13 +18,16 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.mp-create-subscription]
-verify_jwt = true
+verify_jwt = false
 
 [functions.mp-get-subscription-status]
-verify_jwt = true
+verify_jwt = false
 
 [functions.mp-manage-subscription]
-verify_jwt = true
+verify_jwt = false
+
+[functions.delete-account]
+verify_jwt = false
 
 [functions.webhook-mercadopago]
 verify_jwt = false
