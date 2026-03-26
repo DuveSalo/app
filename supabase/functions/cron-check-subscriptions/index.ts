@@ -5,6 +5,7 @@
  * - Checks active subscriptions whose period may have ended
  * - Revokes access for cancelled subscriptions past their grace period
  * - Syncs stale subscription data with MercadoPago API
+ * - Logs discrepancies when DB status differs from MercadoPago status
  */
 
 import {
@@ -12,12 +13,15 @@ import {
   getMpHeaders,
   mpFetch,
 } from '../_shared/mp-auth.ts';
+import { createLogger } from '../_shared/logger.ts';
 import { supabaseAdmin } from '../_shared/supabase-admin.ts';
+
+const log = createLogger('cron-check-subscriptions');
 
 async function syncMpSubscription(
   sub: { mp_preapproval_id: string; company_id: string },
   config: { baseUrl: string },
-) {
+): Promise<{ synced: boolean; revoked: boolean; discrepancy: boolean }> {
   const headers = getMpHeaders();
 
   try {
@@ -35,7 +39,7 @@ async function syncMpSubscription(
           next_billing_time: (preapproval.next_payment_date as string) || null,
         })
         .eq('mp_preapproval_id', sub.mp_preapproval_id);
-      return { synced: true, revoked: false };
+      return { synced: true, revoked: false, discrepancy: false };
     }
 
     if (mpStatus === 'cancelled' || mpStatus === 'paused') {
@@ -43,6 +47,14 @@ async function syncMpSubscription(
         cancelled: 'cancelled',
         paused: 'suspended',
       };
+
+      log.warn('Subscription discrepancy detected', {
+        companyId: sub.company_id,
+        mpPreapprovalId: sub.mp_preapproval_id,
+        dbStatus: 'active',
+        mpStatus,
+        action: 'status_corrected',
+      });
 
       await supabaseAdmin
         .from('subscriptions')
@@ -56,17 +68,22 @@ async function syncMpSubscription(
           .update({ is_subscribed: false, subscription_status: 'canceled' })
           .eq('id', sub.company_id);
       }
-      return { synced: false, revoked: mpStatus === 'cancelled' };
+      return { synced: false, revoked: mpStatus === 'cancelled', discrepancy: true };
     }
 
-    return { synced: false, revoked: false };
+    return { synced: false, revoked: false, discrepancy: false };
   } catch (err) {
-    console.error(`Failed to sync MP subscription ${sub.mp_preapproval_id}:`, err);
-    return { synced: false, revoked: false };
+    log.error(`Failed to sync MP subscription ${sub.mp_preapproval_id}`, {
+      error: err instanceof Error ? err.message : String(err),
+      companyId: sub.company_id,
+    });
+    return { synced: false, revoked: false, discrepancy: false };
   }
 }
 
 Deno.serve(async (req) => {
+  const startTime = performance.now();
+
   try {
     // Verify this is called by service role (CRON or admin)
     const authHeader = req.headers.get('Authorization');
@@ -82,6 +99,7 @@ Deno.serve(async (req) => {
     const now = new Date().toISOString();
     let synced = 0;
     let revoked = 0;
+    let discrepancies = 0;
 
     // 1. Check active MercadoPago subscriptions that may need syncing
     const { data: activeMpSubscriptions } = await supabaseAdmin
@@ -100,11 +118,12 @@ Deno.serve(async (req) => {
           const result = await syncMpSubscription(sub, mpConfig);
           if (result.synced) synced++;
           if (result.revoked) revoked++;
+          if (result.discrepancy) discrepancies++;
         } catch (err) {
-          console.error(
-            `Error syncing MP subscription ${sub.mp_preapproval_id}:`,
-            err,
-          );
+          log.error(`Error syncing MP subscription ${sub.mp_preapproval_id}`, {
+            error: err instanceof Error ? err.message : String(err),
+            companyId: sub.company_id,
+          });
         }
       }
     }
@@ -135,16 +154,20 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(
-      `CRON check complete: ${synced} synced, ${revoked} revoked`,
-    );
+    const durationMs = Math.round(performance.now() - startTime);
+
+    log.info('CRON complete', { synced, revoked, discrepancies, durationMs });
 
     return new Response(
-      JSON.stringify({ success: true, synced, revoked }),
+      JSON.stringify({ success: true, synced, revoked, discrepancies }),
       { headers: { 'Content-Type': 'application/json' } },
     );
   } catch (error) {
-    console.error('cron-check-subscriptions error:', error);
+    const durationMs = Math.round(performance.now() - startTime);
+    log.error('cron-check-subscriptions error', {
+      error: error instanceof Error ? error.message : String(error),
+      durationMs,
+    });
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } },
