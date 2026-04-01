@@ -1,6 +1,24 @@
 import { supabase } from '../../../supabase/client';
 import { handleSupabaseError } from '../../../utils/errors';
+import type { Tables } from '../../../../types/database.types';
 import type { AdminPaymentRow } from '../../../../features/admin/types';
+
+/** Subset of payment_transactions columns used by mapTxRow + queryTransactions */
+type PaymentTxRow = Pick<
+  Tables<'payment_transactions'>,
+  | 'id'
+  | 'company_id'
+  | 'gross_amount'
+  | 'currency'
+  | 'status'
+  | 'created_at'
+  | 'paid_at'
+  | 'payment_type_id'
+  | 'card_brand'
+  | 'card_last_four'
+> & {
+  subscriptions: { current_period_end: string | null } | null;
+};
 
 /**
  * Card detail columns (payment_type_id, card_brand, card_last_four) are available
@@ -9,64 +27,64 @@ import type { AdminPaymentRow } from '../../../../features/admin/types';
  *   payment_type_id, card_brand, card_last_four
  */
 
-const TX_COLS_BASE = 'id, company_id, gross_amount, currency, status, created_at, paid_at, subscriptions(current_period_end)';
-const TX_COLS_WITH_CARD = 'id, company_id, gross_amount, currency, status, created_at, paid_at, payment_type_id, card_brand, card_last_four, subscriptions(current_period_end)';
+const TX_COLS_BASE =
+  'id, company_id, gross_amount, currency, status, created_at, paid_at, subscriptions(current_period_end)';
+const TX_COLS_WITH_CARD =
+  'id, company_id, gross_amount, currency, status, created_at, paid_at, payment_type_id, card_brand, card_last_four, subscriptions(current_period_end)';
 
 // Cached result of whether card detail columns exist in the DB schema
 let cardColumnsAvailable: boolean | null = null;
 
 async function probeCardColumns(): Promise<boolean> {
   if (cardColumnsAvailable !== null) return cardColumnsAvailable;
-  const { error } = await supabase
-    .from('payment_transactions')
-    .select('payment_type_id')
-    .limit(0);
+  const { error } = await supabase.from('payment_transactions').select('payment_type_id').limit(0);
   cardColumnsAvailable = !error;
   return cardColumnsAvailable;
 }
 
-function mapTxRow(
-  row: Record<string, unknown>,
-  companyName: string,
-): AdminPaymentRow {
-  const sub = row.subscriptions as { current_period_end: string | null } | null;
-  const paymentTypeId = (row.payment_type_id as string) || null;
+function mapTxRow(row: PaymentTxRow, companyName: string): AdminPaymentRow {
+  const paymentTypeId = row.payment_type_id || null;
   let paymentMethod: AdminPaymentRow['paymentMethod'] = 'card';
   if (paymentTypeId === 'credit_card' || paymentTypeId === 'debit_card') {
     paymentMethod = paymentTypeId;
   }
   return {
-    id: row.id as string,
-    companyId: row.company_id as string,
+    id: row.id,
+    companyId: row.company_id,
     companyName,
-    amount: (row.gross_amount as number) || 0,
-    periodStart: (row.paid_at as string) || (row.created_at as string),
-    periodEnd: sub?.current_period_end || '',
-    status: (row.status === 'completed' || row.status === 'approved') ? 'approved' : 'pending',
-    createdAt: row.created_at as string,
+    amount: row.gross_amount || 0,
+    periodStart: row.paid_at || row.created_at,
+    periodEnd: row.subscriptions?.current_period_end || '',
+    status: row.status === 'completed' || row.status === 'approved' ? 'approved' : 'pending',
+    createdAt: row.created_at,
     rejectionReason: null,
     receiptUrl: null,
     paymentMethod,
-    cardBrand: (row.card_brand as string) || null,
-    cardLastFour: (row.card_last_four as string) || null,
+    cardBrand: row.card_brand || null,
+    cardLastFour: row.card_last_four || null,
   };
 }
 
 /**
  * Fetch payment_transactions, gracefully falling back if card columns don't exist yet.
  */
-async function queryTransactions(
-  filters?: { status?: string[]; companyId?: string; limit?: number },
-) {
+async function queryTransactions(filters?: {
+  status?: string[];
+  companyId?: string;
+  limit?: number;
+}) {
   const hasCard = await probeCardColumns();
   const cols = hasCard ? TX_COLS_WITH_CARD : TX_COLS_BASE;
 
+  // The column list is dynamic (with/without card fields); cast to PaymentTxRow[]
+  // Both TX_COLS_BASE and TX_COLS_WITH_CARD are supersets of the fields in PaymentTxRow
   let q = supabase.from('payment_transactions').select(cols);
   if (filters?.status) q = q.in('status', filters.status);
   if (filters?.companyId) q = q.eq('company_id', filters.companyId);
   q = q.order('created_at', { ascending: false });
   if (filters?.limit) q = q.limit(filters.limit);
-  return q;
+  const result = await q;
+  return { data: (result.data ?? null) as PaymentTxRow[] | null, error: result.error };
 }
 
 /**
@@ -75,7 +93,9 @@ async function queryTransactions(
 export const getPendingPayments = async (): Promise<AdminPaymentRow[]> => {
   const { data, error } = await supabase
     .from('manual_payments')
-    .select('id, company_id, amount, period_start, period_end, status, created_at, rejection_reason, receipt_url')
+    .select(
+      'id, company_id, amount, period_start, period_end, status, created_at, rejection_reason, receipt_url'
+    )
     .eq('status', 'pending')
     .order('created_at', { ascending: true });
 
@@ -129,7 +149,7 @@ export const getAllPayments = async (): Promise<AdminPaymentRow[]> => {
   const allCompanyIds: string[] = Array.from(
     new Set<string>([
       ...(manualData || []).map((r) => String(r.company_id)),
-      ...(txData || []).map((r: Record<string, unknown>) => String(r.company_id)),
+      ...(txData || []).map((r) => String(r.company_id)),
     ])
   );
 
@@ -158,8 +178,8 @@ export const getAllPayments = async (): Promise<AdminPaymentRow[]> => {
     cardLastFour: null,
   }));
 
-  const txRows: AdminPaymentRow[] = (txData || []).map((row: Record<string, unknown>) =>
-    mapTxRow(row, companyMap.get(row.company_id as string) || 'Desconocido')
+  const txRows: AdminPaymentRow[] = (txData || []).map((row) =>
+    mapTxRow(row, companyMap.get(row.company_id) || 'Desconocido')
   );
 
   // Merge and sort by date descending
@@ -212,10 +232,7 @@ export const approvePayment = async (paymentId: string): Promise<void> => {
  * - logs the action
  * - sends a notification
  */
-export const rejectPayment = async (
-  paymentId: string,
-  reason: string
-): Promise<void> => {
+export const rejectPayment = async (paymentId: string, reason: string): Promise<void> => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -238,7 +255,9 @@ export const getRecentSales = async (limit = 10): Promise<AdminPaymentRow[]> => 
   // Approved manual payments
   const { data: manualData, error: e1 } = await supabase
     .from('manual_payments')
-    .select('id, company_id, amount, period_start, period_end, status, created_at, rejection_reason, receipt_url, reviewed_at')
+    .select(
+      'id, company_id, amount, period_start, period_end, status, created_at, rejection_reason, receipt_url, reviewed_at'
+    )
     .eq('status', 'approved')
     .order('reviewed_at', { ascending: false })
     .limit(limit);
@@ -255,7 +274,7 @@ export const getRecentSales = async (limit = 10): Promise<AdminPaymentRow[]> => 
   const allCompanyIds: string[] = Array.from(
     new Set<string>([
       ...(manualData || []).map((r) => String(r.company_id)),
-      ...(txData || []).map((r: Record<string, unknown>) => String(r.company_id)),
+      ...(txData || []).map((r) => String(r.company_id)),
     ])
   );
 
@@ -284,8 +303,8 @@ export const getRecentSales = async (limit = 10): Promise<AdminPaymentRow[]> => 
     cardLastFour: null,
   }));
 
-  const txRows: AdminPaymentRow[] = (txData || []).map((row: Record<string, unknown>) => {
-    const mapped = mapTxRow(row, companyMap.get(row.company_id as string) || 'Desconocido');
+  const txRows: AdminPaymentRow[] = (txData || []).map((row) => {
+    const mapped = mapTxRow(row, companyMap.get(row.company_id) || 'Desconocido');
     mapped.status = 'approved';
     return mapped;
   });
@@ -303,7 +322,9 @@ export const getSchoolPaymentHistory = async (companyId: string): Promise<AdminP
   // Fetch manual (bank transfer) payments
   const { data: manualData } = await supabase
     .from('manual_payments')
-    .select('id, company_id, amount, period_start, period_end, status, created_at, rejection_reason, receipt_url')
+    .select(
+      'id, company_id, amount, period_start, period_end, status, created_at, rejection_reason, receipt_url'
+    )
     .eq('company_id', companyId)
     .order('created_at', { ascending: false });
 
@@ -326,10 +347,15 @@ export const getSchoolPaymentHistory = async (companyId: string): Promise<AdminP
   // Fetch MercadoPago transactions
   const { data: txData } = await queryTransactions({ companyId });
 
-  const txRows: AdminPaymentRow[] = (txData || []).map((row: Record<string, unknown>) => {
+  const txRows: AdminPaymentRow[] = (txData || []).map((row) => {
     const mapped = mapTxRow(row, '');
-    const st = row.status as string;
-    mapped.status = (st === 'approved' || st === 'completed') ? 'approved' : st === 'pending' ? 'pending' : 'rejected';
+    const st = row.status;
+    mapped.status =
+      st === 'approved' || st === 'completed'
+        ? 'approved'
+        : st === 'pending'
+          ? 'pending'
+          : 'rejected';
     return mapped;
   });
 

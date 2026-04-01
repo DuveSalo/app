@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth/AuthContext';
 import * as api from '@/lib/api/services';
@@ -32,12 +32,12 @@ export const useBillingData = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const invalidateAll = async () => {
+  const invalidateAll = useCallback(async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.subscription(companyId) }),
       queryClient.invalidateQueries({ queryKey: queryKeys.payments(companyId) }),
     ]);
-  };
+  }, [queryClient, companyId]);
 
   // --- Sync from MercadoPago (with DB fallback for card info) ---
 
@@ -200,12 +200,12 @@ export const useBillingData = () => {
     }
   };
 
-  const handleSubscriptionChange = async () => {
+  const handleSubscriptionChange = useCallback(async () => {
     if (!currentCompany) return;
     await refreshCompany(true);
     await invalidateAll();
     toast.success('Suscripcion actualizada');
-  };
+  }, [currentCompany, refreshCompany, invalidateAll]);
 
   return {
     subscription,

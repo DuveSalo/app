@@ -74,7 +74,8 @@ const LoginForm = () => {
     try {
       await loginWithGoogle();
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al iniciar sesion con Google.';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error al iniciar sesion con Google.';
       setError(errorMessage);
       toast.error('Error al iniciar sesion', { description: errorMessage });
       setIsLoading(false);
@@ -100,15 +101,20 @@ const LoginForm = () => {
                 <Mail className="h-6 w-6 text-muted-foreground" />
               </div>
               <div className="flex flex-col gap-1.5 text-center">
-                <h3 className="text-lg font-semibold text-foreground">Revisa tu email</h3>
+                <h3 className="text-base font-semibold text-foreground">Revisa tu email</h3>
                 <p className="text-sm text-muted-foreground">
-                  Si existe una cuenta con <span className="font-medium text-foreground">{forgotEmail}</span>,
-                  recibiras un enlace para restablecer tu contrasena.
+                  Si existe una cuenta con{' '}
+                  <span className="font-medium text-foreground">{forgotEmail}</span>, recibiras un
+                  enlace para restablecer tu contrasena.
                 </p>
               </div>
               <Button
                 variant="ghost"
-                onClick={() => { setForgotMode(false); setForgotSent(false); setForgotEmail(''); }}
+                onClick={() => {
+                  setForgotMode(false);
+                  setForgotSent(false);
+                  setForgotEmail('');
+                }}
                 className="w-full"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -139,7 +145,10 @@ const LoginForm = () => {
               </div>
               <button
                 type="button"
-                onClick={() => { setForgotMode(false); setForgotEmail(''); }}
+                onClick={() => {
+                  setForgotMode(false);
+                  setForgotEmail('');
+                }}
                 className="text-sm text-muted-foreground hover:underline text-center"
               >
                 <ArrowLeft className="w-3.5 h-3.5 inline mr-1" />
@@ -156,9 +165,7 @@ const LoginForm = () => {
     <AuthLayout variant="split">
       <div className="flex flex-col w-full gap-6">
         <div className="flex flex-col gap-2">
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-            Iniciar sesion
-          </h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Iniciar sesion</h2>
           <p className="text-sm text-muted-foreground">Ingresa tus datos para continuar</p>
         </div>
 

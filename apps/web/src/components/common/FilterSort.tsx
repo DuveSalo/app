@@ -1,5 +1,5 @@
 import { type ReactNode, useRef, useEffect, useState } from 'react';
-import { Search, ArrowUpDown, SlidersHorizontal, X } from 'lucide-react';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FilterSortProps {
@@ -15,7 +15,15 @@ interface FilterSortProps {
   additionalFilters?: ReactNode;
 }
 
-const Dropdown = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: ReactNode }) => {
+const Dropdown = ({
+  isOpen,
+  onClose,
+  children,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  children: ReactNode;
+}) => {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!isOpen) return;
@@ -39,16 +47,15 @@ const Dropdown = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () 
 export const FilterSort = ({
   searchValue,
   onSearchChange,
-  sortValue,
-  onSortChange,
-  sortOptions,
+  sortValue: _sortValue,
+  onSortChange: _onSortChange,
+  sortOptions: _sortOptions,
   filterValue,
   onFilterChange,
   filterOptions,
   searchPlaceholder = 'Buscar...',
-  additionalFilters
+  additionalFilters,
 }: FilterSortProps) => {
-  const [showSort, setShowSort] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
 
   return (
@@ -70,40 +77,14 @@ export const FilterSort = ({
         )}
       </div>
 
-      {/* Sort */}
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => { setShowSort(!showSort); setShowFilter(false); }}
-          className="flex items-center h-8 px-3 gap-1.5 rounded-md border border-border text-sm font-medium text-foreground bg-background hover:bg-muted transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none"
-        >
-          <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
-          <span>Ordenar</span>
-        </button>
-        <Dropdown isOpen={showSort} onClose={() => setShowSort(false)}>
-          {sortOptions.map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => { onSortChange(opt.value); setShowSort(false); }}
-              className={cn(
-                'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-muted focus:outline-none',
-                sortValue === opt.value
-                  ? 'font-medium text-foreground bg-muted'
-                  : 'text-muted-foreground'
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </Dropdown>
-      </div>
-
       {/* Status Filter */}
       {filterOptions && onFilterChange && (
         <div className="relative">
           <button
             type="button"
-            onClick={() => { setShowFilter(!showFilter); setShowSort(false); }}
+            onClick={() => {
+              setShowFilter(!showFilter);
+            }}
             className={cn(
               'flex items-center h-8 px-3 gap-1.5 rounded-md text-sm font-medium bg-background transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none border',
               filterValue
@@ -113,25 +94,29 @@ export const FilterSort = ({
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
             <span>
-              {filterValue ? filterOptions.find(o => o.value === filterValue)?.label : 'Estado'}
+              {filterValue ? filterOptions.find((o) => o.value === filterValue)?.label : 'Estado'}
             </span>
           </button>
           <Dropdown isOpen={showFilter} onClose={() => setShowFilter(false)}>
             <button
-              onClick={() => { onFilterChange(''); setShowFilter(false); }}
+              onClick={() => {
+                onFilterChange('');
+                setShowFilter(false);
+              }}
               className={cn(
                 'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-muted focus:outline-none',
-                !filterValue
-                  ? 'font-medium text-foreground bg-muted'
-                  : 'text-muted-foreground'
+                !filterValue ? 'font-medium text-foreground bg-muted' : 'text-muted-foreground'
               )}
             >
               Todos los estados
             </button>
-            {filterOptions.map(opt => (
+            {filterOptions.map((opt) => (
               <button
                 key={opt.value}
-                onClick={() => { onFilterChange(opt.value); setShowFilter(false); }}
+                onClick={() => {
+                  onFilterChange(opt.value);
+                  setShowFilter(false);
+                }}
                 className={cn(
                   'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-muted focus:outline-none',
                   filterValue === opt.value

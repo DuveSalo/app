@@ -18,12 +18,12 @@ const TrialExpiredPage = () => {
             <AlertTriangle className="w-7 h-7 text-amber-600" />
           </div>
 
-          <h2 className="text-xl font-semibold text-foreground tracking-tight mb-2">
+          <h2 className="text-2xl font-semibold text-foreground tracking-tight mb-2">
             Tu periodo de prueba ha finalizado
           </h2>
           <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
-            Tu prueba gratuita de 14 dias ha expirado. Para continuar usando
-            Escuela Segura, selecciona un plan de suscripcion.
+            Tu prueba gratuita de 14 dias ha expirado. Para continuar usando Escuela Segura,
+            selecciona un plan de suscripcion.
           </p>
 
           <div className="bg-emerald-50 rounded-lg border border-emerald-200 p-4 mb-8 text-left">
@@ -34,26 +34,18 @@ const TrialExpiredPage = () => {
               <div>
                 <p className="text-sm font-medium text-emerald-800">Tus datos estan seguros</p>
                 <p className="text-xs text-emerald-700 mt-0.5">
-                  Toda la informacion que cargaste durante la prueba se conserva
-                  intacta. Al suscribirte, recuperaras el acceso completo
-                  inmediatamente.
+                  Toda la informacion que cargaste durante la prueba se conserva intacta. Al
+                  suscribirte, recuperaras el acceso completo inmediatamente.
                 </p>
               </div>
             </div>
           </div>
 
           <div className="space-y-3">
-            <Button
-              onClick={() => navigate(ROUTE_PATHS.SUBSCRIPTION)}
-              className="w-full"
-            >
+            <Button onClick={() => navigate(ROUTE_PATHS.SUBSCRIPTION)} className="w-full">
               Ver planes y suscribirse
             </Button>
-            <Button
-              variant="ghost"
-              onClick={() => logout()}
-              className="w-full"
-            >
+            <Button variant="ghost" onClick={() => logout()} className="w-full">
               Cerrar sesion
             </Button>
           </div>

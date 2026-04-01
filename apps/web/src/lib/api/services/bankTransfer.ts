@@ -1,7 +1,5 @@
 import { supabase } from '../../supabase/client';
-import { handleSupabaseError } from '../../utils/errors';
-
-const db = supabase as any;
+import { handleSupabaseError, DatabaseError } from '../../utils/errors';
 
 export interface ManualPayment {
   id: string;
@@ -41,14 +39,18 @@ export async function submitBankTransferPayment(params: {
   });
 
   if (error) handleSupabaseError(error);
+  if (!paymentId) throw new DatabaseError('Error al crear el pago: ID no retornado');
 
-  const { data, error: fetchError } = await db
+  const { data, error: fetchError } = await supabase
     .from('manual_payments')
-    .select('*')
+    .select(
+      'id, company_id, amount, period_start, period_end, receipt_url, receipt_uploaded_at, status, rejection_reason, created_at'
+    )
     .eq('id', paymentId)
     .single();
 
   if (fetchError) handleSupabaseError(fetchError);
+  if (!data) throw new DatabaseError('Error al obtener el pago creado');
 
   return {
     id: data.id,
@@ -58,7 +60,7 @@ export async function submitBankTransferPayment(params: {
     periodEnd: data.period_end,
     receiptUrl: data.receipt_url,
     receiptUploadedAt: data.receipt_uploaded_at,
-    status: data.status,
+    status: data.status as ManualPayment['status'],
     rejectionReason: data.rejection_reason,
     createdAt: data.created_at,
   };
@@ -81,7 +83,7 @@ export async function uploadReceipt(params: {
 
   if (uploadError) throw new Error(uploadError.message);
 
-  const { error: updateError } = await db
+  const { error: updateError } = await supabase
     .from('manual_payments')
     .update({
       receipt_url: filePath,
@@ -98,9 +100,11 @@ export async function uploadReceipt(params: {
  * Get the latest manual payment for a company.
  */
 export async function getLatestManualPayment(companyId: string): Promise<ManualPayment | null> {
-  const { data, error } = await db
+  const { data, error } = await supabase
     .from('manual_payments')
-    .select('*')
+    .select(
+      'id, company_id, amount, period_start, period_end, receipt_url, receipt_uploaded_at, status, rejection_reason, created_at'
+    )
     .eq('company_id', companyId)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -117,7 +121,7 @@ export async function getLatestManualPayment(companyId: string): Promise<ManualP
     periodEnd: data.period_end,
     receiptUrl: data.receipt_url,
     receiptUploadedAt: data.receipt_uploaded_at,
-    status: data.status,
+    status: data.status as ManualPayment['status'],
     rejectionReason: data.rejection_reason,
     createdAt: data.created_at,
   };

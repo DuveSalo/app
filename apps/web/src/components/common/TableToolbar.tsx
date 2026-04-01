@@ -1,5 +1,5 @@
 import { type ReactNode, useRef, useEffect, useState } from 'react';
-import { Search, ArrowUpDown, SlidersHorizontal, X } from 'lucide-react';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -16,7 +16,15 @@ interface TableToolbarProps {
   additionalFilters?: ReactNode;
 }
 
-const Dropdown = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: ReactNode }) => {
+const Dropdown = ({
+  isOpen,
+  onClose,
+  children,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  children: ReactNode;
+}) => {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!isOpen) return;
@@ -40,16 +48,15 @@ const Dropdown = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () 
 export const TableToolbar = ({
   searchValue,
   onSearchChange,
-  sortValue,
-  onSortChange,
-  sortOptions,
+  sortValue: _sortValue,
+  onSortChange: _onSortChange,
+  sortOptions: _sortOptions,
   filterValue,
   onFilterChange,
   filterOptions,
   searchPlaceholder = 'Buscar...',
-  additionalFilters
+  additionalFilters,
 }: TableToolbarProps) => {
-  const [showSort, setShowSort] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
 
   return (
@@ -71,61 +78,39 @@ export const TableToolbar = ({
         )}
       </div>
 
-      {/* Sort */}
-      <div className="relative">
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => { setShowSort(!showSort); setShowFilter(false); }}
-        >
-          <ArrowUpDown className="w-4 h-4" />
-          Ordenar
-        </Button>
-        <Dropdown isOpen={showSort} onClose={() => setShowSort(false)}>
-          {sortOptions.map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => { onSortChange(opt.value); setShowSort(false); }}
-              className={cn(
-                'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-muted focus:outline-none',
-                sortValue === opt.value
-                  ? 'font-medium text-foreground bg-muted'
-                  : 'text-muted-foreground'
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </Dropdown>
-      </div>
-
       {/* Status Filter */}
       {filterOptions && onFilterChange && (
         <div className="relative">
           <Button
             type="button"
             variant="ghost"
-            onClick={() => { setShowFilter(!showFilter); setShowSort(false); }}
+            onClick={() => {
+              setShowFilter(!showFilter);
+            }}
           >
             <SlidersHorizontal className="w-4 h-4" />
-            {filterValue ? filterOptions.find(o => o.value === filterValue)?.label : 'Estado'}
+            {filterValue ? filterOptions.find((o) => o.value === filterValue)?.label : 'Estado'}
           </Button>
           <Dropdown isOpen={showFilter} onClose={() => setShowFilter(false)}>
             <button
-              onClick={() => { onFilterChange(''); setShowFilter(false); }}
+              onClick={() => {
+                onFilterChange('');
+                setShowFilter(false);
+              }}
               className={cn(
                 'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-muted focus:outline-none',
-                !filterValue
-                  ? 'font-medium text-foreground bg-muted'
-                  : 'text-muted-foreground'
+                !filterValue ? 'font-medium text-foreground bg-muted' : 'text-muted-foreground'
               )}
             >
               Todos los estados
             </button>
-            {filterOptions.map(opt => (
+            {filterOptions.map((opt) => (
               <button
                 key={opt.value}
-                onClick={() => { onFilterChange(opt.value); setShowFilter(false); }}
+                onClick={() => {
+                  onFilterChange(opt.value);
+                  setShowFilter(false);
+                }}
                 className={cn(
                   'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-muted focus:outline-none',
                   filterValue === opt.value
