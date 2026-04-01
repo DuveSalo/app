@@ -1,5 +1,12 @@
 import { Plus, Trash2 } from 'lucide-react';
-import { useFieldArray, type Control, type FieldValues, type ArrayPath } from 'react-hook-form';
+import {
+  useFieldArray,
+  type Control,
+  type FieldValues,
+  type ArrayPath,
+  type FieldArray,
+  type Path,
+} from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 
 interface DynamicListInputProps<T extends FieldValues> {
@@ -27,17 +34,13 @@ export const DynamicListInput = <T extends FieldValues>({
   });
 
   const addItem = () => {
-    append({ value: '' } as any);
+    append({ value: '' } as FieldArray<T, typeof name>);
   };
 
   return (
     <div className="w-full">
-      <label className="block text-sm font-medium text-foreground mb-1">
-        {label}
-      </label>
-      {description && (
-        <p className="text-xs text-muted-foreground italic mb-3">{description}</p>
-      )}
+      <label className="block text-sm font-medium text-foreground mb-1">{label}</label>
+      {description && <p className="text-xs text-muted-foreground italic mb-3">{description}</p>}
       <div className="space-y-3">
         {fields.map((fieldItem, index) => (
           <div key={fieldItem.id} className="bg-background border border-border rounded-md">
@@ -46,7 +49,7 @@ export const DynamicListInput = <T extends FieldValues>({
                 {index + 1}
               </div>
               <textarea
-                {...control.register(`${name}.${index}.value` as any)}
+                {...control.register(`${name}.${index}.value` as Path<T>)}
                 placeholder={`${placeholder} ${index + 1}`}
                 rows={1}
                 className="flex-1 resize-none border-0 focus:ring-0 focus:outline-none text-sm text-foreground placeholder-muted-foreground p-0"

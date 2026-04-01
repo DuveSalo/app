@@ -36,7 +36,7 @@ export const Tabs = ({ tabs, activeTab, onTabClick, className }: TabsProps) => {
               tab.disabled
                 ? 'text-muted-foreground/50 cursor-not-allowed'
                 : index === activeTab
-                  ? 'bg-background text-foreground shadow-sm'
+                  ? 'bg-background text-foreground'
                   : 'text-muted-foreground hover:text-foreground'
             )}
             aria-selected={index === activeTab}

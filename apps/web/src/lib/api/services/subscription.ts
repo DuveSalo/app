@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase/client';
+import { AuthError, DatabaseError } from '../../utils/errors';
 import type { Tables } from '../../../types/database.types';
 import type {
   Subscription,
@@ -60,7 +61,7 @@ function mapTransactionFromDb(data: Tables<'payment_transactions'>): PaymentTran
  */
 async function ensureValidSession(): Promise<void> {
   const { error } = await supabase.auth.getUser();
-  if (error) throw new Error('Sesión expirada. Iniciá sesión nuevamente.');
+  if (error) throw new AuthError('Sesión expirada. Iniciá sesión nuevamente.');
 }
 
 /**
@@ -74,7 +75,7 @@ export async function mpCreateSubscription(
   const { data, error } = await supabase.functions.invoke('mp-create-subscription', {
     body: params,
   });
-  if (error) throw new Error(error.message);
+  if (error) throw new DatabaseError(error.message);
   return data as MpCreateSubscriptionResponse;
 }
 
@@ -89,7 +90,7 @@ export async function mpManageSubscription(
   const { data, error } = await supabase.functions.invoke('mp-manage-subscription', {
     body: params,
   });
-  if (error) throw new Error(error.message);
+  if (error) throw new DatabaseError(error.message);
   return data as MpManageSubscriptionResponse;
 }
 
@@ -105,7 +106,7 @@ export async function mpGetSubscriptionStatus(
   const { data, error } = await supabase.functions.invoke('mp-get-subscription-status', {
     body: { mpPreapprovalId },
   });
-  if (error) throw new Error(error.message);
+  if (error) throw new DatabaseError(error.message);
   return data as MpSubscriptionStatusResponse;
 }
 
@@ -115,17 +116,19 @@ export async function mpGetSubscriptionStatus(
 export async function getActiveSubscription(companyId: string): Promise<Subscription | null> {
   const { data, error } = await supabase
     .from('subscriptions')
-    .select('*')
+    .select(
+      'id, company_id, mp_preapproval_id, mp_plan_id, plan_key, plan_name, amount, currency, status, subscriber_email, current_period_start, current_period_end, next_billing_time, activated_at, cancelled_at, suspended_at, failed_payments_count, created_at, updated_at, payment_provider'
+    )
     .eq('company_id', companyId)
     .in('status', ['active', 'suspended', 'cancelled', 'approval_pending'])
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  if (error) throw new Error(error.message);
+  if (error) throw new DatabaseError(error.message);
   if (!data) return null;
 
-  return mapSubscriptionFromDb(data);
+  return mapSubscriptionFromDb(data as Tables<'subscriptions'>);
 }
 
 /**
@@ -137,15 +140,17 @@ export async function getPaymentHistory(
 ): Promise<PaymentTransaction[]> {
   const { data, error } = await supabase
     .from('payment_transactions')
-    .select('*')
+    .select(
+      'id, company_id, created_at, gross_amount, net_amount, currency, status, paypal_transaction_id, subscription_id, fee_amount, paid_at'
+    )
     .eq('company_id', companyId)
     .order('created_at', { ascending: false })
     .limit(limit);
 
-  if (error) throw new Error(error.message);
+  if (error) throw new DatabaseError(error.message);
   if (!data) return [];
 
-  return data.map((row) => mapTransactionFromDb(row));
+  return data.map((row) => mapTransactionFromDb(row as Tables<'payment_transactions'>));
 }
 
 /**

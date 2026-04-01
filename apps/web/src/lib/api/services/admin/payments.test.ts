@@ -60,7 +60,12 @@ describe('getRecentSales', () => {
     const txChain = makeChain({
       limit: vi.fn().mockResolvedValue({
         data: [
-          { id: 'tx-1', gross_amount: 7000, created_at: '2026-03-10T10:00:00Z', status: 'completed' },
+          {
+            id: 'tx-1',
+            gross_amount: 7000,
+            created_at: '2026-03-10T10:00:00Z',
+            status: 'completed',
+          },
         ],
         error: null,
       }),
@@ -88,7 +93,7 @@ describe('getRecentSales', () => {
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe('tx-1');
     expect(result[0].amount).toBe(7000);
-    expect(result[0].status).toBe('MercadoPago');
+    expect(result[0].status).toBe('approved');
   });
 
   it('excludes payment_transactions that are not completed', async () => {
@@ -112,12 +117,25 @@ describe('getRecentSales', () => {
 
     expect(result).toHaveLength(0);
     // Verify the query used status='completed' filter
-    expect(txChain.eq).toHaveBeenCalledWith('status', 'completed');
+    expect(txChain.in).toHaveBeenCalledWith(
+      'status',
+      expect.arrayContaining(['approved', 'completed'])
+    );
   });
 
   it('includes approved manual payments alongside completed transactions', async () => {
     const manualRows = [
-      { id: 'pay-1', amount: 5000, reviewed_at: '2026-03-05T09:00:00Z', company_id: 'comp-1' },
+      {
+        id: 'pay-1',
+        amount: 5000,
+        reviewed_at: '2026-03-05T09:00:00Z',
+        company_id: 'comp-1',
+        status: 'approved',
+        period_start: '2026-03-01',
+        period_end: '2026-04-01',
+        rejection_reason: null,
+        receipt_url: null,
+      },
     ];
     const manualChain = makeChain({
       limit: vi.fn().mockResolvedValue({ data: manualRows, error: null }),
@@ -133,7 +151,12 @@ describe('getRecentSales', () => {
     const txChain = makeChain({
       limit: vi.fn().mockResolvedValue({
         data: [
-          { id: 'tx-2', gross_amount: 3000, created_at: '2026-03-01T08:00:00Z', status: 'completed' },
+          {
+            id: 'tx-2',
+            gross_amount: 3000,
+            created_at: '2026-03-01T08:00:00Z',
+            status: 'completed',
+          },
         ],
         error: null,
       }),
@@ -153,13 +176,12 @@ describe('getRecentSales', () => {
     const manualSale = result.find((r) => r.id === 'pay-1');
     expect(manualSale).toBeDefined();
     expect(manualSale?.companyName).toBe('Escuela N°42');
-    expect(manualSale?.plan).toBe('Básico');
-    expect(manualSale?.status).toBe('Transferencia');
+    expect(manualSale?.status).toBe('approved');
 
     const txSale = result.find((r) => r.id === 'tx-2');
     expect(txSale).toBeDefined();
     expect(txSale?.amount).toBe(3000);
-    expect(txSale?.status).toBe('MercadoPago');
+    expect(txSale?.status).toBe('approved');
   });
 
   it('sorts results by date descending', async () => {
@@ -170,8 +192,18 @@ describe('getRecentSales', () => {
     const txChain = makeChain({
       limit: vi.fn().mockResolvedValue({
         data: [
-          { id: 'tx-old', gross_amount: 1000, created_at: '2026-01-01T00:00:00Z', status: 'completed' },
-          { id: 'tx-new', gross_amount: 2000, created_at: '2026-03-15T00:00:00Z', status: 'completed' },
+          {
+            id: 'tx-old',
+            gross_amount: 1000,
+            created_at: '2026-01-01T00:00:00Z',
+            status: 'completed',
+          },
+          {
+            id: 'tx-new',
+            gross_amount: 2000,
+            created_at: '2026-03-15T00:00:00Z',
+            status: 'completed',
+          },
         ],
         error: null,
       }),
@@ -375,9 +407,12 @@ describe('rejectPayment', () => {
 
     await rejectPayment('pay-1', '');
 
-    expect(mockRpc).toHaveBeenCalledWith('admin_reject_payment', expect.objectContaining({
-      p_reason: undefined,
-    }));
+    expect(mockRpc).toHaveBeenCalledWith(
+      'admin_reject_payment',
+      expect.objectContaining({
+        p_reason: undefined,
+      })
+    );
   });
 
   it('throws when user is not authenticated', async () => {

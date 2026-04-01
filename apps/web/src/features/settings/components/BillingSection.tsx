@@ -292,7 +292,7 @@ export const BillingSection = ({
         if (autoCloseRef.current) clearTimeout(autoCloseRef.current);
       };
     }
-  }, [bankPaymentStatus]);
+  }, [bankPaymentStatus, onSubscriptionChange]);
 
   // Plan selector (for new subscriptions only)
   const renderPlanSelector = () => (
@@ -833,7 +833,7 @@ export const BillingSection = ({
                 {bankPaymentStatus === 'rejected' && (
                   <>
                     <div className="mx-auto h-14 w-14 rounded-lg bg-red-50 border border-red-200/50 flex items-center justify-center">
-                      <XCircle className="w-7 h-7 text-red-600" />
+                      <XCircle className="w-7 h-7 text-destructive" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-foreground mb-1">Pago rechazado</p>
