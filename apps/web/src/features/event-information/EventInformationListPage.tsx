@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, MoreHorizontal, Pencil, Trash2, ArrowUpDown } from 'lucide-react';
 import { type ColumnDef } from '@tanstack/react-table';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { EventInformation } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
 import * as api from '@/lib/api/services';
+import { queryKeys } from '@/lib/queryKeys';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -23,12 +25,17 @@ import { formatDateLocal } from '../../lib/utils/dateUtils';
 import { Empty } from '../../components/common/Empty';
 
 const EventInformationListPage = () => {
-  const [events, setEvents] = useState<EventInformation[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { currentCompany } = useAuth();
+  const queryClient = useQueryClient();
+
+  const { data: events = [], isLoading } = useQuery({
+    queryKey: queryKeys.events.list(currentCompany?.id ?? ''),
+    queryFn: () => api.getEvents(currentCompany!.id),
+    enabled: !!currentCompany,
+  });
 
   const columns: ColumnDef<EventInformation, string>[] = [
     {
@@ -97,33 +104,14 @@ const EventInformationListPage = () => {
     },
   ];
 
-  const loadEvents = useCallback(async () => {
-    if (!currentCompany) return;
-    setIsLoading(true);
-    try {
-      const data = await api.getEvents(currentCompany.id);
-      setEvents(data);
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Error al cargar información de eventos');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentCompany]);
-
-  useEffect(() => {
-    loadEvents();
-  }, [loadEvents]);
-
   const handleDeleteConfirm = async () => {
-    if (!deleteId) return;
+    if (!deleteId || !currentCompany) return;
     setIsDeleting(true);
-    const prev = [...events];
-    setEvents((e) => e.filter((ev) => ev.id !== deleteId));
     try {
       await api.deleteEvent(deleteId);
       toast.success('Evento eliminado correctamente');
+      queryClient.invalidateQueries({ queryKey: queryKeys.events.list(currentCompany.id) });
     } catch (err: unknown) {
-      setEvents(prev);
       toast.error(err instanceof Error ? err.message : 'Error al eliminar el evento');
     } finally {
       setIsDeleting(false);
