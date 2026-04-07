@@ -1,28 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Building2,
-  Clock,
-  XCircle,
-  DollarSign,
-  Check,
-  X,
-  ArrowUpDown,
-  MoreHorizontal,
-  Eye,
-  FileText,
-} from 'lucide-react';
+import { Building2, Clock, XCircle, DollarSign, Check, X } from 'lucide-react';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import PageLayout from '@/components/layout/PageLayout';
 import { SkeletonCards, SkeletonTable } from '@/components/common/SkeletonLoader';
-import { ColorBadge } from '@/components/common/StatusBadge';
 import { DataTable } from '@/components/common/DataTable';
 import { StatCard } from '../dashboard/components';
 import { formatDateLocal, formatCurrency } from '@/lib/utils/dateUtils';
@@ -30,81 +12,13 @@ import { queryKeys } from '@/lib/queryKeys';
 import * as api from '@/lib/api/services';
 import { toast } from 'sonner';
 import { createLogger } from '@/lib/utils/logger';
-import type {
-  AdminStats,
-  AdminSchoolRow,
-  AdminPaymentRow,
-} from './types';
+import type { AdminStats, AdminSchoolRow, AdminPaymentRow } from './types';
 import { RejectPaymentDialog } from './components/RejectPaymentDialog';
-import { SubscriptionStatusBadge } from './components/SubscriptionStatusBadge';
-import { PaymentMethodBadge } from './components/PaymentMethodBadge';
 import { PaymentDetailDialog } from './components/PaymentDetailDialog';
+import { AdminRecentSchoolsTable } from './components/AdminRecentSchoolsTable';
+import { AdminRecentPaymentsTable } from './components/AdminRecentPaymentsTable';
 
 const logger = createLogger('AdminDashboardPage');
-
-// --- Payment Status Badge ---
-
-const paymentStatusConfig: Record<string, { variant: 'emerald' | 'amber' | 'red' | 'muted'; label: string }> = {
-  pending: { variant: 'amber', label: 'Pendiente' },
-  approved: { variant: 'emerald', label: 'Aprobado' },
-  rejected: { variant: 'red', label: 'Rechazado' },
-};
-
-function PaymentStatusBadge({ status }: { status: string }) {
-  const config = paymentStatusConfig[status] || { variant: 'muted' as const, label: status };
-  return <ColorBadge variant={config.variant} label={config.label} />;
-}
-
-// --- Columns ---
-
-const schoolColumns: ColumnDef<AdminSchoolRow, string>[] = [
-  {
-    accessorKey: 'name',
-    header: 'Escuela',
-    cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
-  },
-  {
-    accessorKey: 'email',
-    header: 'Email',
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">{row.original.email || '-'}</span>
-    ),
-  },
-  {
-    accessorKey: 'city',
-    header: 'Localidad',
-    cell: ({ row }) => (
-      <span>
-        {[row.original.city, row.original.province].filter(Boolean).join(', ') || '-'}
-      </span>
-    ),
-  },
-  {
-    accessorKey: 'plan',
-    header: 'Plan',
-  },
-  {
-    accessorKey: 'subscriptionStatus',
-    header: 'Estado',
-    cell: ({ row }) => <SubscriptionStatusBadge status={row.original.subscriptionStatus} />,
-  },
-  {
-    accessorKey: 'createdAt',
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        className="h-auto p-0 text-xs font-medium text-muted-foreground hover:text-foreground"
-        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-      >
-        Registro
-        <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
-      </Button>
-    ),
-    cell: ({ row }) => formatDateLocal(row.original.createdAt),
-  },
-];
-
-// --- Page ---
 
 const AdminDashboardPage = () => {
   const queryClient = useQueryClient();
@@ -132,21 +46,27 @@ const AdminDashboardPage = () => {
     open: false,
     paymentId: '',
   });
-  const [detailDialog, setDetailDialog] = useState<{ open: boolean; payment: AdminPaymentRow | null }>({
+  const [detailDialog, setDetailDialog] = useState<{
+    open: boolean;
+    payment: AdminPaymentRow | null;
+  }>({
     open: false,
     payment: null,
   });
+
+  const invalidatePaymentQueries = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminPendingPayments() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminRecentSales(10) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminStats() }),
+    ]);
 
   const handleApprove = async (paymentId: string) => {
     setActionLoading(paymentId);
     try {
       await api.approvePayment(paymentId);
       toast.success('Pago aprobado');
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.adminPendingPayments() }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.adminRecentSales(10) }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.adminStats() }),
-      ]);
+      await invalidatePaymentQueries();
     } catch (err) {
       logger.error('Error approving payment', err);
       toast.error('Error al aprobar el pago');
@@ -162,11 +82,7 @@ const AdminDashboardPage = () => {
     try {
       await api.rejectPayment(paymentId, reason);
       toast.success('Pago rechazado');
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.adminPendingPayments() }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.adminRecentSales(10) }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.adminStats() }),
-      ]);
+      await invalidatePaymentQueries();
     } catch (err) {
       logger.error('Error rejecting payment', err);
       toast.error('Error al rechazar el pago');
@@ -201,17 +117,20 @@ const AdminDashboardPage = () => {
       accessorKey: 'amount',
       header: 'Monto',
       cell: ({ row }) => formatCurrency(row.original.amount),
+      meta: { hideOnMobile: true },
     },
     {
       accessorKey: 'periodStart',
       header: 'Período',
       cell: ({ row }) =>
         `${formatDateLocal(row.original.periodStart)} – ${formatDateLocal(row.original.periodEnd)}`,
+      meta: { hideOnMobile: true },
     },
     {
       accessorKey: 'createdAt',
       header: 'Enviado',
       cell: ({ row }) => formatDateLocal(row.original.createdAt),
+      meta: { hideOnMobile: true },
     },
     {
       id: 'actions',
@@ -226,8 +145,10 @@ const AdminDashboardPage = () => {
               disabled={loading}
               onClick={() => handleApprove(row.original.id)}
               title="Aprobar"
+              aria-label={`Aprobar pago de ${row.original.companyName}`}
             >
               <Check className="h-4 w-4 text-emerald-600" />
+              <span className="sr-only">Aprobar pago</span>
             </Button>
             <Button
               variant="ghost"
@@ -235,72 +156,11 @@ const AdminDashboardPage = () => {
               disabled={loading}
               onClick={() => setRejectDialog({ open: true, paymentId: row.original.id })}
               title="Rechazar"
+              aria-label={`Rechazar pago de ${row.original.companyName}`}
             >
               <X className="h-4 w-4 text-destructive" />
+              <span className="sr-only">Rechazar pago</span>
             </Button>
-          </div>
-        );
-      },
-    },
-  ];
-
-  const saleColumns: ColumnDef<AdminPaymentRow, string>[] = [
-    {
-      accessorKey: 'companyName',
-      header: 'Escuela',
-      cell: ({ row }) => <span className="font-medium">{row.original.companyName}</span>,
-    },
-    {
-      accessorKey: 'amount',
-      header: 'Monto',
-      cell: ({ row }) => formatCurrency(row.original.amount),
-    },
-    {
-      accessorKey: 'paymentMethod',
-      header: 'Método',
-      cell: ({ row }) => <PaymentMethodBadge method={row.original.paymentMethod} />,
-    },
-    {
-      accessorKey: 'status',
-      header: 'Estado',
-      cell: ({ row }) => <PaymentStatusBadge status={row.original.status} />,
-    },
-    {
-      accessorKey: 'createdAt',
-      header: 'Fecha',
-      cell: ({ row }) => formatDateLocal(row.original.createdAt),
-    },
-    {
-      id: 'actions',
-      header: '',
-      cell: ({ row }) => {
-        const payment = row.original;
-        const isBankTransfer = payment.paymentMethod === 'bank_transfer';
-
-        return (
-          <div className="flex justify-end">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <MoreHorizontal className="h-4 w-4" />
-                  <span className="sr-only">Acciones</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => setDetailDialog({ open: true, payment })}
-                >
-                  <FileText className="mr-2 h-4 w-4" />
-                  Ver detalles
-                </DropdownMenuItem>
-                {isBankTransfer && payment.receiptUrl && (
-                  <DropdownMenuItem onClick={() => handleViewReceipt(payment)}>
-                    <Eye className="mr-2 h-4 w-4" />
-                    Ver comprobante
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         );
       },
@@ -309,7 +169,7 @@ const AdminDashboardPage = () => {
 
   if (isLoading) {
     return (
-      <PageLayout title="Dashboard">
+      <PageLayout title="Dashboard" showNotifications={false}>
         <div className="flex flex-col gap-6">
           <SkeletonCards />
           <SkeletonTable rows={5} />
@@ -320,7 +180,7 @@ const AdminDashboardPage = () => {
   }
 
   return (
-    <PageLayout title="Dashboard">
+    <PageLayout title="Dashboard" showNotifications={false}>
       <div className="flex flex-col gap-6">
         {/* Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -364,34 +224,57 @@ const AdminDashboardPage = () => {
               searchKey="companyName"
               searchPlaceholder="Buscar escuela..."
               pageSize={5}
+              cardRenderer={(row) => {
+                const loading = actionLoading === row.id;
+                return (
+                  <div className="border rounded-lg p-4 bg-card">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{row.companyName}</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          disabled={loading}
+                          onClick={() => handleApprove(row.id)}
+                          aria-label={`Aprobar pago de ${row.companyName}`}
+                          className="inline-flex items-center justify-center rounded-md h-8 w-8 hover:bg-accent disabled:opacity-50"
+                        >
+                          <Check className="h-4 w-4 text-emerald-600" />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={loading}
+                          onClick={() => setRejectDialog({ open: true, paymentId: row.id })}
+                          aria-label={`Rechazar pago de ${row.companyName}`}
+                          className="inline-flex items-center justify-center rounded-md h-8 w-8 hover:bg-accent disabled:opacity-50"
+                        >
+                          <X className="h-4 w-4 text-destructive" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="mt-1 text-sm text-muted-foreground">
+                      {formatCurrency(row.amount)} · {formatDateLocal(row.periodStart)} –{' '}
+                      {formatDateLocal(row.periodEnd)}
+                    </div>
+                    <div className="mt-2 text-sm text-muted-foreground">
+                      Enviado: {formatDateLocal(row.createdAt)}
+                    </div>
+                  </div>
+                );
+              }}
             />
           </section>
         )}
 
         {/* Recent Registrations */}
-        <section>
-          <h2 className="text-base font-medium mb-3">Registros recientes</h2>
-          <DataTable
-            columns={schoolColumns}
-            data={schools}
-            searchKey="name"
-            searchPlaceholder="Buscar escuela..."
-            pageSize={5}
-          />
-        </section>
+        <AdminRecentSchoolsTable schools={schools} />
 
         {/* Recent Sales */}
         {recentPayments.length > 0 && (
-          <section>
-            <h2 className="text-base font-medium mb-3">Ventas recientes</h2>
-            <DataTable
-              columns={saleColumns}
-              data={recentPayments}
-              searchKey="companyName"
-              searchPlaceholder="Buscar..."
-              pageSize={5}
-            />
-          </section>
+          <AdminRecentPaymentsTable
+            payments={recentPayments}
+            onViewDetails={(payment) => setDetailDialog({ open: true, payment })}
+            onViewReceipt={handleViewReceipt}
+          />
         )}
       </div>
 
