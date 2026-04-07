@@ -8,6 +8,34 @@ export const queryKeys = {
   plans: () => ['plans'] as const,
   dashboard: (companyId: string) => ['dashboard', companyId] as const,
 
+  // Domain modules
+  fireExtinguishers: {
+    all: ['fireExtinguishers'] as const,
+    list: (companyId: string) => ['fireExtinguishers', companyId] as const,
+    detail: (id: string) => ['fireExtinguishers', 'detail', id] as const,
+  },
+  certificates: {
+    all: ['certificates'] as const,
+    list: (companyId: string) => ['certificates', companyId] as const,
+    detail: (id: string) => ['certificates', 'detail', id] as const,
+  },
+  systems: {
+    all: ['systems'] as const,
+    list: (companyId: string) => ['systems', companyId] as const,
+    detail: (id: string) => ['systems', 'detail', id] as const,
+  },
+  events: {
+    all: ['events'] as const,
+    list: (companyId: string) => ['events', companyId] as const,
+    detail: (id: string) => ['events', 'detail', id] as const,
+  },
+  qrDocuments: {
+    all: ['qrDocuments'] as const,
+    list: (companyId: string, type?: string) =>
+      type ? (['qrDocuments', companyId, type] as const) : (['qrDocuments', companyId] as const),
+    detail: (id: string) => ['qrDocuments', 'detail', id] as const,
+  },
+
   // Admin
   adminStats: () => ['admin', 'stats'] as const,
   adminSchools: () => ['admin', 'schools'] as const,
