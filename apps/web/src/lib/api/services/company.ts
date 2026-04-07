@@ -1,4 +1,3 @@
-
 import { supabase } from '../../supabase/client';
 import { Company, Employee } from '../../../types/index';
 import { mapCompanyFromDb } from '../mappers';
@@ -6,9 +5,14 @@ import { AuthError, NotFoundError, handleSupabaseError } from '../../utils/error
 import { getCurrentUser } from './auth';
 import { Tables, TablesUpdate } from '../../../types/database.types';
 
-export const createCompany = async (companyData: Omit<Company, 'id' | 'userId' | 'employees' | 'isSubscribed' | 'selectedPlan'>): Promise<Company> => {
+const isNotFoundError = (error: { code?: string; message: string }): boolean =>
+  error.code === 'PGRST116' || error.message.toLowerCase() === 'not found';
+
+export const createCompany = async (
+  companyData: Omit<Company, 'id' | 'userId' | 'employees' | 'isSubscribed' | 'selectedPlan'>
+): Promise<Company> => {
   const currentUser = await getCurrentUser();
-  if (!currentUser) throw new AuthError("Usuario no autenticado");
+  if (!currentUser) throw new AuthError('Usuario no autenticado');
 
   const { data, error } = await supabase
     .from('companies')
@@ -35,12 +39,13 @@ export const createCompany = async (companyData: Omit<Company, 'id' | 'userId' |
   if (error) {
     handleSupabaseError(error);
   }
+  if (!data) throw new Error('No se pudo crear la empresa');
 
   // Create initial employee (the owner)
   const { data: employeeData } = await supabase
     .from('employees')
     .insert({
-      company_id: data!.id,
+      company_id: data.id,
       name: currentUser.name,
       email: currentUser.email,
       role: 'Administrador',
@@ -49,7 +54,7 @@ export const createCompany = async (companyData: Omit<Company, 'id' | 'userId' |
     .single();
 
   // Return with the created employee (no extra query needed)
-  return mapCompanyFromDb(data!, employeeData ? [employeeData] : []);
+  return mapCompanyFromDb(data, employeeData ? [employeeData] : []);
 };
 
 /**
@@ -63,8 +68,14 @@ export const getCompanyIdByUserId = async (userId: string): Promise<string> => {
     .eq('user_id', userId)
     .single();
 
-  if (error || !data) {
-    throw new NotFoundError("Empresa no encontrada", "company");
+  if (error) {
+    if (isNotFoundError(error)) {
+      throw new NotFoundError('Empresa no encontrada', 'company');
+    }
+    handleSupabaseError(error, 'Error al obtener empresa');
+  }
+  if (!data) {
+    throw new NotFoundError('Empresa no encontrada', 'company');
   }
 
   return data.id;
@@ -78,8 +89,14 @@ export const getCompanyByUserId = async (userId: string): Promise<Company> => {
     .eq('user_id', userId)
     .single();
 
-  if (error || !data) {
-    throw new NotFoundError("Empresa no encontrada", "company");
+  if (error) {
+    if (isNotFoundError(error)) {
+      throw new NotFoundError('Empresa no encontrada', 'company');
+    }
+    handleSupabaseError(error, 'Error al obtener empresa');
+  }
+  if (!data) {
+    throw new NotFoundError('Empresa no encontrada', 'company');
   }
 
   // Extract employees from the joined result
@@ -89,7 +106,7 @@ export const getCompanyByUserId = async (userId: string): Promise<Company> => {
 };
 
 export const updateCompany = async (companyData: Partial<Company>): Promise<Company> => {
-  if (!companyData.id) throw new Error("ID de empresa requerido");
+  if (!companyData.id) throw new Error('ID de empresa requerido');
 
   const updateData: TablesUpdate<'companies'> = {};
   if (companyData.name) updateData.name = companyData.name;
@@ -105,13 +122,16 @@ export const updateCompany = async (companyData: Partial<Company>): Promise<Comp
   if (companyData.phone) updateData.phone = companyData.phone;
   if (companyData.isSubscribed !== undefined) updateData.is_subscribed = companyData.isSubscribed;
   if (companyData.selectedPlan) updateData.selected_plan = companyData.selectedPlan;
-  if (companyData.subscriptionStatus) updateData.subscription_status = companyData.subscriptionStatus;
-  if (companyData.subscriptionRenewalDate) updateData.subscription_renewal_date = companyData.subscriptionRenewalDate;
+  if (companyData.subscriptionStatus)
+    updateData.subscription_status = companyData.subscriptionStatus;
+  if (companyData.subscriptionRenewalDate)
+    updateData.subscription_renewal_date = companyData.subscriptionRenewalDate;
   if (companyData.trialEndsAt !== undefined) updateData.trial_ends_at = companyData.trialEndsAt;
   if (companyData.services !== undefined) {
     updateData.services = companyData.services;
   }
-  if (companyData.paymentMethods) updateData.payment_methods = JSON.parse(JSON.stringify(companyData.paymentMethods));
+  if (companyData.paymentMethods)
+    updateData.payment_methods = JSON.parse(JSON.stringify(companyData.paymentMethods));
 
   // Use relational query to fetch updated company with employees in a single query (N+1 fix)
   const { data, error } = await supabase
@@ -124,9 +144,10 @@ export const updateCompany = async (companyData: Partial<Company>): Promise<Comp
   if (error) {
     handleSupabaseError(error);
   }
+  if (!data) throw new Error('No se pudo actualizar la empresa');
 
   // Extract employees from the joined result
-  const { employees, ...companyResult } = data!;
+  const { employees, ...companyResult } = data;
 
   return mapCompanyFromDb(companyResult as Tables<'companies'>, employees || []);
 };
@@ -144,8 +165,8 @@ export const activateTrial = async (companyId: string): Promise<Company> => {
   if (error) {
     handleSupabaseError(error);
   }
+  if (!data) throw new Error('No se pudo activar el período de prueba');
 
-  const { employees, ...companyResult } = data!;
+  const { employees, ...companyResult } = data;
   return mapCompanyFromDb(companyResult as Tables<'companies'>, employees || []);
 };
-

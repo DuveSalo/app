@@ -8,7 +8,9 @@ import type { SubscriptionPlanRow } from '../../../../features/admin/types';
 export const getSubscriptionPlans = async (): Promise<SubscriptionPlanRow[]> => {
   const { data, error } = await supabase
     .from('subscription_plans')
-    .select('id, key, name, price, features, is_active, sort_order, description, tag, highlighted, created_at')
+    .select(
+      'id, key, name, price, features, is_active, sort_order, description, tag, highlighted, created_at'
+    )
     .order('sort_order', { ascending: true });
 
   if (error) handleSupabaseError(error);
@@ -62,13 +64,14 @@ export const createSubscriptionPlan = async (plan: {
     .single();
 
   if (error) handleSupabaseError(error);
+  if (!data) throw new Error('No se pudo crear el plan');
 
   // Log action
   await supabase.from('activity_logs').insert({
     admin_id: user.id,
     action: 'create_plan',
     target_type: 'subscription_plan',
-    target_id: data!.id,
+    target_id: data.id,
     metadata: { name: plan.name, price: plan.price },
   });
 };
@@ -159,10 +162,7 @@ export const deleteSubscriptionPlan = async (planId: string): Promise<void> => {
     target_id: planId,
   });
 
-  const { error } = await supabase
-    .from('subscription_plans')
-    .delete()
-    .eq('id', planId);
+  const { error } = await supabase.from('subscription_plans').delete().eq('id', planId);
 
   if (error) handleSupabaseError(error);
 };

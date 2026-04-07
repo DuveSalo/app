@@ -1,9 +1,19 @@
 import { supabase } from '../../supabase/client';
-import { FireExtinguisherControl, ExtinguisherType, ExtinguisherCapacity, YesNo, YesNoNA } from '../../../types/index';
-import { handleSupabaseError } from '../../utils/errors';
+import {
+  FireExtinguisherControl,
+  ExtinguisherType,
+  ExtinguisherCapacity,
+  YesNo,
+  YesNoNA,
+} from '../../../types/index';
+import { handleSupabaseError, NotFoundError } from '../../utils/errors';
 import { getAuthenticatedCompanyId } from './context';
 import { Tables } from '../../../types/database.types';
-import { PaginationParams, CursorPaginationParams, CursorPaginatedResult } from '../../../types/common';
+import {
+  PaginationParams,
+  CursorPaginationParams,
+  CursorPaginatedResult,
+} from '../../../types/common';
 import { parseCursor } from '../../utils/pagination';
 
 type FireExtinguisherRow = Tables<'fire_extinguishers'>;
@@ -91,7 +101,9 @@ export const getFireExtinguishersCursor = async (
     try {
       const { cursorDate, cursorId } = parseCursor(params.cursor);
       // Keyset pagination: get items where (control_date, id) < (cursorDate, cursorId)
-      query = query.or(`control_date.lt.${cursorDate},and(control_date.eq.${cursorDate},id.lt.${cursorId})`);
+      query = query.or(
+        `control_date.lt.${cursorDate},and(control_date.eq.${cursorDate},id.lt.${cursorId})`
+      );
     } catch {
       // Invalid cursor, ignore
     }
@@ -112,12 +124,9 @@ export const getFireExtinguishersCursor = async (
 
   return {
     items,
-    nextCursor: hasMore && lastItem
-      ? btoa(`${lastItem.controlDate}|${lastItem.id}`)
-      : null,
-    prevCursor: params.cursor && firstItem
-      ? btoa(`${firstItem.controlDate}|${firstItem.id}`)
-      : null,
+    nextCursor: hasMore && lastItem ? btoa(`${lastItem.controlDate}|${lastItem.id}`) : null,
+    prevCursor:
+      params.cursor && firstItem ? btoa(`${firstItem.controlDate}|${firstItem.id}`) : null,
     hasMore,
   };
 };
@@ -135,8 +144,11 @@ export const getFireExtinguisherById = async (id: string): Promise<FireExtinguis
   if (error) {
     handleSupabaseError(error);
   }
+  if (!data) {
+    throw new NotFoundError('Control de matafuego no encontrado', 'fire_extinguisher');
+  }
 
-  return mapDbToFireExtinguisher(data!);
+  return mapDbToFireExtinguisher(data);
 };
 
 export const createFireExtinguisher = async (
@@ -181,8 +193,9 @@ export const createFireExtinguisher = async (
   if (error) {
     handleSupabaseError(error);
   }
+  if (!data) throw new Error('No se pudo crear el matafuego');
 
-  return mapDbToFireExtinguisher(data!);
+  return mapDbToFireExtinguisher(data);
 };
 
 export const updateFireExtinguisher = async (
@@ -229,15 +242,19 @@ export const updateFireExtinguisher = async (
   if (error) {
     handleSupabaseError(error);
   }
+  if (!data) throw new Error('No se pudo actualizar el matafuego');
 
-  return mapDbToFireExtinguisher(data!);
+  return mapDbToFireExtinguisher(data);
 };
 
 export const deleteFireExtinguisher = async (id: string): Promise<void> => {
+  const companyId = await getAuthenticatedCompanyId();
+
   const { error } = await supabase
     .from('fire_extinguishers')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('company_id', companyId);
 
   if (error) {
     handleSupabaseError(error);

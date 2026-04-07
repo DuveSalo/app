@@ -1,12 +1,18 @@
-
 import { supabase } from '../../supabase/client';
 import { ConservationCertificate } from '../../../types/index';
 import { mapCertificateFromDb } from '../mappers';
 import { NotFoundError, handleSupabaseError } from '../../utils/errors';
 import { getAuthenticatedCompanyId } from './context';
 import { TablesUpdate } from '../../../types/database.types';
-import { PaginationParams, CursorPaginationParams, CursorPaginatedResult } from '../../../types/common';
+import {
+  PaginationParams,
+  CursorPaginationParams,
+  CursorPaginatedResult,
+} from '../../../types/common';
 import { parseCursor } from '../../utils/pagination';
+
+const isNotFoundError = (error: { code?: string; message: string }): boolean =>
+  error.code === 'PGRST116' || error.message.toLowerCase() === 'not found';
 
 export const getCertificates = async (
   companyId?: string,
@@ -61,8 +67,12 @@ export const getCertificatesCursor = async (
   if (params.cursor) {
     try {
       const { cursorDate, cursorId } = parseCursor(params.cursor);
-      query = query.or(`expiration_date.lt.${cursorDate},and(expiration_date.eq.${cursorDate},id.lt.${cursorId})`);
-    } catch { /* Invalid cursor */ }
+      query = query.or(
+        `expiration_date.lt.${cursorDate},and(expiration_date.eq.${cursorDate},id.lt.${cursorId})`
+      );
+    } catch {
+      /* Invalid cursor */
+    }
   }
 
   const { data, error } = await query;
@@ -76,7 +86,8 @@ export const getCertificatesCursor = async (
   return {
     items,
     nextCursor: hasMore && lastItem ? btoa(`${lastItem.expirationDate}|${lastItem.id}`) : null,
-    prevCursor: params.cursor && firstItem ? btoa(`${firstItem.expirationDate}|${firstItem.id}`) : null,
+    prevCursor:
+      params.cursor && firstItem ? btoa(`${firstItem.expirationDate}|${firstItem.id}`) : null,
     hasMore,
   };
 };
@@ -93,14 +104,22 @@ export const getCertificateById = async (id: string): Promise<ConservationCertif
     .eq('company_id', companyId)
     .single();
 
-  if (error || !data) {
+  if (error) {
+    if (isNotFoundError(error)) {
+      throw new NotFoundError('Certificado no encontrado', 'certificate');
+    }
+    handleSupabaseError(error, 'Error al obtener certificado');
+  }
+  if (!data) {
     throw new NotFoundError('Certificado no encontrado', 'certificate');
   }
 
   return mapCertificateFromDb(data);
 };
 
-export const createCertificate = async (certData: Omit<ConservationCertificate, 'id' | 'companyId'>): Promise<ConservationCertificate> => {
+export const createCertificate = async (
+  certData: Omit<ConservationCertificate, 'id' | 'companyId'>
+): Promise<ConservationCertificate> => {
   const companyId = await getAuthenticatedCompanyId();
 
   let pdfFileUrl: string | null = null;
@@ -117,7 +136,7 @@ export const createCertificate = async (certData: Omit<ConservationCertificate, 
       .from('certificates')
       .upload(fileName, certData.pdfFile, {
         contentType: certData.pdfFile.type || 'application/pdf',
-        upsert: false
+        upsert: false,
       });
 
     if (uploadError) {
@@ -155,11 +174,14 @@ export const createCertificate = async (certData: Omit<ConservationCertificate, 
   if (error) {
     handleSupabaseError(error);
   }
+  if (!data) throw new Error('No se pudo crear el certificado');
 
-  return mapCertificateFromDb(data!);
+  return mapCertificateFromDb(data);
 };
 
-export const updateCertificate = async (certData: ConservationCertificate): Promise<ConservationCertificate> => {
+export const updateCertificate = async (
+  certData: ConservationCertificate
+): Promise<ConservationCertificate> => {
   const companyId = await getAuthenticatedCompanyId();
 
   let pdfFileUrl: string | null = null;
@@ -176,7 +198,10 @@ export const updateCertificate = async (certData: ConservationCertificate): Prom
       .single();
 
     if (existing?.pdf_file_path) {
-      await supabase.storage.from('certificates').remove([existing.pdf_file_path]).catch(() => {});
+      await supabase.storage
+        .from('certificates')
+        .remove([existing.pdf_file_path])
+        .catch(() => {});
     }
 
     // Sanitize filename - remove special characters and spaces
@@ -188,7 +213,7 @@ export const updateCertificate = async (certData: ConservationCertificate): Prom
       .from('certificates')
       .upload(fileName, certData.pdfFile, {
         contentType: certData.pdfFile.type || 'application/pdf',
-        upsert: false
+        upsert: false,
       });
 
     if (uploadError) {
@@ -233,22 +258,27 @@ export const updateCertificate = async (certData: ConservationCertificate): Prom
   if (error) {
     handleSupabaseError(error);
   }
+  if (!data) throw new Error('No se pudo actualizar el certificado');
 
-  return mapCertificateFromDb(data!);
+  return mapCertificateFromDb(data);
 };
 
 export const deleteCertificate = async (id: string): Promise<void> => {
+  const companyId = await getAuthenticatedCompanyId();
+
   // Fetch file path before deleting the record
   const { data: cert } = await supabase
     .from('conservation_certificates')
     .select('pdf_file_path')
     .eq('id', id)
+    .eq('company_id', companyId)
     .single();
 
   const { error } = await supabase
     .from('conservation_certificates')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('company_id', companyId);
 
   if (error) {
     handleSupabaseError(error);
@@ -256,6 +286,9 @@ export const deleteCertificate = async (id: string): Promise<void> => {
 
   // Clean up storage (best-effort, don't fail the delete if this errors)
   if (cert?.pdf_file_path) {
-    await supabase.storage.from('certificates').remove([cert.pdf_file_path]).catch(() => { });
+    await supabase.storage
+      .from('certificates')
+      .remove([cert.pdf_file_path])
+      .catch(() => {});
   }
 };

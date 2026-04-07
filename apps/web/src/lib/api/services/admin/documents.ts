@@ -14,11 +14,12 @@ import type {
   EventInformation,
 } from '../../../../types';
 import type { AdminDocumentModule } from '../../../../features/admin/types';
+import type { Tables } from '../../../../types/database.types';
 
 /**
  * Inline mapper for fire extinguishers (same as in fireExtinguisher.ts).
  */
-const mapFireExtinguisher = (item: any): FireExtinguisherControl => ({
+const mapFireExtinguisher = (item: Tables<'fire_extinguishers'>): FireExtinguisherControl => ({
   id: item.id,
   companyId: item.company_id,
   controlDate: item.control_date,
@@ -58,7 +59,9 @@ export const getSchoolFireExtinguishers = async (
 ): Promise<FireExtinguisherControl[]> => {
   const { data, error } = await supabase
     .from('fire_extinguishers')
-    .select('*')
+    .select(
+      'id, company_id, control_date, extinguisher_number, type, capacity, class, position_number, charge_expiration_date, hydraulic_pressure_expiration_date, manufacturing_year, tag_color, labels_legible, pressure_within_range, has_seal_and_safety, instructions_legible, container_condition, nozzle_condition, visibility_obstructed, access_obstructed, signage_condition, signage_floor, signage_wall, signage_height, glass_condition, door_opens_easily, cabinet_clean, observations, created_at, updated_at'
+    )
     .eq('company_id', companyId)
     .order('control_date', { ascending: false });
   if (error) handleSupabaseError(error);
@@ -70,7 +73,9 @@ export const getSchoolCertificates = async (
 ): Promise<(ConservationCertificate & { pdfFilePath?: string })[]> => {
   const { data, error } = await supabase
     .from('conservation_certificates')
-    .select('*')
+    .select(
+      'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path'
+    )
     .eq('company_id', companyId)
     .order('expiration_date', { ascending: false });
   if (error) handleSupabaseError(error);
@@ -91,7 +96,9 @@ export const getSchoolSystems = async (
 > => {
   const { data, error } = await supabase
     .from('self_protection_systems')
-    .select('*')
+    .select(
+      'id, company_id, probatory_disposition_date, probatory_disposition_pdf_name, probatory_disposition_pdf_url, probatory_disposition_pdf_path, extension_date, extension_pdf_name, extension_pdf_url, extension_pdf_path, expiration_date, drills, intervener, registration_number'
+    )
     .eq('company_id', companyId)
     .order('expiration_date', { ascending: false });
   if (error) handleSupabaseError(error);
@@ -115,7 +122,9 @@ export const getSchoolQRDocuments = async (
 ): Promise<(QRDocument & { pdfFilePath?: string })[]> => {
   let query = supabase
     .from('qr_documents')
-    .select('*')
+    .select(
+      'id, company_id, type, document_name, floor, unit, pdf_file_url, pdf_file_path, upload_date, qr_code_data, extracted_date'
+    )
     .eq('company_id', companyId)
     .order('upload_date', { ascending: false });
   if (type) query = query.eq('type', type);
@@ -127,12 +136,12 @@ export const getSchoolQRDocuments = async (
   }));
 };
 
-export const getSchoolEvents = async (
-  companyId: string
-): Promise<EventInformation[]> => {
+export const getSchoolEvents = async (companyId: string): Promise<EventInformation[]> => {
   const { data, error } = await supabase
     .from('events')
-    .select('*')
+    .select(
+      'id, company_id, date, time, description, corrective_actions, testimonials, observations, final_checks'
+    )
     .eq('company_id', companyId)
     .order('date', { ascending: false });
   if (error) handleSupabaseError(error);
@@ -160,20 +169,29 @@ const logAdminAction = async (
   });
 };
 
-export const adminDeleteFireExtinguisher = async (id: string): Promise<void> => {
-  const { error } = await supabase.from('fire_extinguishers').delete().eq('id', id);
+export const adminDeleteFireExtinguisher = async (id: string, companyId: string): Promise<void> => {
+  const { error } = await supabase
+    .from('fire_extinguishers')
+    .delete()
+    .eq('id', id)
+    .eq('company_id', companyId);
   if (error) handleSupabaseError(error);
   await logAdminAction('delete_document', 'fire_extinguisher', id);
 };
 
-export const adminDeleteCertificate = async (id: string): Promise<void> => {
+export const adminDeleteCertificate = async (id: string, companyId: string): Promise<void> => {
   const { data } = await supabase
     .from('conservation_certificates')
     .select('pdf_file_path')
     .eq('id', id)
+    .eq('company_id', companyId)
     .single();
 
-  const { error } = await supabase.from('conservation_certificates').delete().eq('id', id);
+  const { error } = await supabase
+    .from('conservation_certificates')
+    .delete()
+    .eq('id', id)
+    .eq('company_id', companyId);
   if (error) handleSupabaseError(error);
 
   if (data?.pdf_file_path) {
@@ -182,25 +200,34 @@ export const adminDeleteCertificate = async (id: string): Promise<void> => {
   await logAdminAction('delete_document', 'conservation_certificate', id);
 };
 
-export const adminDeleteSystem = async (id: string): Promise<void> => {
+export const adminDeleteSystem = async (id: string, companyId: string): Promise<void> => {
   const { data } = await supabase
     .from('self_protection_systems')
     .select('probatory_disposition_pdf_path, extension_pdf_path, drills')
     .eq('id', id)
+    .eq('company_id', companyId)
     .single();
 
-  const { error } = await supabase.from('self_protection_systems').delete().eq('id', id);
+  const { error } = await supabase
+    .from('self_protection_systems')
+    .delete()
+    .eq('id', id)
+    .eq('company_id', companyId);
   if (error) handleSupabaseError(error);
 
   if (data) {
     const filesToRemove: string[] = [];
     if (data.probatory_disposition_pdf_path)
       filesToRemove.push(data.probatory_disposition_pdf_path);
-    if (data.extension_pdf_path)
-      filesToRemove.push(data.extension_pdf_path);
+    if (data.extension_pdf_path) filesToRemove.push(data.extension_pdf_path);
     const drills = Array.isArray(data.drills) ? data.drills : [];
     for (const drill of drills) {
-      if (typeof drill === 'object' && drill !== null && 'pdfPath' in drill && typeof (drill as Record<string, unknown>).pdfPath === 'string')
+      if (
+        typeof drill === 'object' &&
+        drill !== null &&
+        'pdfPath' in drill &&
+        typeof (drill as Record<string, unknown>).pdfPath === 'string'
+      )
         filesToRemove.push((drill as Record<string, unknown>).pdfPath as string);
     }
     if (filesToRemove.length > 0) {
@@ -210,14 +237,19 @@ export const adminDeleteSystem = async (id: string): Promise<void> => {
   await logAdminAction('delete_document', 'self_protection_system', id);
 };
 
-export const adminDeleteQRDocument = async (id: string): Promise<void> => {
+export const adminDeleteQRDocument = async (id: string, companyId: string): Promise<void> => {
   const { data } = await supabase
     .from('qr_documents')
     .select('pdf_file_path')
     .eq('id', id)
+    .eq('company_id', companyId)
     .single();
 
-  const { error } = await supabase.from('qr_documents').delete().eq('id', id);
+  const { error } = await supabase
+    .from('qr_documents')
+    .delete()
+    .eq('id', id)
+    .eq('company_id', companyId);
   if (error) handleSupabaseError(error);
 
   if (data?.pdf_file_path) {
@@ -226,21 +258,19 @@ export const adminDeleteQRDocument = async (id: string): Promise<void> => {
   await logAdminAction('delete_document', 'qr_document', id);
 };
 
-export const adminDeleteEvent = async (id: string): Promise<void> => {
-  const { error } = await supabase.from('events').delete().eq('id', id);
+export const adminDeleteEvent = async (id: string, companyId: string): Promise<void> => {
+  const { error } = await supabase.from('events').delete().eq('id', id).eq('company_id', companyId);
   if (error) handleSupabaseError(error);
   await logAdminAction('delete_document', 'event', id);
 };
 
 // ─── Signed URLs for PDF viewing ────────────────────────
 
-export const getAdminSignedUrl = async (
-  bucket: string,
-  path: string
-): Promise<string> => {
+export const getAdminSignedUrl = async (bucket: string, path: string): Promise<string> => {
   const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
   if (error) handleSupabaseError(error);
-  return data!.signedUrl;
+  if (!data) throw new Error('No se pudo generar la URL firmada');
+  return data.signedUrl;
 };
 
 // ─── Document fetcher by module key ─────────────────────
@@ -265,18 +295,19 @@ export const getSchoolDocuments = async (
 
 export const adminDeleteDocument = async (
   module: AdminDocumentModule,
-  id: string
+  id: string,
+  companyId: string
 ): Promise<void> => {
   switch (module) {
     case 'fire_extinguishers':
-      return adminDeleteFireExtinguisher(id);
+      return adminDeleteFireExtinguisher(id, companyId);
     case 'conservation_certificates':
-      return adminDeleteCertificate(id);
+      return adminDeleteCertificate(id, companyId);
     case 'self_protection_systems':
-      return adminDeleteSystem(id);
+      return adminDeleteSystem(id, companyId);
     case 'qr_documents':
-      return adminDeleteQRDocument(id);
+      return adminDeleteQRDocument(id, companyId);
     case 'events':
-      return adminDeleteEvent(id);
+      return adminDeleteEvent(id, companyId);
   }
 };

@@ -1,4 +1,3 @@
-
 import { supabase } from '../../supabase/client';
 import { Employee } from '../../../types/index';
 import { handleSupabaseError } from '../../utils/errors';
@@ -22,11 +21,12 @@ export const addEmployee = async (employee: Omit<Employee, 'id'>): Promise<Emplo
     handleSupabaseError(error);
   }
 
+  if (!data) throw new Error('No se pudo crear el empleado');
   return {
-    id: data!.id,
-    name: data!.name,
-    email: data!.email,
-    role: data!.role,
+    id: data.id,
+    name: data.name,
+    email: data.email,
+    role: data.role,
   };
 };
 
@@ -46,11 +46,12 @@ export const updateEmployee = async (employee: Employee): Promise<Employee> => {
     handleSupabaseError(error);
   }
 
+  if (!data) throw new Error('No se pudo actualizar el empleado');
   return {
-    id: data!.id,
-    name: data!.name,
-    email: data!.email,
-    role: data!.role,
+    id: data.id,
+    name: data.name,
+    email: data.email,
+    role: data.role,
   };
 };
 
@@ -68,13 +69,10 @@ export const deleteEmployee = async (employeeId: string): Promise<void> => {
   }
 
   if (count !== null && count <= 1) {
-    throw new Error("No se puede eliminar al único empleado de la empresa.");
+    throw new Error('No se puede eliminar al único empleado de la empresa.');
   }
 
-  const { error } = await supabase
-    .from('employees')
-    .delete()
-    .eq('id', employeeId);
+  const { error } = await supabase.from('employees').delete().eq('id', employeeId);
 
   if (error) {
     handleSupabaseError(error);
