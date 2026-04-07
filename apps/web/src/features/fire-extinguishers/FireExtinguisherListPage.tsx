@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, MoreHorizontal, Pencil, Trash2, ArrowUpDown } from 'lucide-react';
 import { type ColumnDef } from '@tanstack/react-table';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { FireExtinguisherControl } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
 import * as api from '@/lib/api/services';
+import { queryKeys } from '@/lib/queryKeys';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -25,12 +27,17 @@ import { formatDateLocal, calculateExpirationStatus } from '../../lib/utils/date
 import { Empty } from '../../components/common/Empty';
 
 const FireExtinguisherListPage = () => {
-  const [extinguishers, setExtinguishers] = useState<FireExtinguisherControl[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { currentCompany } = useAuth();
+  const queryClient = useQueryClient();
+
+  const { data: extinguishers = [], isLoading } = useQuery({
+    queryKey: queryKeys.fireExtinguishers.list(currentCompany?.id ?? ''),
+    queryFn: () => api.getFireExtinguishers(currentCompany!.id),
+    enabled: !!currentCompany,
+  });
 
   const columns: ColumnDef<FireExtinguisherControl, string>[] = [
     {
@@ -109,31 +116,16 @@ const FireExtinguisherListPage = () => {
     },
   ];
 
-  const loadExtinguishers = useCallback(async () => {
-    if (!currentCompany) return;
-    setIsLoading(true);
-    try {
-      const data = await api.getFireExtinguishers(currentCompany.id);
-      setExtinguishers(data);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al cargar extintores');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentCompany]);
-
-  useEffect(() => {
-    loadExtinguishers();
-  }, [loadExtinguishers]);
-
   const handleDelete = async () => {
-    if (!deleteId) return;
+    if (!deleteId || !currentCompany) return;
     setIsDeleting(true);
     try {
       await api.deleteFireExtinguisher(deleteId);
       toast.success('Extintor eliminado correctamente');
       setDeleteId(null);
-      loadExtinguishers();
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.fireExtinguishers.list(currentCompany.id),
+      });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al eliminar extintor');
     } finally {
