@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, MoreHorizontal, Pencil, Trash2, Eye, ArrowUpDown } from 'lucide-react';
 import { type ColumnDef } from '@tanstack/react-table';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ConservationCertificate } from '../../types/index';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
 import * as api from '@/lib/api/services';
+import { queryKeys } from '@/lib/queryKeys';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -26,12 +28,21 @@ import { Empty } from '../../components/common/Empty';
 import { openSupabaseStorageDocument } from '@/lib/utils/openSupabaseStorageDocument';
 
 const ConservationCertificateListPage = () => {
-  const [certificates, setCertificates] = useState<ConservationCertificate[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { currentCompany } = useAuth();
+  const queryClient = useQueryClient();
+
+  const {
+    data: certificates = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: queryKeys.certificates.list(currentCompany?.id ?? ''),
+    queryFn: () => api.getCertificates(currentCompany!.id),
+    enabled: !!currentCompany,
+  });
 
   const handleOpenDocument = useCallback(async (certificate: ConservationCertificate) => {
     try {
@@ -130,33 +141,14 @@ const ConservationCertificateListPage = () => {
     },
   ];
 
-  const loadCertificates = useCallback(async () => {
-    if (!currentCompany) return;
-    setIsLoading(true);
-    try {
-      const data = await api.getCertificates(currentCompany.id);
-      setCertificates(data);
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Error al cargar certificados');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentCompany]);
-
-  useEffect(() => {
-    loadCertificates();
-  }, [loadCertificates]);
-
   const handleDeleteConfirm = async () => {
-    if (!deleteId) return;
+    if (!deleteId || !currentCompany) return;
     setIsDeleting(true);
-    const prev = [...certificates];
-    setCertificates((c) => c.filter((cert) => cert.id !== deleteId));
     try {
       await api.deleteCertificate(deleteId);
       toast.success('Certificado eliminado correctamente');
+      queryClient.invalidateQueries({ queryKey: queryKeys.certificates.list(currentCompany.id) });
     } catch (err: unknown) {
-      setCertificates(prev);
       toast.error(err instanceof Error ? err.message : 'Error al eliminar certificado');
     } finally {
       setIsDeleting(false);
@@ -175,6 +167,10 @@ const ConservationCertificateListPage = () => {
     <PageLayout title={MODULE_TITLES.CONSERVATION_CERTIFICATES} headerActions={headerActions}>
       {isLoading ? (
         <SkeletonTable />
+      ) : error ? (
+        <p className="text-destructive text-sm">
+          {error instanceof Error ? error.message : 'Error al cargar certificados'}
+        </p>
       ) : certificates.length === 0 ? (
         <Empty
           icon="file"
