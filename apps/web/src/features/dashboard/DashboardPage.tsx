@@ -38,6 +38,7 @@ const columns: ColumnDef<DashboardItem, string>[] = [
   {
     accessorKey: 'type',
     header: 'Tipo',
+    meta: { hideOnMobile: true },
   },
   {
     accessorKey: 'status',
@@ -48,12 +49,17 @@ const columns: ColumnDef<DashboardItem, string>[] = [
   {
     accessorKey: 'expirationDate',
     header: ({ column }) => (
-      <Button variant="ghost" className="h-auto p-0 text-xs font-medium text-muted-foreground hover:text-foreground" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+      <Button
+        variant="ghost"
+        className="h-auto p-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+      >
         Vencimiento
         <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
       </Button>
     ),
     cell: ({ row }) => formatDateLocal(row.original.expirationDate),
+    meta: { hideOnMobile: true },
   },
 ];
 
@@ -62,6 +68,7 @@ const DashboardPage = () => {
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: queryKeys.dashboard(currentCompany?.id ?? ''),
+    enabled: !!currentCompany,
     queryFn: async () => {
       const allItems: DashboardItem[] = [];
 
@@ -157,7 +164,7 @@ const DashboardPage = () => {
     <PageLayout title="Inicio">
       <div className="flex flex-col h-full gap-6 overflow-y-auto custom-scrollbar">
         {/* Stat cards */}
-        <div className="flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
           <StatCard
             label="Total documentos"
             value={stats.total}
@@ -196,6 +203,20 @@ const DashboardPage = () => {
           searchPlaceholder="Buscar documentos..."
           pageSize={5}
           toolbar={(table) => <StatusFilter column={table.getColumn('status')} />}
+          cardRenderer={(row: DashboardItem) => (
+            <div className="border rounded-lg p-4 bg-card">
+              <div className="flex items-start justify-between gap-2">
+                <span className="font-medium text-sm leading-snug">{row.name}</span>
+                <StatusBadge status={row.status} />
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">{row.type}</span>
+                <span className="text-xs text-muted-foreground">
+                  {formatDateLocal(row.expirationDate)}
+                </span>
+              </div>
+            </div>
+          )}
         />
       </div>
     </PageLayout>

@@ -1,6 +1,20 @@
-import { type ReactNode, useRef, useEffect, useState } from 'react';
-import { Search, ArrowUpDown, SlidersHorizontal, X } from 'lucide-react';
+import { type ReactNode } from 'react';
+import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  FilterCountBadge,
+  FilterOptionChip,
+  StatusOptionChip,
+  activeFilterButtonClasses,
+  isExpirationStatus,
+} from '@/components/common/TableFilterControls';
 import { cn } from '@/lib/utils';
 
 interface TableToolbarProps {
@@ -16,27 +30,6 @@ interface TableToolbarProps {
   additionalFilters?: ReactNode;
 }
 
-const Dropdown = ({ isOpen, onClose, children }: { isOpen: boolean; onClose: () => void; children: ReactNode }) => {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!isOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [isOpen, onClose]);
-  if (!isOpen) return null;
-  return (
-    <div
-      ref={ref}
-      className="absolute top-full left-0 z-10 mt-1 min-w-[200px] rounded-md bg-background border border-border py-1 shadow-md"
-    >
-      {children}
-    </div>
-  );
-};
-
 export const TableToolbar = ({
   searchValue,
   onSearchChange,
@@ -47,111 +40,95 @@ export const TableToolbar = ({
   onFilterChange,
   filterOptions,
   searchPlaceholder = 'Buscar...',
-  additionalFilters
+  additionalFilters,
 }: TableToolbarProps) => {
-  const [showSort, setShowSort] = useState(false);
-  const [showFilter, setShowFilter] = useState(false);
+  const selectedFilterLabel = filterValue
+    ? filterOptions?.find((option) => option.value === filterValue)?.label
+    : undefined;
+  const activeFilterCount = filterValue ? 1 : 0;
 
   return (
-    <div className="flex items-center gap-3">
-      {/* Search */}
-      <div className="flex items-center w-64 h-9 px-3 gap-2 rounded-md border border-input bg-background">
-        <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-        <input
-          type="text"
-          placeholder={searchPlaceholder}
+    <div className="flex items-center gap-3 flex-wrap">
+      <div className="relative w-full sm:w-64">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          type="search"
           value={searchValue}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="flex-1 min-w-0 text-sm text-foreground bg-transparent border-none focus:outline-none placeholder:text-muted-foreground"
+          onChange={(event) => onSearchChange(event.target.value)}
+          placeholder={searchPlaceholder}
+          aria-label={searchPlaceholder}
+          className="pl-9 pr-9"
         />
         {searchValue && (
-          <button onClick={() => onSearchChange('')} className="focus:outline-none">
-            <X className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+          <button
+            type="button"
+            onClick={() => onSearchChange('')}
+            aria-label="Limpiar busqueda"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
           </button>
         )}
       </div>
 
-      {/* Sort */}
-      <div className="relative">
+      {filterOptions && onFilterChange && (
+        <>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                className={cn(
+                  'border-border bg-background',
+                  filterValue && activeFilterButtonClasses
+                )}
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                {selectedFilterLabel ?? 'Estado'}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="min-w-[240px]">
+              <DropdownMenuItem
+                onClick={() => onFilterChange('')}
+                className={cn('py-2', !filterValue && 'bg-accent/60 text-accent-foreground')}
+              >
+                <FilterOptionChip icon={SlidersHorizontal} label="Todos los estados" />
+              </DropdownMenuItem>
+              {filterOptions.map((option) => (
+                <DropdownMenuItem
+                  key={option.value}
+                  onClick={() => onFilterChange(option.value)}
+                  className={cn(
+                    'py-2',
+                    filterValue === option.value && 'bg-accent/60 text-accent-foreground'
+                  )}
+                >
+                  {isExpirationStatus(option.value) ? (
+                    <StatusOptionChip status={option.value} label={option.label} />
+                  ) : (
+                    <FilterOptionChip icon={SlidersHorizontal} label={option.label} />
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {activeFilterCount > 0 ? <FilterCountBadge count={activeFilterCount} /> : null}
+        </>
+      )}
+
+      {additionalFilters}
+
+      {filterValue && onFilterChange && (
         <Button
           type="button"
           variant="ghost"
-          onClick={() => { setShowSort(!showSort); setShowFilter(false); }}
-        >
-          <ArrowUpDown className="w-4 h-4" />
-          Ordenar
-        </Button>
-        <Dropdown isOpen={showSort} onClose={() => setShowSort(false)}>
-          {sortOptions.map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => { onSortChange(opt.value); setShowSort(false); }}
-              className={cn(
-                'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-muted focus:outline-none',
-                sortValue === opt.value
-                  ? 'font-medium text-foreground bg-muted'
-                  : 'text-muted-foreground'
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </Dropdown>
-      </div>
-
-      {/* Status Filter */}
-      {filterOptions && onFilterChange && (
-        <div className="relative">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => { setShowFilter(!showFilter); setShowSort(false); }}
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            {filterValue ? filterOptions.find(o => o.value === filterValue)?.label : 'Estado'}
-          </Button>
-          <Dropdown isOpen={showFilter} onClose={() => setShowFilter(false)}>
-            <button
-              onClick={() => { onFilterChange(''); setShowFilter(false); }}
-              className={cn(
-                'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-muted focus:outline-none',
-                !filterValue
-                  ? 'font-medium text-foreground bg-muted'
-                  : 'text-muted-foreground'
-              )}
-            >
-              Todos los estados
-            </button>
-            {filterOptions.map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => { onFilterChange(opt.value); setShowFilter(false); }}
-                className={cn(
-                  'w-full text-left px-3 py-1.5 text-sm transition-colors hover:bg-muted focus:outline-none',
-                  filterValue === opt.value
-                    ? 'font-medium text-foreground bg-muted'
-                    : 'text-muted-foreground'
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </Dropdown>
-        </div>
-      )}
-
-      {/* Additional Filters */}
-      {additionalFilters}
-
-      {/* Clear filter */}
-      {filterValue && onFilterChange && (
-        <button
           onClick={() => onFilterChange('')}
-          className="focus:outline-none"
-          title="Limpiar filtro"
+          aria-label="Limpiar filtros"
         >
-          <X className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
-        </button>
+          <X className="w-3.5 h-3.5" />
+          Limpiar filtros
+        </Button>
       )}
     </div>
   );

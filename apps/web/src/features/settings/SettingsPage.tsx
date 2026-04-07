@@ -1,6 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useState } from 'react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useCompanySettings } from './hooks/useCompanySettings';
 import { useEmployeeManagement } from './hooks/useEmployeeManagement';
@@ -35,7 +34,7 @@ export const SettingsPage = () => {
     if (activeTab === 'billing') {
       billing.syncMercadoPagoStatus();
     }
-  }, [activeTab, billing.subscription?.mpPreapprovalId, billing.subscription?.status]);
+  }, [activeTab, billing.syncMercadoPagoStatus]);
 
   if (!currentCompany || !currentUser) {
     return <SkeletonForm />;
@@ -44,12 +43,14 @@ export const SettingsPage = () => {
   return (
     <PageLayout title="Configuración">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="company">Empresa</TabsTrigger>
-          <TabsTrigger value="employees">Empleados</TabsTrigger>
-          <TabsTrigger value="billing">Facturación</TabsTrigger>
-          <TabsTrigger value="profile">Mi Perfil</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto overflow-y-hidden">
+          <TabsList>
+            <TabsTrigger value="company">Empresa</TabsTrigger>
+            <TabsTrigger value="employees">Empleados</TabsTrigger>
+            <TabsTrigger value="billing">Facturación</TabsTrigger>
+            <TabsTrigger value="profile">Mi Perfil</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="company" className="pt-4">
           <CompanyInfoSection
@@ -114,7 +115,7 @@ export const SettingsPage = () => {
         message={`Se eliminará a ${employees.deleteTarget?.name ?? 'este empleado'} del sistema. Esta acción no se puede deshacer.`}
         confirmText="Eliminar"
         cancelText="Cancelar"
-        variant="danger"
+        variant="destructive"
         isLoading={employees.isLoading}
       />
     </PageLayout>

@@ -35,25 +35,29 @@ const EventInformationListPage = () => {
       accessorKey: 'description',
       header: 'Evento',
       cell: ({ row }) => (
-        <span className="font-medium truncate block max-w-[300px]">
-          {row.original.description}
-        </span>
+        <span className="font-medium truncate block max-w-[300px]">{row.original.description}</span>
       ),
     },
     {
       accessorKey: 'date',
       header: ({ column }) => (
-        <Button variant="ghost" className="h-auto p-0 text-xs font-medium text-muted-foreground hover:text-foreground" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        <Button
+          variant="ghost"
+          className="h-auto p-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
           Fecha
           <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
         </Button>
       ),
       cell: ({ row }) => formatDateLocal(row.original.date),
+      meta: { hideOnMobile: true },
     },
     {
       accessorKey: 'time',
       header: 'Hora',
       cell: ({ row }) => row.original.time || '—',
+      meta: { hideOnMobile: true },
     },
     {
       id: 'actions',
@@ -67,12 +71,23 @@ const EventInformationListPage = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(ROUTE_PATHS.EDIT_EVENT_INFORMATION.replace(':id', row.original.id)); }}>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(ROUTE_PATHS.EDIT_EVENT_INFORMATION.replace(':id', row.original.id));
+              }}
+            >
               <Pencil className="h-4 w-4" />
               Editar
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteId(row.original.id); }}>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteId(row.original.id);
+              }}
+            >
               <Trash2 className="h-4 w-4 text-destructive" />
               Eliminar
             </DropdownMenuItem>
@@ -142,6 +157,44 @@ const EventInformationListPage = () => {
           data={events}
           searchKey="description"
           searchPlaceholder="Buscar por descripción..."
+          cardRenderer={(row) => (
+            <div className="border rounded-lg p-4 bg-card">
+              <div className="flex items-center justify-between">
+                <span className="font-medium truncate">{row.description}</span>
+              </div>
+              <div className="mt-1 text-sm text-muted-foreground">
+                {formatDateLocal(row.date)} · {row.time || '—'}
+              </div>
+              <div className="mt-2 flex justify-end">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Acciones</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() =>
+                        navigate(ROUTE_PATHS.EDIT_EVENT_INFORMATION.replace(':id', row.id))
+                      }
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => setDeleteId(row.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                      Eliminar
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          )}
         />
       )}
 
@@ -153,7 +206,7 @@ const EventInformationListPage = () => {
         message="Esta acción no se puede deshacer."
         confirmText="Eliminar"
         cancelText="Cancelar"
-        variant="danger"
+        variant="destructive"
         isLoading={isDeleting}
       />
     </PageLayout>

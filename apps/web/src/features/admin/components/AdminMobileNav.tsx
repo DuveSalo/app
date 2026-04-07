@@ -58,7 +58,7 @@ const AdminMobileNav = () => {
       {/* Mobile Header Bar */}
       <div className="md:hidden flex items-center justify-between px-4 h-13 bg-background border-b border-border flex-shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="bg-primary rounded-md flex-shrink-0 w-7 h-7 flex items-center justify-center">
+          <div className="bg-primary rounded-lg flex-shrink-0 w-7 h-7 flex items-center justify-center">
             <span className="text-primary-foreground text-[9px] font-bold">ES</span>
           </div>
           <div className="flex flex-col">
@@ -70,7 +70,7 @@ const AdminMobileNav = () => {
         </div>
         <button
           onClick={() => setIsOpen(true)}
-          className="p-2 rounded-md hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none"
+          className="p-2 rounded-lg hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none"
           aria-label="Abrir menú"
         >
           <Menu className="w-5 h-5 text-foreground" />
@@ -95,7 +95,7 @@ const AdminMobileNav = () => {
           {/* Drawer Header */}
           <div className="flex items-center justify-between px-4 h-13 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="bg-primary text-primary-foreground flex items-center justify-center rounded-md flex-shrink-0 w-7 h-7 text-[10px] font-medium">
+              <div className="bg-primary text-primary-foreground flex items-center justify-center rounded-lg flex-shrink-0 w-7 h-7 text-[10px] font-medium">
                 {userInitials}
               </div>
               <div className="min-w-0">
@@ -109,7 +109,7 @@ const AdminMobileNav = () => {
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1.5 rounded-md hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none"
+              className="p-1.5 rounded-lg hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none"
               aria-label="Cerrar menú"
             >
               <X className="w-4 h-4 text-muted-foreground" />
@@ -126,7 +126,7 @@ const AdminMobileNav = () => {
                   <button
                     key={item.path}
                     onClick={() => handleNavigate(item.path)}
-                    className={`w-full flex items-center text-left rounded-md transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none gap-2.5 py-2 px-3 ${
+                    className={`w-full flex items-center text-left rounded-lg transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none gap-2.5 py-2 px-3 ${
                       active
                         ? 'text-foreground bg-muted font-medium'
                         : 'text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -138,14 +138,13 @@ const AdminMobileNav = () => {
                 );
               })}
             </div>
-
           </nav>
 
           {/* Footer: Logout */}
           <div className="border-t border-border p-2">
             <button
               onClick={() => setIsLogoutModalOpen(true)}
-              className="w-full flex items-center gap-2.5 py-2 px-3 rounded-md text-sm text-destructive hover:bg-destructive/10 transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none"
+              className="w-full flex items-center gap-2.5 py-2 px-3 rounded-lg text-sm text-destructive hover:bg-destructive/10 transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none"
             >
               <LogOut className="w-4 h-4" strokeWidth={1.75} />
               Cerrar sesión
@@ -162,7 +161,7 @@ const AdminMobileNav = () => {
         message="Se cerrará tu sesión actual y tendrás que volver a iniciar sesión para acceder."
         confirmText="Cerrar sesión"
         cancelText="Cancelar"
-        variant="danger"
+        variant="destructive"
       />
     </>
   );

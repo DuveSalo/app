@@ -39,11 +39,11 @@ export const useEmployeeManagement = () => {
 
   const requestDeleteEmployee = (employee: Employee) => {
     if (currentUser?.email === employee.email) {
-      toast.warning('No puedes eliminar tu propia cuenta.');
+      toast.info('No puedes eliminar tu propia cuenta.');
       return;
     }
     if ((currentCompany?.employees?.length ?? 0) <= 1) {
-      toast.warning('No se puede eliminar al único empleado.');
+      toast.info('No se puede eliminar al único empleado.');
       return;
     }
     setDeleteTarget(employee);

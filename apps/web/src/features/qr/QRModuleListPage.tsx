@@ -21,6 +21,8 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { DataTable } from '../../components/common/DataTable';
 import PageLayout from '../../components/layout/PageLayout';
 import { Empty } from '../../components/common/Empty';
+import { calculateExpirationStatus, formatDateLocal } from '../../lib/utils/dateUtils';
+import { openSupabaseStorageDocument } from '@/lib/utils/openSupabaseStorageDocument';
 
 interface QRModulePageProps {
   qrType: QRDocumentType;
@@ -34,18 +36,6 @@ type QRDocumentWithStatus = QRDocument & {
   status: 'valid' | 'expiring' | 'expired';
 };
 
-const getStatus = (expirationDate: string): 'valid' | 'expiring' | 'expired' => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const exp = new Date(expirationDate);
-  const diffDays = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDays < 1) return 'expired';
-  if (diffDays <= 30) return 'expiring';
-  return 'valid';
-};
-
-const fmtDate = (d: string) => new Date(d).toLocaleDateString('es-AR');
-
 const QRModuleListPage = ({ qrType, title, uploadPath, editPath }: QRModulePageProps) => {
   const [documents, setDocuments] = useState<QRDocument[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,6 +44,20 @@ const QRModuleListPage = ({ qrType, title, uploadPath, editPath }: QRModulePageP
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
   const { currentCompany } = useAuth();
+
+  const handleOpenDocument = useCallback(async (document: QRDocument) => {
+    try {
+      await openSupabaseStorageDocument({
+        bucket: 'qr-documents',
+        path: document.pdfPath,
+        url: document.pdfUrl,
+        title: 'Abriendo PDF',
+        message: 'Preparando una vista segura del documento QR.',
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al abrir el PDF');
+    }
+  }, []);
 
   const loadDocuments = useCallback(async () => {
     if (!currentCompany) return;
@@ -97,7 +101,7 @@ const QRModuleListPage = ({ qrType, title, uploadPath, editPath }: QRModulePageP
         const expiry = new Date(doc.extractedDate);
         expiry.setFullYear(expiry.getFullYear() + 1);
         const expirationDate = expiry.toISOString().split('T')[0];
-        return { ...doc, expirationDate, status: getStatus(expirationDate) };
+        return { ...doc, expirationDate, status: calculateExpirationStatus(expirationDate) };
       }),
     [documents]
   );
@@ -111,18 +115,24 @@ const QRModuleListPage = ({ qrType, title, uploadPath, editPath }: QRModulePageP
     {
       id: 'fechaCarga',
       header: 'Fecha Carga',
-      cell: ({ row }) => fmtDate(row.original.extractedDate),
+      cell: ({ row }) => formatDateLocal(row.original.extractedDate),
+      meta: { hideOnMobile: true },
     },
     {
       id: 'vencimiento',
       accessorFn: (row) => row.expirationDate,
       header: ({ column }) => (
-        <Button variant="ghost" className="h-auto p-0 text-xs font-medium text-muted-foreground hover:text-foreground" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        <Button
+          variant="ghost"
+          className="h-auto p-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
           Vencimiento
           <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
         </Button>
       ),
-      cell: ({ row }) => fmtDate(row.original.expirationDate),
+      cell: ({ row }) => formatDateLocal(row.original.expirationDate),
+      meta: { hideOnMobile: true },
     },
     {
       id: 'status',
@@ -143,18 +153,34 @@ const QRModuleListPage = ({ qrType, title, uploadPath, editPath }: QRModulePageP
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(editPath.replace(':id', row.original.id)); }}>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(editPath.replace(':id', row.original.id));
+              }}
+            >
               <Pencil className="h-4 w-4" />
               Editar
             </DropdownMenuItem>
-            {row.original.pdfUrl && (
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); window.open(row.original.pdfUrl, '_blank'); }}>
+            {(row.original.pdfPath || row.original.pdfUrl) && (
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  void handleOpenDocument(row.original);
+                }}
+              >
                 <Eye className="h-4 w-4" />
                 Ver PDF
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteId(row.original.id); }}>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteId(row.original.id);
+              }}
+            >
               <Trash2 className="h-4 w-4 text-destructive" />
               Eliminar
             </DropdownMenuItem>
@@ -189,6 +215,48 @@ const QRModuleListPage = ({ qrType, title, uploadPath, editPath }: QRModulePageP
           searchKey="pdfFileName"
           searchPlaceholder="Buscar documento..."
           toolbar={(table) => <StatusFilter column={table.getColumn('status')} />}
+          cardRenderer={(row) => (
+            <div className="border rounded-lg p-4 bg-card">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium truncate">{row.pdfFileName}</span>
+                <StatusBadge status={row.status} />
+              </div>
+              <div className="mt-1 text-sm text-muted-foreground">
+                Carga: {formatDateLocal(row.extractedDate)}
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="text-sm">Vence: {formatDateLocal(row.expirationDate)}</span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Acciones</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => navigate(editPath.replace(':id', row.id))}>
+                      <Pencil className="h-4 w-4" />
+                      Editar
+                    </DropdownMenuItem>
+                    {(row.pdfPath || row.pdfUrl) && (
+                      <DropdownMenuItem onClick={() => void handleOpenDocument(row)}>
+                        <Eye className="h-4 w-4" />
+                        Ver PDF
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => setDeleteId(row.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                      Eliminar
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          )}
         />
       )}
 
@@ -200,7 +268,7 @@ const QRModuleListPage = ({ qrType, title, uploadPath, editPath }: QRModulePageP
         message="Esta acción no se puede deshacer."
         confirmText="Eliminar"
         cancelText="Cancelar"
-        variant="danger"
+        variant="destructive"
         isLoading={isDeleting}
       />
     </PageLayout>

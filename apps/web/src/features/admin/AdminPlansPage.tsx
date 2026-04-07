@@ -37,13 +37,18 @@ const logger = createLogger('AdminPlansPage');
 // --- Plan status badge ---
 
 function PlanStatusBadge({ isActive }: { isActive: boolean }) {
-  return <ColorBadge variant={isActive ? 'emerald' : 'muted'} label={isActive ? 'Activo' : 'Inactivo'} />;
+  return (
+    <ColorBadge variant={isActive ? 'emerald' : 'muted'} label={isActive ? 'Activo' : 'Inactivo'} />
+  );
 }
 
 // --- Zod schema ---
 
 const planSchema = z.object({
-  key: z.string().min(1, 'La clave es obligatoria').regex(/^[a-z0-9_-]+$/, 'Solo minúsculas, números, guiones'),
+  key: z
+    .string()
+    .min(1, 'La clave es obligatoria')
+    .regex(/^[a-z0-9_-]+$/, 'Solo minúsculas, números, guiones'),
   name: z.string().min(1, 'El nombre es obligatorio'),
   price: z.number().min(0, 'El precio debe ser mayor o igual a 0'),
   features: z.string().min(1, 'Ingresá al menos una característica'),
@@ -104,7 +109,16 @@ const AdminPlansPage = () => {
 
   const openCreateDialog = () => {
     setEditingPlan(null);
-    form.reset({ key: '', name: '', price: 0, features: '', sortOrder: 0, description: '', tag: '', highlighted: false });
+    form.reset({
+      key: '',
+      name: '',
+      price: 0,
+      features: '',
+      sortOrder: 0,
+      description: '',
+      tag: '',
+      highlighted: false,
+    });
     setDialogOpen(true);
   };
 
@@ -210,7 +224,10 @@ const AdminPlansPage = () => {
       {
         accessorKey: 'key',
         header: 'Clave',
-        cell: ({ row }) => <span className="font-mono text-xs text-muted-foreground">{row.original.key}</span>,
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-muted-foreground">{row.original.key}</span>
+        ),
+        meta: { hideOnMobile: true },
       },
       {
         accessorKey: 'name',
@@ -239,6 +256,7 @@ const AdminPlansPage = () => {
           </Button>
         ),
         cell: ({ row }) => formatCurrency(row.original.price / 100),
+        meta: { hideOnMobile: true },
       },
       {
         accessorKey: 'features',
@@ -247,11 +265,15 @@ const AdminPlansPage = () => {
           const features = row.original.features;
           const text = features.join(', ');
           return (
-            <span className="text-sm text-muted-foreground truncate max-w-[300px] block" title={text}>
+            <span
+              className="text-sm text-muted-foreground truncate max-w-[300px] block"
+              title={text}
+            >
               {text || '\u2014'}
             </span>
           );
         },
+        meta: { hideOnMobile: true },
       },
       {
         accessorKey: 'isActive',
@@ -271,6 +293,7 @@ const AdminPlansPage = () => {
           </Button>
         ),
         cell: ({ row }) => row.original.sortOrder,
+        meta: { hideOnMobile: true },
       },
       {
         id: 'actions',
@@ -318,7 +341,7 @@ const AdminPlansPage = () => {
 
   if (isLoading) {
     return (
-      <PageLayout title="Planes">
+      <PageLayout title="Planes" showNotifications={false}>
         <SkeletonTable rows={6} />
       </PageLayout>
     );
@@ -327,6 +350,7 @@ const AdminPlansPage = () => {
   return (
     <PageLayout
       title="Planes"
+      showNotifications={false}
       headerActions={
         <Button onClick={openCreateDialog}>
           <Plus className="h-4 w-4 mr-1.5" />
@@ -340,6 +364,53 @@ const AdminPlansPage = () => {
         searchKey="name"
         searchPlaceholder="Buscar plan..."
         pageSize={10}
+        cardRenderer={(row) => {
+          const loading = actionLoading === row.id;
+          return (
+            <div className="border rounded-lg p-4 bg-card">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">{row.name}</span>
+                <span
+                  className={
+                    row.isActive ? 'text-sm text-emerald-600' : 'text-sm text-muted-foreground'
+                  }
+                >
+                  {row.isActive ? 'Activo' : 'Inactivo'}
+                </span>
+              </div>
+              <div className="mt-1 text-sm text-muted-foreground">
+                {formatCurrency(row.price / 100)}/mes · Orden: {row.sortOrder}
+              </div>
+              <div className="mt-2 flex justify-end">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" disabled={loading}>
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Acciones</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => openEditDialog(row)}>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Editar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleToggle(row)}>
+                      <Power className="mr-2 h-4 w-4" />
+                      {row.isActive ? 'Desactivar' : 'Activar'}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setDeleteDialog({ open: true, planId: row.id })}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Eliminar
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          );
+        }}
       />
 
       {/* Create/Edit Modal */}
@@ -357,7 +428,11 @@ const AdminPlansPage = () => {
                 <FormItem>
                   <FormLabel>Clave (identificador único)</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="ej: basic, standard, premium" disabled={!!editingPlan} />
+                    <Input
+                      {...field}
+                      placeholder="ej: basic, standard, premium"
+                      disabled={!!editingPlan}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -478,7 +553,7 @@ const AdminPlansPage = () => {
         message="Esta acci\u00f3n no se puede deshacer. Las escuelas con este plan no se ver\u00e1n afectadas."
         confirmText="Eliminar"
         cancelText="Cancelar"
-        variant="danger"
+        variant="destructive"
       />
     </PageLayout>
   );

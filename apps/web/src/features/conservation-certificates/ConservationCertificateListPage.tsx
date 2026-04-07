@@ -23,6 +23,7 @@ import { StatusFilter, statusFilterFn } from '../../components/common/StatusFilt
 import PageLayout from '../../components/layout/PageLayout';
 import { calculateExpirationStatus, formatDateLocal } from '../../lib/utils/dateUtils';
 import { Empty } from '../../components/common/Empty';
+import { openSupabaseStorageDocument } from '@/lib/utils/openSupabaseStorageDocument';
 
 const ConservationCertificateListPage = () => {
   const [certificates, setCertificates] = useState<ConservationCertificate[]>([]);
@@ -31,6 +32,20 @@ const ConservationCertificateListPage = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { currentCompany } = useAuth();
+
+  const handleOpenDocument = useCallback(async (certificate: ConservationCertificate) => {
+    try {
+      await openSupabaseStorageDocument({
+        bucket: 'certificates',
+        path: certificate.pdfFilePath,
+        url: typeof certificate.pdfFile === 'string' ? certificate.pdfFile : undefined,
+        title: 'Abriendo PDF',
+        message: 'Preparando una vista segura del certificado.',
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Error al abrir el PDF');
+    }
+  }, []);
 
   const columns: ColumnDef<ConservationCertificate, string>[] = [
     {
@@ -41,24 +56,28 @@ const ConservationCertificateListPage = () => {
     {
       accessorKey: 'registrationNumber',
       header: 'N° Certificado',
+      meta: { hideOnMobile: true },
     },
     {
       accessorKey: 'expirationDate',
       header: ({ column }) => (
-        <Button variant="ghost" className="h-auto p-0 text-xs font-medium text-muted-foreground hover:text-foreground" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        <Button
+          variant="ghost"
+          className="h-auto p-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
           Vencimiento
           <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
         </Button>
       ),
       cell: ({ row }) => formatDateLocal(row.original.expirationDate),
+      meta: { hideOnMobile: true },
     },
     {
       id: 'status',
       accessorFn: (row) => calculateExpirationStatus(row.expirationDate),
       header: 'Estado',
-      cell: ({ row }) => (
-        <StatusBadge status={row.getValue('status')} />
-      ),
+      cell: ({ row }) => <StatusBadge status={row.getValue('status')} />,
       filterFn: statusFilterFn,
     },
     {
@@ -73,18 +92,35 @@ const ConservationCertificateListPage = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(ROUTE_PATHS.EDIT_CONSERVATION_CERTIFICATE.replace(':id', row.original.id)); }}>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(ROUTE_PATHS.EDIT_CONSERVATION_CERTIFICATE.replace(':id', row.original.id));
+              }}
+            >
               <Pencil className="h-4 w-4" />
               Editar
             </DropdownMenuItem>
-            {row.original.pdfFile && typeof row.original.pdfFile === 'string' && (
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); window.open(row.original.pdfFile as string, '_blank'); }}>
+            {(row.original.pdfFilePath ||
+              (row.original.pdfFile && typeof row.original.pdfFile === 'string')) && (
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  void handleOpenDocument(row.original);
+                }}
+              >
                 <Eye className="h-4 w-4" />
                 Ver PDF
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteId(row.original.id); }}>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteId(row.original.id);
+              }}
+            >
               <Trash2 className="h-4 w-4 text-destructive" />
               Eliminar
             </DropdownMenuItem>
@@ -155,6 +191,55 @@ const ConservationCertificateListPage = () => {
           searchKey="intervener"
           searchPlaceholder="Buscar por interviniente..."
           toolbar={(table) => <StatusFilter column={table.getColumn('status')} />}
+          cardRenderer={(row) => {
+            const expirationStatus = calculateExpirationStatus(row.expirationDate);
+            return (
+              <div className="border rounded-lg p-4 bg-card">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{row.intervener}</span>
+                  <StatusBadge status={expirationStatus} />
+                </div>
+                <div className="mt-1 text-sm text-muted-foreground">
+                  N° {row.registrationNumber || '—'}
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <span className="text-sm">Vence: {formatDateLocal(row.expirationDate)}</span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Acciones</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() =>
+                          navigate(ROUTE_PATHS.EDIT_CONSERVATION_CERTIFICATE.replace(':id', row.id))
+                        }
+                      >
+                        <Pencil className="h-4 w-4" />
+                        Editar
+                      </DropdownMenuItem>
+                      {(row.pdfFilePath || (row.pdfFile && typeof row.pdfFile === 'string')) && (
+                        <DropdownMenuItem onClick={() => void handleOpenDocument(row)}>
+                          <Eye className="h-4 w-4" />
+                          Ver PDF
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => setDeleteId(row.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                        Eliminar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            );
+          }}
         />
       )}
 
@@ -166,7 +251,7 @@ const ConservationCertificateListPage = () => {
         message="Esta acción no se puede deshacer. El certificado será eliminado permanentemente."
         confirmText="Eliminar"
         cancelText="Cancelar"
-        variant="danger"
+        variant="destructive"
         isLoading={isDeleting}
       />
     </PageLayout>

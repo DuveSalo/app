@@ -36,36 +36,39 @@ const FireExtinguisherListPage = () => {
     {
       accessorKey: 'extinguisherNumber',
       header: 'Identificación',
-      cell: ({ row }) => (
-        <span className="font-medium">N° {row.original.extinguisherNumber}</span>
-      ),
+      cell: ({ row }) => <span className="font-medium">N° {row.original.extinguisherNumber}</span>,
     },
     {
       accessorKey: 'positionNumber',
       header: 'Ubicación',
       cell: ({ row }) => `Puesto ${row.original.positionNumber}`,
+      meta: { hideOnMobile: true },
     },
     {
       accessorKey: 'type',
       header: 'Tipo',
+      meta: { hideOnMobile: true },
     },
     {
       accessorKey: 'chargeExpirationDate',
       header: ({ column }) => (
-        <Button variant="ghost" className="h-auto p-0 text-xs font-medium text-muted-foreground hover:text-foreground" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        <Button
+          variant="ghost"
+          className="h-auto p-0 text-xs font-medium text-muted-foreground hover:text-foreground"
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
           Vencimiento
           <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
         </Button>
       ),
       cell: ({ row }) => formatDateLocal(row.original.chargeExpirationDate),
+      meta: { hideOnMobile: true },
     },
     {
       id: 'status',
       accessorFn: (row) => calculateExpirationStatus(row.chargeExpirationDate),
       header: 'Estado',
-      cell: ({ row }) => (
-        <StatusBadge status={row.getValue('status')} />
-      ),
+      cell: ({ row }) => <StatusBadge status={row.getValue('status')} />,
       filterFn: statusFilterFn,
     },
     {
@@ -80,12 +83,23 @@ const FireExtinguisherListPage = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`${ROUTE_PATHS.FIRE_EXTINGUISHERS}/${row.original.id}/edit`); }}>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`${ROUTE_PATHS.FIRE_EXTINGUISHERS}/${row.original.id}/edit`);
+              }}
+            >
               <Pencil className="h-4 w-4" />
               Editar
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteId(row.original.id); }}>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteId(row.original.id);
+              }}
+            >
               <Trash2 className="h-4 w-4 text-destructive" />
               Eliminar
             </DropdownMenuItem>
@@ -154,6 +168,49 @@ const FireExtinguisherListPage = () => {
           searchKey="extinguisherNumber"
           searchPlaceholder="Buscar por N° extintor..."
           toolbar={(table) => <StatusFilter column={table.getColumn('status')} />}
+          cardRenderer={(row) => {
+            const expirationStatus = calculateExpirationStatus(row.chargeExpirationDate);
+            return (
+              <div className="border rounded-lg p-4 bg-card">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">N° {row.extinguisherNumber}</span>
+                  <StatusBadge status={expirationStatus} />
+                </div>
+                <div className="mt-1 text-sm text-muted-foreground">
+                  {row.type || '—'} · {row.positionNumber ? `Puesto ${row.positionNumber}` : '—'}
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <span className="text-sm">
+                    Vence: {formatDateLocal(row.chargeExpirationDate)}
+                  </span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Acciones</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => navigate(`${ROUTE_PATHS.FIRE_EXTINGUISHERS}/${row.id}/edit`)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => setDeleteId(row.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                        Eliminar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            );
+          }}
         />
       )}
 
@@ -165,7 +222,7 @@ const FireExtinguisherListPage = () => {
         message="Esta acción no se puede deshacer. El control será eliminado permanentemente."
         confirmText="Eliminar"
         cancelText="Cancelar"
-        variant="danger"
+        variant="destructive"
         isLoading={isDeleting}
       />
     </PageLayout>
