@@ -1,19 +1,29 @@
-
-
-import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  ReactNode,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Company } from '@/types/index';
 import * as api from '@/lib/api/services';
 import { ROUTE_PATHS } from '@/constants/index';
 import { toast } from 'sonner';
 import { createLogger } from '@/lib/utils/logger';
+import { NotFoundError } from '@/lib/utils/errors';
 import { getTrialStatus } from '@/lib/utils/trial';
 import { supabase } from '@/lib/supabase/client';
 import { setServiceContext, clearServiceContext } from '@/lib/api/services/context';
 
 const logger = createLogger('AuthContext');
 
-export type PendingCompanyData = Omit<Company, 'id' | 'userId' | 'employees' | 'isSubscribed' | 'selectedPlan'>;
+export type PendingCompanyData = Omit<
+  Company,
+  'id' | 'userId' | 'employees' | 'isSubscribed' | 'selectedPlan'
+>;
 
 interface AuthContextType {
   currentUser: User | null;
@@ -22,7 +32,11 @@ interface AuthContextType {
   isAdmin: boolean;
   isLoading: boolean;
   login: (email: string, pass: string) => Promise<void>;
-  register: (name: string, email: string, pass: string) => Promise<{ confirmationSent: boolean; email: string }>;
+  register: (
+    name: string,
+    email: string,
+    pass: string
+  ) => Promise<{ confirmationSent: boolean; email: string }>;
   resendConfirmationEmail: (email: string) => Promise<void>;
   verifyEmailOtp: (email: string, token: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
@@ -65,9 +79,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) {
       logger.error('Error fetching initial data', error);
-      // If the refresh token is invalid, sign out cleanly to clear corrupt session
-      const msg = error instanceof Error ? error.message : '';
-      if (msg.includes('Refresh Token') || msg.includes('Invalid Refresh Token')) {
+      // If the refresh token is invalid/expired, sign out cleanly to clear corrupt session.
+      // Supabase AuthApiError has status 400 for invalid/expired refresh tokens.
+      // Fall back to message check for non-standard error shapes.
+      const isRefreshTokenError =
+        (error instanceof Error &&
+          'status' in error &&
+          (error as { status?: number }).status === 400) ||
+        (error instanceof Error &&
+          (error.message.includes('Refresh Token') ||
+            error.message.includes('Invalid Refresh Token') ||
+            error.message.includes('refresh_token_not_found')));
+      if (isRefreshTokenError) {
         await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
       }
       setCurrentUser(null);
@@ -82,10 +105,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     fetchInitialData();
   }, [fetchInitialData]);
 
+  // Mirror currentUser into a ref so the onAuthStateChange callback can read
+  // the latest value without being listed as a reactive dependency (which would
+  // cause the listener to tear down and re-subscribe on every auth state change).
+  const currentUserRef = useRef(currentUser);
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
+
   // Sync React state with Supabase auth events (token refresh failures, sign-outs from other tabs)
   const isHandlingAuthEvent = useRef(false);
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
       if (isHandlingAuthEvent.current) return;
       isHandlingAuthEvent.current = true;
 
@@ -96,7 +129,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading(false);
       } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         // Re-fetch user data on new sign-in (e.g. OAuth callback) or successful token refresh
-        if (event === 'SIGNED_IN' && !currentUser) {
+        // Use the ref to avoid stale closure — we need the latest value without re-subscribing
+        if (event === 'SIGNED_IN' && !currentUserRef.current) {
           fetchInitialData();
         }
       }
@@ -107,7 +141,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
     });
     return () => subscription.unsubscribe();
-  }, [fetchInitialData, currentUser]);
+  }, [fetchInitialData]); // currentUser removed — accessed via ref to prevent listener churn
 
   const loginUser = async (email: string, pass: string) => {
     setIsLoading(true);
@@ -131,9 +165,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           navigate(ROUTE_PATHS.SUBSCRIPTION);
         }
-      } catch {
-        setCurrentCompany(null);
-        navigate(ROUTE_PATHS.CREATE_COMPANY);
+      } catch (companyError) {
+        if (companyError instanceof NotFoundError) {
+          setCurrentCompany(null);
+          navigate(ROUTE_PATHS.CREATE_COMPANY);
+        } else {
+          setCurrentCompany(null);
+          throw companyError;
+        }
       }
     } catch (error) {
       setCurrentUser(null);
@@ -145,7 +184,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const registerUser = async (name: string, email: string, pass: string): Promise<{ confirmationSent: boolean; email: string }> => {
+  const registerUser = async (
+    name: string,
+    email: string,
+    pass: string
+  ): Promise<{ confirmationSent: boolean; email: string }> => {
     setIsLoading(true);
     try {
       const result = await api.register(name, email, pass);
@@ -196,23 +239,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setCurrentCompany(company);
   };
 
-  const refreshCompanyData = async (silent = false) => {
-    if (currentUser) {
-      if (!silent) setIsLoading(true);
-      try {
-        const company = await api.getCompanyByUserId(currentUser.id);
-        setCurrentCompany(company);
-      } catch (error) {
-        logger.error("Error refreshing company data", error, { userId: currentUser.id });
-        setCurrentCompany(null);
-      } finally {
-        if (!silent) setIsLoading(false);
+  const refreshCompanyData = useCallback(
+    async (silent = false) => {
+      if (currentUser) {
+        if (!silent) setIsLoading(true);
+        try {
+          const company = await api.getCompanyByUserId(currentUser.id);
+          setCurrentCompany(company);
+        } catch (error) {
+          logger.error('Error refreshing company data', error, { userId: currentUser.id });
+          setCurrentCompany(null);
+        } finally {
+          if (!silent) setIsLoading(false);
+        }
       }
-    }
-  };
+    },
+    [currentUser]
+  );
 
   const updateUserDetailsContext = async (details: Partial<User>) => {
-    if (!currentUser) throw new Error("No user is logged in.");
+    if (!currentUser) throw new Error('No user is logged in.');
     setIsLoading(true);
     try {
       const updatedUser = await api.updateUser(details);
@@ -220,7 +266,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Also refresh company data in case the user name is used as an employee name
       await refreshCompanyData();
     } catch (error) {
-      logger.error("Error updating user details", error, { userId: currentUser.id });
+      logger.error('Error updating user details', error, { userId: currentUser.id });
       throw error;
     } finally {
       setIsLoading(false);
@@ -240,23 +286,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{
-      currentUser,
-      currentCompany,
-      pendingCompanyData,
-      isAdmin: currentUser?.role === 'admin',
-      isLoading,
-      login: loginUser,
-      register: registerUser,
-      resendConfirmationEmail: resendConfirmationEmailUser,
-      verifyEmailOtp: verifyEmailOtpUser,
-      loginWithGoogle: loginWithGoogleProvider,
-      logout: logoutUser,
-      setCompany: setCompanyContext,
-      setPendingCompanyData,
-      refreshCompany: refreshCompanyData,
-      updateUserDetails: updateUserDetailsContext,
-    }}>
+    <AuthContext.Provider
+      value={{
+        currentUser,
+        currentCompany,
+        pendingCompanyData,
+        isAdmin: currentUser?.role === 'admin',
+        isLoading,
+        login: loginUser,
+        register: registerUser,
+        resendConfirmationEmail: resendConfirmationEmailUser,
+        verifyEmailOtp: verifyEmailOtpUser,
+        loginWithGoogle: loginWithGoogleProvider,
+        logout: logoutUser,
+        setCompany: setCompanyContext,
+        setPendingCompanyData,
+        refreshCompany: refreshCompanyData,
+        updateUserDetails: updateUserDetailsContext,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -264,6 +312,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within an AuthProvider");
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };

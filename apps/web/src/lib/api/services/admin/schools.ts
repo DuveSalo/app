@@ -1,20 +1,20 @@
 import { supabase } from '../../../supabase/client';
 import { handleSupabaseError } from '../../../utils/errors';
+import { createLogger } from '../../../utils/logger';
 import { formatPlanName } from '../../../../constants/plans';
-import type {
-  AdminSchoolRow,
-  AdminSchoolDetail,
-} from '../../../../features/admin/types';
+import type { AdminSchoolRow, AdminSchoolDetail } from '../../../../features/admin/types';
+
+const logger = createLogger('AdminSchoolsService');
 
 /**
  * Fetch recent school registrations (last N).
  */
-export const getRecentRegistrations = async (
-  limit = 10
-): Promise<AdminSchoolRow[]> => {
+export const getRecentRegistrations = async (limit = 10): Promise<AdminSchoolRow[]> => {
   const { data, error } = await supabase
     .from('companies')
-    .select('id, name, city, province, selected_plan, subscription_status, created_at, employees(email, role)')
+    .select(
+      'id, name, city, province, selected_plan, subscription_status, created_at, employees(email, role)'
+    )
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -68,7 +68,7 @@ export const getSchoolDetail = async (companyId: string): Promise<AdminSchoolDet
       '',
     plan: formatPlanName(data.selected_plan),
     subscriptionStatus: data.subscription_status || 'Sin suscripción',
-    paymentMethod: data.payment_method || 'mercadopago',
+    paymentMethod: data.payment_method || '',
     bankTransferStatus: data.bank_transfer_status || null,
     isSubscribed: data.is_subscribed || false,
     trialEndsAt: data.trial_ends_at || null,
@@ -87,7 +87,9 @@ export const getSchoolDetail = async (companyId: string): Promise<AdminSchoolDet
 /**
  * Fetch document counts for a school.
  */
-export const getSchoolDocumentCounts = async (companyId: string): Promise<Record<string, number>> => {
+export const getSchoolDocumentCounts = async (
+  companyId: string
+): Promise<Record<string, number>> => {
   const tables = [
     { key: 'fire_extinguishers', table: 'fire_extinguishers' },
     { key: 'conservation_certificates', table: 'conservation_certificates' },
@@ -117,7 +119,9 @@ export const getSchoolDocumentCounts = async (companyId: string): Promise<Record
 export const getAllSchools = async (): Promise<AdminSchoolRow[]> => {
   const { data, error } = await supabase
     .from('companies')
-    .select('id, name, city, province, selected_plan, subscription_status, created_at, employees(email, role)')
+    .select(
+      'id, name, city, province, selected_plan, subscription_status, created_at, employees(email, role)'
+    )
     .order('created_at', { ascending: false });
 
   if (error) handleSupabaseError(error);
@@ -163,7 +167,7 @@ export const suspendSchool = async (companyId: string): Promise<void> => {
     target_type: 'company',
     target_id: companyId,
   });
-  if (logError) console.error('Failed to log suspend_school:', logError);
+  if (logError) logger.error('Failed to log suspend_school', logError);
 };
 
 /**
@@ -188,7 +192,7 @@ export const activateSchool = async (companyId: string): Promise<void> => {
     target_type: 'company',
     target_id: companyId,
   });
-  if (logError) console.error('Failed to log activate_school:', logError);
+  if (logError) logger.error('Failed to log activate_school', logError);
 };
 
 /**
@@ -207,12 +211,9 @@ export const deleteSchool = async (companyId: string): Promise<void> => {
     target_type: 'company',
     target_id: companyId,
   });
-  if (logError) console.error('Failed to log delete_school:', logError);
+  if (logError) logger.error('Failed to log delete_school', logError);
 
-  const { error } = await supabase
-    .from('companies')
-    .delete()
-    .eq('id', companyId);
+  const { error } = await supabase.from('companies').delete().eq('id', companyId);
 
   if (error) handleSupabaseError(error);
 };
