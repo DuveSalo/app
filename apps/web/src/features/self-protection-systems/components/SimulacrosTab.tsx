@@ -21,9 +21,12 @@ export const SimulacrosTab = ({ form, isEditing }: SimulacrosTabProps) => {
 
   return (
     <div className="space-y-4">
-      <p className="text-xs text-muted-foreground">Registre la información de los 4 simulacros requeridos. Se requiere la fecha de los 4 simulacros para continuar.</p>
+      <p className="text-xs text-muted-foreground">
+        Registre la información de los 4 simulacros requeridos. Se requiere la fecha de los 4
+        simulacros para continuar.
+      </p>
       {drills.map((drill, index) => (
-        <div key={index} className="p-4 border border-border bg-muted rounded-md">
+        <div key={`drill-${index}`} className="p-4 border border-border bg-muted rounded-lg">
           <div className="flex justify-between items-center mb-3">
             <h4 className="text-sm font-medium text-foreground">Simulacro {index + 1}</h4>
             <Button
@@ -43,7 +46,13 @@ export const SimulacrosTab = ({ form, isEditing }: SimulacrosTabProps) => {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <DatePicker label="Fecha" id={`drillDate-${index}`} value={field.value} onChange={field.onChange} required />
+                    <DatePicker
+                      label="Fecha"
+                      id={`drillDate-${index}`}
+                      value={field.value}
+                      onChange={field.onChange}
+                      required
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -51,13 +60,19 @@ export const SimulacrosTab = ({ form, isEditing }: SimulacrosTabProps) => {
             />
 
             {isEditing && drill.pdfUrl && !drill.pdfFile && (
-              <div className="p-3 bg-background border border-border rounded-md">
+              <div className="p-3 bg-background border border-border rounded-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <p className="text-sm font-medium text-foreground">PDF actual:</p>
-                    <p className="text-sm text-muted-foreground">{drill.pdfFileName || `Simulacro ${index + 1}`}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {drill.pdfFileName || `Simulacro ${index + 1}`}
+                    </p>
                   </div>
-                  <Button type="button" variant="ghost" onClick={() => window.open(drill.pdfUrl, '_blank')}>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => window.open(drill.pdfUrl, '_blank')}
+                  >
                     <EyeIcon className="w-4 h-4" /> Ver PDF
                   </Button>
                 </div>
@@ -71,7 +86,9 @@ export const SimulacrosTab = ({ form, isEditing }: SimulacrosTabProps) => {
                 <FormItem>
                   <FormControl>
                     <FileUpload
-                      label={isEditing ? "Reemplazar PDF del Simulacro (opcional)" : "PDF del Simulacro"}
+                      label={
+                        isEditing ? 'Reemplazar PDF del Simulacro (opcional)' : 'PDF del Simulacro'
+                      }
                       accept=".pdf"
                       currentFileName={drill.pdfFileName}
                       onFileSelect={(file) => {

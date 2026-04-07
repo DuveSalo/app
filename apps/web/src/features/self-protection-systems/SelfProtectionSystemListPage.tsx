@@ -1,20 +1,8 @@
-import { useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  Eye,
-  CalendarDays,
-  FileText,
-  ShieldCheck,
-  Search,
-  X,
-  ListFilter,
-  BadgeCheck,
-  type LucideIcon,
-} from 'lucide-react';
-import { SelfProtectionSystem } from '../../types/index';
+import { Plus, Search, X, ListFilter } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
 import * as api from '@/lib/api/services';
 import { Button } from '@/components/ui/button';
@@ -34,7 +22,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/common/Table';
-import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { SkeletonTable } from '../../components/common/SkeletonLoader';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
@@ -50,10 +37,9 @@ import {
 } from '@/components/common/TableFilterControls';
 import { cn } from '@/lib/utils';
 import type { ExpirationStatus } from '@/types/expirable';
-import {
-  openSelfProtectionSystemDocument,
-  type SelfProtectionSystemDocumentReference,
-} from './documentUtils';
+import { queryKeys } from '@/lib/queryKeys';
+import { SelfProtectionSystemDetailPanel } from './components/SelfProtectionSystemDetailPanel';
+import { SelfProtectionSystemMobileCard } from './components/SelfProtectionSystemMobileCard';
 
 const STATUS_FILTER_OPTIONS: ReadonlyArray<{
   value: ExpirationStatus;
@@ -64,11 +50,6 @@ const STATUS_FILTER_OPTIONS: ReadonlyArray<{
   { value: 'expired', label: 'Vencido' },
 ];
 
-const panelCardClasses = 'rounded-lg border border-border/80 bg-background/95 p-4';
-
-const rowItemClasses =
-  'flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-muted/20 px-3 py-2.5';
-
 const normalizeSearchValue = (value: string) =>
   value
     .normalize('NFD')
@@ -78,102 +59,8 @@ const normalizeSearchValue = (value: string) =>
 
 const formatOptionalDate = (value?: string) => (value ? formatDateLocal(value) : 'Sin fecha');
 
-interface DetailSectionProps {
-  icon: LucideIcon;
-  title: string;
-  meta?: string;
-  children: ReactNode;
-}
-
-const DetailSection = ({ icon: Icon, title, meta, children }: DetailSectionProps) => (
-  <section className={panelCardClasses}>
-    <div className="mb-3 flex items-center justify-between gap-3">
-      <div className="flex items-center gap-2.5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-border/70 bg-muted/30">
-          <Icon className="h-4 w-4 text-foreground" />
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-        </div>
-      </div>
-      {meta ? (
-        <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-          {meta}
-        </span>
-      ) : null}
-    </div>
-    <div className="space-y-2">{children}</div>
-  </section>
-);
-
-interface DetailItemProps {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-}
-
-const DetailItem = ({ icon: Icon, label, value }: DetailItemProps) => (
-  <div className={rowItemClasses}>
-    <div className="flex items-center gap-2.5">
-      <Icon className="h-4 w-4 text-muted-foreground" />
-      <span className="text-sm text-muted-foreground">{label}</span>
-    </div>
-    <span className="text-sm font-semibold text-foreground">{value}</span>
-  </div>
-);
-
-interface DocumentRowProps {
-  title: string;
-  date?: string;
-  document?: SelfProtectionSystemDocumentReference;
-  onOpen: (document: SelfProtectionSystemDocumentReference) => void;
-}
-
-const DocumentRow = ({ title, date, document, onOpen }: DocumentRowProps) => (
-  <div className={rowItemClasses}>
-    <div className="min-w-0">
-      <p className="text-sm font-medium text-foreground">{title}</p>
-      <p className="text-xs text-muted-foreground">{formatOptionalDate(date)}</p>
-    </div>
-    {document?.path || document?.url ? (
-      <Button variant="ghost" size="icon" onClick={() => onOpen(document)}>
-        <Eye className="h-3.5 w-3.5" />
-        Ver PDF
-      </Button>
-    ) : (
-      <span className="text-[11px] font-medium text-muted-foreground">Sin PDF</span>
-    )}
-  </div>
-);
-
-interface DrillRowProps {
-  index: number;
-  date?: string;
-  document?: SelfProtectionSystemDocumentReference;
-  onOpen: (document: SelfProtectionSystemDocumentReference) => void;
-}
-
-const DrillRow = ({ index, date, document, onOpen }: DrillRowProps) => (
-  <div className={rowItemClasses}>
-    <div className="min-w-0">
-      <p className="text-sm font-medium text-foreground">Simulacro {index}</p>
-      <p className="text-xs text-muted-foreground">{formatOptionalDate(date)}</p>
-    </div>
-    {document?.path || document?.url ? (
-      <Button variant="ghost" size="icon" onClick={() => onOpen(document)}>
-        <Eye className="h-3.5 w-3.5" />
-        Ver PDF
-      </Button>
-    ) : (
-      <span className="text-[11px] font-medium text-muted-foreground">Sin PDF</span>
-    )}
-  </div>
-);
-
 const SelfProtectionSystemListPage = () => {
   const pageSize = 10;
-  const [systems, setSystems] = useState<SelfProtectionSystem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState('');
@@ -182,25 +69,25 @@ const SelfProtectionSystemListPage = () => {
   const [selectedSystemId, setSelectedSystemId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { currentCompany } = useAuth();
+  const queryClient = useQueryClient();
 
-  const loadSystems = useCallback(async () => {
-    if (!currentCompany) return;
-    setIsLoading(true);
-    try {
-      const data = await api.getSelfProtectionSystems(currentCompany.id);
-      setSystems(data);
-    } catch (err: unknown) {
-      toast.error(
-        err instanceof Error ? err.message : 'Error al cargar sistemas de autoproteccion'
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentCompany]);
+  const {
+    data: systems = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: queryKeys.systems.list(currentCompany?.id ?? ''),
+    queryFn: () => api.getSelfProtectionSystems(currentCompany!.id),
+    enabled: !!currentCompany,
+  });
 
   useEffect(() => {
-    loadSystems();
-  }, [loadSystems]);
+    if (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Error al cargar sistemas de autoproteccion'
+      );
+    }
+  }, [error]);
 
   const filteredSystems = useMemo(() => {
     const normalizedSearch = normalizeSearchValue(searchValue);
@@ -209,13 +96,8 @@ const SelfProtectionSystemListPage = () => {
       const expirationStatus = calculateExpirationStatus(system.expirationDate);
       const matchesStatus = statusFilter.length === 0 || statusFilter.includes(expirationStatus);
 
-      if (!matchesStatus) {
-        return false;
-      }
-
-      if (!normalizedSearch) {
-        return true;
-      }
+      if (!matchesStatus) return false;
+      if (!normalizedSearch) return true;
 
       const searchIndex = normalizeSearchValue(
         `${system.intervener} ${system.registrationNumber ?? ''}`
@@ -244,34 +126,12 @@ const SelfProtectionSystemListPage = () => {
 
   useEffect(() => {
     if (filteredSystems.length === 0) {
-      if (selectedSystemId !== null) {
-        setSelectedSystemId(null);
-      }
+      if (selectedSystemId !== null) setSelectedSystemId(null);
       return;
     }
-
     const hasSelectedSystem = filteredSystems.some((system) => system.id === selectedSystemId);
-
-    if (!hasSelectedSystem && selectedSystemId !== null) {
-      setSelectedSystemId(null);
-    }
+    if (!hasSelectedSystem && selectedSystemId !== null) setSelectedSystemId(null);
   }, [filteredSystems, selectedSystemId]);
-
-  const selectedSystem = useMemo(
-    () => paginatedSystems.find((system) => system.id === selectedSystemId) ?? null,
-    [paginatedSystems, selectedSystemId]
-  );
-
-  const handleOpenDocument = useCallback(
-    async (document: SelfProtectionSystemDocumentReference) => {
-      try {
-        await openSelfProtectionSystemDocument(document);
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'Error al abrir el PDF');
-      }
-    },
-    []
-  );
 
   useEffect(() => {
     if (selectedSystemId && !paginatedSystems.some((system) => system.id === selectedSystemId)) {
@@ -279,150 +139,25 @@ const SelfProtectionSystemListPage = () => {
     }
   }, [paginatedSystems, selectedSystemId]);
 
+  const selectedSystem = useMemo(
+    () => paginatedSystems.find((system) => system.id === selectedSystemId) ?? null,
+    [paginatedSystems, selectedSystemId]
+  );
+
   const handleDeleteConfirm = async () => {
     if (!deleteId) return;
-
     setIsDeleting(true);
-    const previousSystems = [...systems];
-    setSystems((currentSystems) => currentSystems.filter((system) => system.id !== deleteId));
-
     try {
       await api.deleteSelfProtectionSystem(deleteId);
       toast.success('Sistema eliminado correctamente');
+      queryClient.invalidateQueries({ queryKey: queryKeys.systems.list(currentCompany!.id) });
+      setSelectedSystemId(null);
     } catch (err: unknown) {
-      setSystems(previousSystems);
       toast.error(err instanceof Error ? err.message : 'Error al eliminar el sistema');
     } finally {
       setIsDeleting(false);
       setDeleteId(null);
     }
-  };
-
-  const headerActions = (
-    <Button onClick={() => navigate(ROUTE_PATHS.NEW_SELF_PROTECTION_SYSTEM)}>
-      <Plus className="w-4 h-4" />
-      Nuevo sistema
-    </Button>
-  );
-
-  const renderDetailPanel = () => {
-    if (!selectedSystem) {
-      return null;
-    }
-
-    const expirationStatus = calculateExpirationStatus(selectedSystem.expirationDate);
-    const drillSlots = Array.from({ length: 4 }, (_, index) => selectedSystem.drills[index]);
-
-    return (
-      <div className="space-y-3">
-        <section className={panelCardClasses}>
-          <div className="flex items-start justify-between gap-3">
-            <div className="space-y-2">
-              <div>
-                <h2 className="text-base font-semibold tracking-[-0.02em] text-foreground">
-                  {selectedSystem.intervener}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Matricula {selectedSystem.registrationNumber || 'sin registrar'}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <StatusBadge status={expirationStatus} className="rounded-full px-3 py-1" />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-muted-foreground hover:text-foreground"
-                onClick={() => setSelectedSystemId(null)}
-                aria-label="Cerrar panel lateral"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-2">
-            <DetailItem
-              icon={CalendarDays}
-              label="Presentacion"
-              value={formatOptionalDate(selectedSystem.probatoryDispositionDate)}
-            />
-            <DetailItem
-              icon={CalendarDays}
-              label="Extension"
-              value={formatOptionalDate(selectedSystem.extensionDate)}
-            />
-            <DetailItem
-              icon={BadgeCheck}
-              label="Vencimiento"
-              value={formatOptionalDate(selectedSystem.expirationDate)}
-            />
-          </div>
-        </section>
-
-        <DetailSection icon={FileText} title="Documentacion">
-          <DocumentRow
-            title="Disposicion aprobatoria"
-            date={selectedSystem.probatoryDispositionDate}
-            document={{
-              path: selectedSystem.probatoryDispositionPdfPath,
-              url: selectedSystem.probatoryDispositionPdfUrl,
-            }}
-            onOpen={handleOpenDocument}
-          />
-          <DocumentRow
-            title="Extension"
-            date={selectedSystem.extensionDate}
-            document={{
-              path: selectedSystem.extensionPdfPath,
-              url: selectedSystem.extensionPdfUrl,
-            }}
-            onOpen={handleOpenDocument}
-          />
-        </DetailSection>
-
-        <DetailSection icon={ShieldCheck} title="Simulacros">
-          {drillSlots.map((drill, index) => (
-            <DrillRow
-              key={`${selectedSystem.id}-drill-${index + 1}`}
-              index={index + 1}
-              date={drill?.date}
-              document={drill ? { path: drill.pdfPath, url: drill.pdfUrl } : undefined}
-              onOpen={handleOpenDocument}
-            />
-          ))}
-        </DetailSection>
-
-        <section className={panelCardClasses}>
-          <div className="mb-3">
-            <h3 className="text-sm font-semibold text-foreground">Acciones</h3>
-            <p className="text-xs text-muted-foreground">
-              Edita o elimina el sistema seleccionado desde este panel.
-            </p>
-          </div>
-          <div className="flex flex-col gap-2">
-            <Button
-              variant="ghost"
-              className="justify-center"
-              onClick={() =>
-                navigate(ROUTE_PATHS.EDIT_SELF_PROTECTION_SYSTEM.replace(':id', selectedSystem.id))
-              }
-            >
-              <Pencil className="h-4 w-4" />
-              Editar sistema
-            </Button>
-            <Button
-              variant="ghost"
-              className="justify-center text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => setDeleteId(selectedSystem.id)}
-            >
-              <Trash2 className="h-4 w-4" />
-              Eliminar sistema
-            </Button>
-          </div>
-        </section>
-      </div>
-    );
   };
 
   const activeFilterCount = statusFilter.length;
@@ -434,6 +169,13 @@ const SelfProtectionSystemListPage = () => {
         : [...currentFilters, value]
     );
   };
+
+  const headerActions = (
+    <Button onClick={() => navigate(ROUTE_PATHS.NEW_SELF_PROTECTION_SYSTEM)}>
+      <Plus className="w-4 h-4" />
+      Nuevo sistema
+    </Button>
+  );
 
   return (
     <PageLayout title={MODULE_TITLES.SELF_PROTECTION_SYSTEMS} headerActions={headerActions}>
@@ -512,7 +254,6 @@ const SelfProtectionSystemListPage = () => {
             </DropdownMenu>
 
             {hasActiveFilters ? <FilterCountBadge count={activeFilterCount} /> : null}
-
             {hasActiveFilters ? (
               <Button type="button" variant="ghost" onClick={() => setStatusFilter([])}>
                 Limpiar filtros
@@ -545,28 +286,13 @@ const SelfProtectionSystemListPage = () => {
             <div className="flex flex-col gap-4">
               {/* Mobile card list */}
               <div className="sm:hidden space-y-3">
-                {paginatedSystems.map((system) => {
-                  const expirationStatus = calculateExpirationStatus(system.expirationDate);
-                  return (
-                    <button
-                      key={system.id}
-                      type="button"
-                      className="w-full text-left border rounded-lg p-4 bg-card"
-                      onClick={() => setSelectedSystemId(system.id)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{system.intervener}</span>
-                        <StatusBadge status={expirationStatus} />
-                      </div>
-                      <div className="mt-1 text-sm text-muted-foreground">
-                        Matricula {system.registrationNumber || 'sin registrar'}
-                      </div>
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        Vencimiento: {formatOptionalDate(system.expirationDate)}
-                      </div>
-                    </button>
-                  );
-                })}
+                {paginatedSystems.map((system) => (
+                  <SelfProtectionSystemMobileCard
+                    key={system.id}
+                    system={system}
+                    onSelect={() => setSelectedSystemId(system.id)}
+                  />
+                ))}
               </div>
 
               {/* Desktop table */}
@@ -702,23 +428,11 @@ const SelfProtectionSystemListPage = () => {
       )}
 
       {selectedSystem ? (
-        <>
-          <div
-            className="fixed inset-0 z-40 bg-background/30 backdrop-blur-sm"
-            onClick={() => setSelectedSystemId(null)}
-            aria-hidden="true"
-          />
-          <aside
-            role="dialog"
-            aria-modal="true"
-            aria-label="Detalle del sistema de autoproteccion"
-            className="fixed inset-y-0 right-0 z-50 w-full max-w-[600px] border-l border-border bg-background/95 shadow-lg backdrop-blur-xl"
-          >
-            <div className="h-full overflow-y-auto p-4 custom-scrollbar sm:p-6">
-              {renderDetailPanel()}
-            </div>
-          </aside>
-        </>
+        <SelfProtectionSystemDetailPanel
+          system={selectedSystem}
+          onClose={() => setSelectedSystemId(null)}
+          onDelete={(id) => setDeleteId(id)}
+        />
       ) : null}
 
       <ConfirmDialog
