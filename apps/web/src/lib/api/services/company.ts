@@ -33,7 +33,9 @@ export const createCompany = async (
       services: companyData.services || {},
       payment_methods: [],
     })
-    .select()
+    .select(
+      'id, user_id, name, cuit, address, postal_code, city, locality, province, country, rama_key, owner_entity, phone, is_subscribed, selected_plan, trial_ends_at, subscription_status, subscription_renewal_date, payment_method, bank_transfer_status, services, payment_methods'
+    )
     .single();
 
   if (error) {
@@ -50,7 +52,7 @@ export const createCompany = async (
       email: currentUser.email,
       role: 'Administrador',
     })
-    .select()
+    .select('id, name, email, role')
     .single();
 
   // Return with the created employee (no extra query needed)
@@ -85,7 +87,9 @@ export const getCompanyByUserId = async (userId: string): Promise<Company> => {
   // Use relational query to fetch company with employees in a single query (N+1 fix)
   const { data, error } = await supabase
     .from('companies')
-    .select('*, employees(*)')
+    .select(
+      'id, user_id, name, cuit, address, postal_code, city, locality, province, country, rama_key, owner_entity, phone, is_subscribed, selected_plan, trial_ends_at, subscription_status, subscription_renewal_date, payment_method, bank_transfer_status, services, payment_methods, employees(id, name, email, role)'
+    )
     .eq('user_id', userId)
     .single();
 
@@ -138,7 +142,9 @@ export const updateCompany = async (companyData: Partial<Company>): Promise<Comp
     .from('companies')
     .update(updateData)
     .eq('id', companyData.id)
-    .select('*, employees(*)')
+    .select(
+      'id, user_id, name, cuit, address, postal_code, city, locality, province, country, rama_key, owner_entity, phone, is_subscribed, selected_plan, trial_ends_at, subscription_status, subscription_renewal_date, payment_method, bank_transfer_status, services, payment_methods, employees(id, name, email, role)'
+    )
     .single();
 
   if (error) {
@@ -159,7 +165,9 @@ export const activateTrial = async (companyId: string): Promise<Company> => {
     .from('companies')
     .update({ trial_ends_at: trialEndsAt })
     .eq('id', companyId)
-    .select('*, employees(*)')
+    .select(
+      'id, user_id, name, cuit, address, postal_code, city, locality, province, country, rama_key, owner_entity, phone, is_subscribed, selected_plan, trial_ends_at, subscription_status, subscription_renewal_date, payment_method, bank_transfer_status, services, payment_methods, employees(id, name, email, role)'
+    )
     .single();
 
   if (error) {

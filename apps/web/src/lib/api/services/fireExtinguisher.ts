@@ -18,7 +18,8 @@ import { parseCursor } from '../../utils/pagination';
 
 type FireExtinguisherRow = Tables<'fire_extinguishers'>;
 
-const FIRE_EXTINGUISHER_COLUMNS = '*';
+const FIRE_EXTINGUISHER_COLUMNS =
+  'id, company_id, control_date, extinguisher_number, type, capacity, class, position_number, charge_expiration_date, hydraulic_pressure_expiration_date, manufacturing_year, tag_color, labels_legible, pressure_within_range, has_seal_and_safety, instructions_legible, container_condition, nozzle_condition, visibility_obstructed, access_obstructed, signage_condition, signage_floor, signage_wall, signage_height, glass_condition, door_opens_easily, cabinet_clean, observations, created_at, updated_at';
 
 const mapDbToFireExtinguisher = (item: FireExtinguisherRow): FireExtinguisherControl => ({
   id: item.id,

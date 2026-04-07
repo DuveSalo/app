@@ -45,7 +45,9 @@ export const getRecentRegistrations = async (limit = 10): Promise<AdminSchoolRow
 export const getSchoolDetail = async (companyId: string): Promise<AdminSchoolDetail> => {
   const { data, error } = await supabase
     .from('companies')
-    .select('*, employees(*)')
+    .select(
+      'id, name, cuit, address, city, province, locality, postal_code, phone, selected_plan, subscription_status, payment_method, bank_transfer_status, is_subscribed, trial_ends_at, subscription_renewal_date, created_at, services, employees(id, name, email, role)'
+    )
     .eq('id', companyId)
     .single();
 

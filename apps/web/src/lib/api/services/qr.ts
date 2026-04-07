@@ -1,16 +1,23 @@
-
 import { supabase } from '../../supabase/client';
 import { QRDocument, QRDocumentType, QRDocumentCreate } from '../../../types/index';
 import { mapQRDocumentFromDb } from '../mappers';
 import { NotFoundError, handleSupabaseError } from '../../utils/errors';
 import { getAuthenticatedCompanyId } from './context';
 import { TablesUpdate } from '../../../types/database.types';
-import { PaginationParams, CursorPaginationParams, CursorPaginatedResult } from '../../../types/common';
+import {
+  PaginationParams,
+  CursorPaginationParams,
+  CursorPaginatedResult,
+} from '../../../types/common';
 import { parseCursor } from '../../utils/pagination';
 
-const QR_DOCUMENT_COLUMNS = '*';
+const QR_DOCUMENT_COLUMNS =
+  'id, company_id, type, document_name, floor, unit, pdf_file_url, pdf_file_path, upload_date, qr_code_data, extracted_date';
 
-export const getQRDocuments = async (type: QRDocumentType, companyId?: string): Promise<QRDocument[]> => {
+export const getQRDocuments = async (
+  type: QRDocumentType,
+  companyId?: string
+): Promise<QRDocument[]> => {
   // Server-side filtering (N+1 fix - no longer fetches ALL documents then filters client-side)
   let finalCompanyId = companyId;
 
@@ -86,8 +93,12 @@ export const getQRDocumentsCursor = async (
   if (params.cursor) {
     try {
       const { cursorDate, cursorId } = parseCursor(params.cursor);
-      query = query.or(`upload_date.lt.${cursorDate},and(upload_date.eq.${cursorDate},id.lt.${cursorId})`);
-    } catch { /* Invalid cursor */ }
+      query = query.or(
+        `upload_date.lt.${cursorDate},and(upload_date.eq.${cursorDate},id.lt.${cursorId})`
+      );
+    } catch {
+      /* Invalid cursor */
+    }
   }
 
   const { data, error } = await query;
@@ -124,7 +135,7 @@ export const uploadQRDocument = async (docData: QRDocumentCreate): Promise<QRDoc
       .from('qr-documents')
       .upload(fileName, docData.pdfFile, {
         contentType: docData.pdfFile.type || 'application/pdf',
-        upsert: false
+        upsert: false,
       });
 
     if (uploadError) {
@@ -158,7 +169,7 @@ export const uploadQRDocument = async (docData: QRDocumentCreate): Promise<QRDoc
       upload_date: new Date().toISOString().split('T')[0],
       extracted_date: docData.extractedDate,
     })
-    .select()
+    .select(QR_DOCUMENT_COLUMNS)
     .single();
 
   if (error) {
@@ -178,14 +189,23 @@ export const getQRDocumentById = async (id: string): Promise<QRDocument> => {
     .eq('company_id', companyId)
     .single();
 
-  if (error || !data) {
+  if (error) {
+    if (error.code === 'PGRST116') {
+      throw new NotFoundError('Documento QR no encontrado', 'qr_document');
+    }
+    handleSupabaseError(error, 'Error al obtener documento QR');
+  }
+  if (!data) {
     throw new NotFoundError('Documento QR no encontrado', 'qr_document');
   }
 
   return mapQRDocumentFromDb(data);
 };
 
-export const updateQRDocument = async (id: string, docData: Partial<QRDocumentCreate>): Promise<QRDocument> => {
+export const updateQRDocument = async (
+  id: string,
+  docData: Partial<QRDocumentCreate>
+): Promise<QRDocument> => {
   const companyId = await getAuthenticatedCompanyId();
 
   let pdfFileUrl: string | null = null;
@@ -202,7 +222,10 @@ export const updateQRDocument = async (id: string, docData: Partial<QRDocumentCr
       .single();
 
     if (existing?.pdf_file_path) {
-      await supabase.storage.from('qr-documents').remove([existing.pdf_file_path]).catch(() => {});
+      await supabase.storage
+        .from('qr-documents')
+        .remove([existing.pdf_file_path])
+        .catch(() => {});
     }
 
     // Sanitize filename - remove special characters and spaces
@@ -215,7 +238,7 @@ export const updateQRDocument = async (id: string, docData: Partial<QRDocumentCr
       .from('qr-documents')
       .upload(fileName, docData.pdfFile, {
         contentType: docData.pdfFile.type || 'application/pdf',
-        upsert: false
+        upsert: false,
       });
 
     if (uploadError) {
@@ -251,7 +274,7 @@ export const updateQRDocument = async (id: string, docData: Partial<QRDocumentCr
     .update(updateData)
     .eq('id', id)
     .eq('company_id', companyId)
-    .select()
+    .select(QR_DOCUMENT_COLUMNS)
     .single();
 
   if (error) {
@@ -262,17 +285,21 @@ export const updateQRDocument = async (id: string, docData: Partial<QRDocumentCr
 };
 
 export const deleteQRDocument = async (id: string): Promise<void> => {
+  const companyId = await getAuthenticatedCompanyId();
+
   // Fetch file path before deleting the record
   const { data: doc } = await supabase
     .from('qr_documents')
     .select('pdf_file_path')
     .eq('id', id)
+    .eq('company_id', companyId)
     .single();
 
   const { error } = await supabase
     .from('qr_documents')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('company_id', companyId);
 
   if (error) {
     handleSupabaseError(error);
@@ -280,6 +307,9 @@ export const deleteQRDocument = async (id: string): Promise<void> => {
 
   // Clean up storage (best-effort)
   if (doc?.pdf_file_path) {
-    await supabase.storage.from('qr-documents').remove([doc.pdf_file_path]).catch(() => { });
+    await supabase.storage
+      .from('qr-documents')
+      .remove([doc.pdf_file_path])
+      .catch(() => {});
   }
 };

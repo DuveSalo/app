@@ -1,14 +1,18 @@
-
 import { supabase } from '../../supabase/client';
 import { EventInformation } from '../../../types/index';
 import { mapEventFromDb } from '../mappers';
 import { NotFoundError, handleSupabaseError } from '../../utils/errors';
 import { getAuthenticatedCompanyId } from './context';
 
-import { PaginationParams, CursorPaginationParams, CursorPaginatedResult } from '../../../types/common';
+import {
+  PaginationParams,
+  CursorPaginationParams,
+  CursorPaginatedResult,
+} from '../../../types/common';
 import { parseCursor } from '../../utils/pagination';
 
-const EVENT_COLUMNS = '*';
+const EVENT_COLUMNS =
+  'id, company_id, date, time, description, corrective_actions, testimonials, observations, final_checks';
 
 export const getEvents = async (
   companyId: string,
@@ -56,7 +60,9 @@ export const getEventsCursor = async (
     try {
       const { cursorDate, cursorId } = parseCursor(params.cursor);
       query = query.or(`date.lt.${cursorDate},and(date.eq.${cursorDate},id.lt.${cursorId})`);
-    } catch { /* Invalid cursor */ }
+    } catch {
+      /* Invalid cursor */
+    }
   }
 
   const { data, error } = await query;
@@ -85,14 +91,22 @@ export const getEventById = async (id: string): Promise<EventInformation> => {
     .eq('company_id', companyId)
     .single();
 
-  if (error || !data) {
+  if (error) {
+    if (error.code === 'PGRST116') {
+      throw new NotFoundError('Evento no encontrado', 'event');
+    }
+    handleSupabaseError(error, 'Error al obtener evento');
+  }
+  if (!data) {
     throw new NotFoundError('Evento no encontrado', 'event');
   }
 
   return mapEventFromDb(data);
 };
 
-export const createEvent = async (eventData: Omit<EventInformation, 'id' | 'companyId'>): Promise<EventInformation> => {
+export const createEvent = async (
+  eventData: Omit<EventInformation, 'id' | 'companyId'>
+): Promise<EventInformation> => {
   const companyId = await getAuthenticatedCompanyId();
 
   const { data, error } = await supabase
@@ -107,7 +121,7 @@ export const createEvent = async (eventData: Omit<EventInformation, 'id' | 'comp
       observations: eventData.observations || [],
       final_checks: eventData.finalChecks || {},
     })
-    .select()
+    .select(EVENT_COLUMNS)
     .single();
 
   if (error) {
@@ -133,7 +147,7 @@ export const updateEvent = async (eventData: EventInformation): Promise<EventInf
     })
     .eq('id', eventData.id)
     .eq('company_id', companyId)
-    .select()
+    .select(EVENT_COLUMNS)
     .single();
 
   if (error) {
@@ -144,10 +158,9 @@ export const updateEvent = async (eventData: EventInformation): Promise<EventInf
 };
 
 export const deleteEvent = async (id: string): Promise<void> => {
-  const { error } = await supabase
-    .from('events')
-    .delete()
-    .eq('id', id);
+  const companyId = await getAuthenticatedCompanyId();
+
+  const { error } = await supabase.from('events').delete().eq('id', id).eq('company_id', companyId);
 
   if (error) {
     handleSupabaseError(error);

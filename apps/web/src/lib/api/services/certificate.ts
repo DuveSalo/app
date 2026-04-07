@@ -24,7 +24,8 @@ export const getCertificates = async (
     finalCompanyId = await getAuthenticatedCompanyId();
   }
 
-  const columns = '*';
+  const columns =
+    'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path';
 
   let query = supabase
     .from('conservation_certificates')
@@ -52,7 +53,8 @@ export const getCertificatesCursor = async (
   companyId: string,
   params: CursorPaginationParams = {}
 ): Promise<CursorPaginatedResult<ConservationCertificate>> => {
-  const columns = '*';
+  const columns =
+    'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path';
   const limit = params.limit || 20;
   const fetchLimit = limit + 1;
 
@@ -95,7 +97,8 @@ export const getCertificatesCursor = async (
 export const getCertificateById = async (id: string): Promise<ConservationCertificate> => {
   const companyId = await getAuthenticatedCompanyId();
 
-  const columns = '*';
+  const columns =
+    'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path';
 
   const { data, error } = await supabase
     .from('conservation_certificates')
@@ -168,7 +171,9 @@ export const createCertificate = async (
       pdf_file_path: pdfFilePath,
       pdf_file_name: certData.pdfFileName || null,
     })
-    .select()
+    .select(
+      'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path'
+    )
     .single();
 
   if (error) {
@@ -252,7 +257,9 @@ export const updateCertificate = async (
     .update(updateData)
     .eq('id', certData.id)
     .eq('company_id', companyId)
-    .select()
+    .select(
+      'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path'
+    )
     .single();
 
   if (error) {
