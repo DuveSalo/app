@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, MoreHorizontal, Pencil, Trash2, Eye, ArrowUpDown } from 'lucide-react';
 import { type ColumnDef } from '@tanstack/react-table';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { QRDocument, QRDocumentType } from '../../types/index';
 import * as api from '@/lib/api/services';
 import { toast } from 'sonner';
@@ -23,6 +24,7 @@ import PageLayout from '../../components/layout/PageLayout';
 import { Empty } from '../../components/common/Empty';
 import { calculateExpirationStatus, formatDateLocal } from '../../lib/utils/dateUtils';
 import { openSupabaseStorageDocument } from '@/lib/utils/openSupabaseStorageDocument';
+import { queryKeys } from '@/lib/queryKeys';
 
 interface QRModulePageProps {
   qrType: QRDocumentType;
@@ -37,13 +39,28 @@ type QRDocumentWithStatus = QRDocument & {
 };
 
 const QRModuleListPage = ({ qrType, title, uploadPath, editPath }: QRModulePageProps) => {
-  const [documents, setDocuments] = useState<QRDocument[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
   const { currentCompany } = useAuth();
+  const queryClient = useQueryClient();
+
+  const {
+    data: documents = [],
+    isLoading,
+    error: queryError,
+  } = useQuery({
+    queryKey: queryKeys.qrDocuments.list(currentCompany?.id ?? '', qrType),
+    queryFn: () => api.getQRDocuments(qrType, currentCompany!.id),
+    enabled: !!currentCompany,
+  });
+
+  const error =
+    queryError instanceof Error
+      ? queryError.message
+      : queryError
+        ? `Error al cargar archivos de ${title}`
+        : '';
 
   const handleOpenDocument = useCallback(async (document: QRDocument) => {
     try {
@@ -59,35 +76,15 @@ const QRModuleListPage = ({ qrType, title, uploadPath, editPath }: QRModulePageP
     }
   }, []);
 
-  const loadDocuments = useCallback(async () => {
-    if (!currentCompany) return;
-    setIsLoading(true);
-    setError('');
-    try {
-      const data = await api.getQRDocuments(qrType, currentCompany.id);
-      setDocuments(data);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : `Error al cargar archivos de ${title}`);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [qrType, title, currentCompany]);
-
-  useEffect(() => {
-    loadDocuments();
-  }, [loadDocuments]);
-
   const handleDeleteConfirm = async () => {
     if (!deleteId) return;
     setIsDeleting(true);
-    setError('');
     try {
       await api.deleteQRDocument(deleteId);
-      setDocuments((prev) => prev.filter((doc) => doc.id !== deleteId));
+      await queryClient.invalidateQueries({ queryKey: queryKeys.qrDocuments.all });
       toast.success('Documento eliminado');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error al eliminar el documento.';
-      setError(message);
       toast.error('Error al eliminar', { description: message });
     } finally {
       setIsDeleting(false);
