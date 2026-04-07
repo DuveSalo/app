@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,7 +9,14 @@ import { toast } from 'sonner';
 import { Input } from '../../components/common/Input';
 import { DatePicker } from '../../components/common/DatePicker';
 import { Button } from '@/components/ui/button';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '@/components/ui/form';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { FileUpload } from '../../components/common/FileUpload';
 import { SkeletonForm } from '../../components/common/SkeletonLoader';
@@ -24,6 +31,10 @@ import {
   SIMULACROS_FIELDS,
   PROFESIONAL_FIELDS,
 } from './schemas';
+import {
+  openSelfProtectionSystemDocument,
+  type SelfProtectionSystemDocumentReference,
+} from './documentUtils';
 
 const logger = createLogger('CreateEditSelfProtectionSystemPage');
 
@@ -32,15 +43,27 @@ const DEFAULT_VALUES: SelfProtectionSystemFormValues = {
   probatoryDispositionPdf: undefined,
   probatoryDispositionPdfName: undefined,
   probatoryDispositionPdfUrl: undefined,
+  probatoryDispositionPdfPath: undefined,
   extensionDate: '',
   extensionPdf: undefined,
   extensionPdfName: undefined,
   extensionPdfUrl: undefined,
+  extensionPdfPath: undefined,
   expirationDate: '',
-  drills: Array(4).fill(null).map(() => ({ date: '', pdfFile: undefined, pdfFileName: undefined })),
+  drills: Array(4)
+    .fill(null)
+    .map(() => ({
+      date: '',
+      pdfFile: undefined,
+      pdfFileName: undefined,
+      pdfUrl: undefined,
+      pdfPath: undefined,
+    })),
   intervener: '',
   registrationNumber: '',
 };
+
+const SPS_TAB_KEYS = ['principal', 'simulacros', 'profesional'] as const;
 
 const CreateEditSelfProtectionSystemPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -86,11 +109,24 @@ const CreateEditSelfProtectionSystemPage = () => {
     if (id) {
       setIsLoadingData(true);
       setPageError('');
-      api.getSelfProtectionSystemById(id)
+      api
+        .getSelfProtectionSystemById(id)
         .then((systemToEdit: SelfProtectionSystem) => {
-          const drillsData = systemToEdit.drills.length >= 4
-            ? systemToEdit.drills.slice(0, 4)
-            : Array(4).fill(null).map((_, i) => systemToEdit.drills[i] || ({ date: '', pdfFile: undefined, pdfFileName: undefined }));
+          const drillsData =
+            systemToEdit.drills.length >= 4
+              ? systemToEdit.drills.slice(0, 4)
+              : Array(4)
+                  .fill(null)
+                  .map(
+                    (_, i) =>
+                      systemToEdit.drills[i] || {
+                        date: '',
+                        pdfFile: undefined,
+                        pdfFileName: undefined,
+                        pdfUrl: undefined,
+                        pdfPath: undefined,
+                      }
+                  );
           form.reset({
             ...DEFAULT_VALUES,
             ...systemToEdit,
@@ -98,7 +134,8 @@ const CreateEditSelfProtectionSystemPage = () => {
           });
         })
         .catch((error: unknown) => {
-          const message = error instanceof Error ? error.message : "Error al cargar datos del sistema.";
+          const message =
+            error instanceof Error ? error.message : 'Error al cargar datos del sistema.';
           setPageError(message);
         })
         .finally(() => setIsLoadingData(false));
@@ -123,14 +160,35 @@ const CreateEditSelfProtectionSystemPage = () => {
         form.setValue('extensionDate', extensionDate.toISOString().split('T')[0]);
         form.setValue('expirationDate', expirationDate.toISOString().split('T')[0]);
       } catch (e) {
-        logger.warn("Invalid date format for auto-calculation", { error: e, date: probatoryDispositionDate });
+        logger.warn('Invalid date format for auto-calculation', {
+          error: e,
+          date: probatoryDispositionDate,
+        });
       }
     }
   }, [probatoryDispositionDate]);
 
   const handleClearDrill = (index: number) => {
-    form.setValue(`drills.${index}`, { date: '', pdfFile: undefined, pdfFileName: undefined });
+    form.setValue(`drills.${index}`, {
+      date: '',
+      pdfFile: undefined,
+      pdfFileName: undefined,
+      pdfUrl: undefined,
+      pdfPath: undefined,
+    });
   };
+
+  const handleOpenDocument = useCallback(
+    async (document: SelfProtectionSystemDocumentReference) => {
+      try {
+        await openSelfProtectionSystemDocument(document);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Error al abrir el PDF';
+        toast.error(message);
+      }
+    },
+    []
+  );
 
   const onSubmit = async (data: SelfProtectionSystemFormValues) => {
     setSaving(true);
@@ -144,7 +202,7 @@ const CreateEditSelfProtectionSystemPage = () => {
       toast.success('Sistema guardado');
       navigate(ROUTE_PATHS.SELF_PROTECTION_SYSTEMS);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Error al guardar el sistema";
+      const message = err instanceof Error ? err.message : 'Error al guardar el sistema';
       setFormError(message);
       toast.error('Error al guardar', { description: message });
     } finally {
@@ -176,38 +234,72 @@ const CreateEditSelfProtectionSystemPage = () => {
       case 0:
         return (
           <>
-            <Button type="button" variant="ghost" onClick={() => navigate(ROUTE_PATHS.SELF_PROTECTION_SYSTEMS)} disabled={saving}>Cancelar</Button>
-            <Button type="button" onClick={handleNext} disabled={!isPrincipalComplete}>Siguiente</Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => navigate(ROUTE_PATHS.SELF_PROTECTION_SYSTEMS)}
+              disabled={saving}
+            >
+              Cancelar
+            </Button>
+            <Button type="button" onClick={handleNext} disabled={!isPrincipalComplete}>
+              Siguiente
+            </Button>
           </>
         );
       case 1:
         return (
           <>
-            <Button type="button" variant="ghost" onClick={handleBack} disabled={saving}>Atrás</Button>
-            <Button type="button" onClick={handleNext} disabled={!isSimulacrosComplete}>Siguiente</Button>
+            <Button type="button" variant="ghost" onClick={handleBack} disabled={saving}>
+              Atrás
+            </Button>
+            <Button type="button" onClick={handleNext} disabled={!isSimulacrosComplete}>
+              Siguiente
+            </Button>
           </>
         );
       case 2:
         return (
           <>
-            <Button type="button" variant="ghost" onClick={handleBack} disabled={saving}>Atrás</Button>
+            <Button type="button" variant="ghost" onClick={handleBack} disabled={saving}>
+              Atrás
+            </Button>
             <Button type="submit" form="sps-form" loading={saving} disabled={!isFormComplete}>
-              {id ? "Actualizar" : "Guardar"}
+              {id ? 'Actualizar' : 'Guardar'}
             </Button>
           </>
         );
       default:
         return null;
     }
-  }, [activeTab, saving, isPrincipalComplete, isSimulacrosComplete, isFormComplete, id, navigate, handleNext, handleBack]);
+  }, [
+    activeTab,
+    saving,
+    isPrincipalComplete,
+    isSimulacrosComplete,
+    isFormComplete,
+    id,
+    navigate,
+    handleNext,
+    handleBack,
+  ]);
 
   if (isLoadingData) return <SkeletonForm />;
-  if (pageError) return <div className="flex-grow flex justify-center items-center h-full"><p className="text-destructive text-center py-10">{pageError}</p></div>;
+  if (pageError)
+    return (
+      <div className="flex-grow flex justify-center items-center h-full">
+        <p className="text-destructive text-center py-10">{pageError}</p>
+      </div>
+    );
 
-  const pageTitle = id ? "Editar Sistema de Autoprotección" : "Nuevo Sistema de Autoprotección";
+  const pageTitle = id ? 'Editar Sistema de Autoprotección' : 'Nuevo Sistema de Autoprotección';
 
-  const tabKeys = ['principal', 'simulacros', 'profesional'];
-  const currentTabKey = tabKeys[activeTab];
+  const currentTabKey = SPS_TAB_KEYS[activeTab];
+
+  const handleTabChange = useCallback(
+    (v: string) => setActiveTab(SPS_TAB_KEYS.indexOf(v as (typeof SPS_TAB_KEYS)[number])),
+    []
+  );
 
   return (
     <PageLayout title={pageTitle} footer={footerActions}>
@@ -215,12 +307,18 @@ const CreateEditSelfProtectionSystemPage = () => {
         <div className="w-full max-w-4xl mx-auto">
           <Form {...form}>
             <form id="sps-form" onSubmit={form.handleSubmit(onSubmit)}>
-              <Tabs value={currentTabKey} onValueChange={(v) => setActiveTab(tabKeys.indexOf(v))}>
-                <TabsList>
-                  <TabsTrigger value="principal">Principal</TabsTrigger>
-                  <TabsTrigger value="simulacros" disabled={maxAllowedStep < 1}>Simulacros</TabsTrigger>
-                  <TabsTrigger value="profesional" disabled={maxAllowedStep < 2}>Profesional</TabsTrigger>
-                </TabsList>
+              <Tabs value={currentTabKey} onValueChange={handleTabChange}>
+                <div className="overflow-x-auto">
+                  <TabsList>
+                    <TabsTrigger value="principal">Principal</TabsTrigger>
+                    <TabsTrigger value="simulacros" disabled={maxAllowedStep < 1}>
+                      Simulacros
+                    </TabsTrigger>
+                    <TabsTrigger value="profesional" disabled={maxAllowedStep < 2}>
+                      Profesional
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
                 <div className="mt-4">
                   <TabsContent value="principal">
                     <div className="space-y-4">
@@ -245,19 +343,34 @@ const CreateEditSelfProtectionSystemPage = () => {
                         )}
                       />
 
-                      {id && form.getValues('probatoryDispositionPdfUrl') && !form.getValues('probatoryDispositionPdf') && (
-                        <div className="p-3 bg-muted border border-border rounded-md">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-foreground">PDF actual:</p>
-                              <p className="text-sm text-muted-foreground">{form.getValues('probatoryDispositionPdfName') || 'Disposición Aprobatoria'}</p>
+                      {id &&
+                        (form.getValues('probatoryDispositionPdfPath') ||
+                          form.getValues('probatoryDispositionPdfUrl')) &&
+                        !form.getValues('probatoryDispositionPdf') && (
+                          <div className="p-3 bg-muted border border-border rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-foreground">PDF actual:</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {form.getValues('probatoryDispositionPdfName') ||
+                                    'Disposición Aprobatoria'}
+                                </p>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() =>
+                                  void handleOpenDocument({
+                                    path: form.getValues('probatoryDispositionPdfPath'),
+                                    url: form.getValues('probatoryDispositionPdfUrl'),
+                                  })
+                                }
+                              >
+                                <EyeIcon className="w-4 h-4" /> Ver PDF
+                              </Button>
                             </div>
-                            <Button type="button" variant="ghost" onClick={() => window.open(form.getValues('probatoryDispositionPdfUrl'), '_blank')}>
-                              <EyeIcon className="w-4 h-4" /> Ver PDF
-                            </Button>
                           </div>
-                        </div>
-                      )}
+                        )}
 
                       <FormField
                         control={form.control}
@@ -266,7 +379,11 @@ const CreateEditSelfProtectionSystemPage = () => {
                           <FormItem>
                             <FormControl>
                               <FileUpload
-                                label={id ? "Reemplazar PDF Disposición Aprobatoria (opcional)" : "PDF Disposición Aprobatoria"}
+                                label={
+                                  id
+                                    ? 'Reemplazar PDF Disposición Aprobatoria (opcional)'
+                                    : 'PDF Disposición Aprobatoria'
+                                }
                                 accept=".pdf"
                                 currentFileName={form.getValues('probatoryDispositionPdfName')}
                                 onFileSelect={(file) => {
@@ -302,19 +419,32 @@ const CreateEditSelfProtectionSystemPage = () => {
                         />
                       </div>
 
-                      {id && form.getValues('extensionPdfUrl') && !form.getValues('extensionPdf') && (
-                        <div className="p-3 bg-muted border border-border rounded-md">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-foreground">PDF actual:</p>
-                              <p className="text-sm text-muted-foreground">{form.getValues('extensionPdfName') || 'Extensión'}</p>
+                      {id &&
+                        (form.getValues('extensionPdfPath') || form.getValues('extensionPdfUrl')) &&
+                        !form.getValues('extensionPdf') && (
+                          <div className="p-3 bg-muted border border-border rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-foreground">PDF actual:</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {form.getValues('extensionPdfName') || 'Extensión'}
+                                </p>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() =>
+                                  void handleOpenDocument({
+                                    path: form.getValues('extensionPdfPath'),
+                                    url: form.getValues('extensionPdfUrl'),
+                                  })
+                                }
+                              >
+                                <EyeIcon className="w-4 h-4" /> Ver PDF
+                              </Button>
                             </div>
-                            <Button type="button" variant="ghost" onClick={() => window.open(form.getValues('extensionPdfUrl'), '_blank')}>
-                              <EyeIcon className="w-4 h-4" /> Ver PDF
-                            </Button>
                           </div>
-                        </div>
-                      )}
+                        )}
 
                       <FormField
                         control={form.control}
@@ -323,7 +453,7 @@ const CreateEditSelfProtectionSystemPage = () => {
                           <FormItem>
                             <FormControl>
                               <FileUpload
-                                label={id ? "Reemplazar PDF Extensión (opcional)" : "PDF Extensión"}
+                                label={id ? 'Reemplazar PDF Extensión (opcional)' : 'PDF Extensión'}
                                 accept=".pdf"
                                 currentFileName={form.getValues('extensionPdfName')}
                                 onFileSelect={(file) => {
@@ -364,11 +494,16 @@ const CreateEditSelfProtectionSystemPage = () => {
 
                   <TabsContent value="simulacros">
                     <div className="space-y-4">
-                      <p className="text-xs text-muted-foreground">Registre la información de los 4 simulacros requeridos. Se requiere la fecha de los 4 simulacros para continuar.</p>
+                      <p className="text-xs text-muted-foreground">
+                        Registre la información de los 4 simulacros requeridos. Se requiere la fecha
+                        de los 4 simulacros para continuar.
+                      </p>
                       {drills.map((drill, index) => (
-                        <div key={index} className="p-4 border border-border bg-muted rounded-md">
+                        <div key={index} className="p-4 border border-border bg-muted rounded-lg">
                           <div className="flex justify-between items-center mb-3">
-                            <h4 className="text-sm font-medium text-foreground">Simulacro {index + 1}</h4>
+                            <h4 className="text-sm font-medium text-foreground">
+                              Simulacro {index + 1}
+                            </h4>
                             <Button
                               type="button"
                               variant="ghost"
@@ -399,14 +534,27 @@ const CreateEditSelfProtectionSystemPage = () => {
                               )}
                             />
 
-                            {id && drill.pdfUrl && !drill.pdfFile && (
-                              <div className="p-3 bg-background border border-border rounded-md">
+                            {id && (drill.pdfPath || drill.pdfUrl) && !drill.pdfFile && (
+                              <div className="p-3 bg-background border border-border rounded-lg">
                                 <div className="flex items-center justify-between">
                                   <div className="flex-1">
-                                    <p className="text-sm font-medium text-foreground">PDF actual:</p>
-                                    <p className="text-sm text-muted-foreground">{drill.pdfFileName || `Simulacro ${index + 1}`}</p>
+                                    <p className="text-sm font-medium text-foreground">
+                                      PDF actual:
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {drill.pdfFileName || `Simulacro ${index + 1}`}
+                                    </p>
                                   </div>
-                                  <Button type="button" variant="ghost" onClick={() => window.open(drill.pdfUrl, '_blank')}>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    onClick={() =>
+                                      void handleOpenDocument({
+                                        path: drill.pdfPath,
+                                        url: drill.pdfUrl,
+                                      })
+                                    }
+                                  >
                                     <EyeIcon className="w-4 h-4" /> Ver PDF
                                   </Button>
                                 </div>
@@ -420,7 +568,11 @@ const CreateEditSelfProtectionSystemPage = () => {
                                 <FormItem>
                                   <FormControl>
                                     <FileUpload
-                                      label={id ? "Reemplazar PDF del Simulacro (opcional)" : "PDF del Simulacro"}
+                                      label={
+                                        id
+                                          ? 'Reemplazar PDF del Simulacro (opcional)'
+                                          : 'PDF del Simulacro'
+                                      }
                                       accept=".pdf"
                                       currentFileName={drill.pdfFileName}
                                       onFileSelect={(file) => {
@@ -481,7 +633,9 @@ const CreateEditSelfProtectionSystemPage = () => {
                   </TabsContent>
                 </div>
               </Tabs>
-              {formError && <p className="text-sm text-destructive mt-4 text-center">{formError}</p>}
+              {formError && (
+                <p className="text-sm text-destructive mt-4 text-center">{formError}</p>
+              )}
             </form>
           </Form>
         </div>

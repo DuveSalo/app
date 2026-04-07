@@ -74,7 +74,8 @@ const LoginForm = () => {
     try {
       await loginWithGoogle();
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al iniciar sesion con Google.';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error al iniciar sesion con Google.';
       setError(errorMessage);
       toast.error('Error al iniciar sesion', { description: errorMessage });
       setIsLoading(false);
@@ -84,7 +85,7 @@ const LoginForm = () => {
   if (forgotMode) {
     return (
       <AuthLayout variant="split">
-        <div className="flex flex-col w-full gap-6">
+        <div className="flex w-full flex-col gap-6">
           <div className="flex flex-col gap-2">
             <h2 className="text-2xl font-semibold tracking-tight text-foreground">
               Restablecer contrasena
@@ -96,22 +97,27 @@ const LoginForm = () => {
 
           {forgotSent ? (
             <div className="flex flex-col items-center gap-5">
-              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-muted">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                 <Mail className="h-6 w-6 text-muted-foreground" />
               </div>
               <div className="flex flex-col gap-1.5 text-center">
-                <h3 className="text-lg font-semibold text-foreground">Revisa tu email</h3>
+                <h3 className="text-base font-semibold text-foreground">Revisa tu email</h3>
                 <p className="text-sm text-muted-foreground">
-                  Si existe una cuenta con <span className="font-medium text-foreground">{forgotEmail}</span>,
-                  recibiras un enlace para restablecer tu contrasena.
+                  Si existe una cuenta con{' '}
+                  <span className="font-medium text-foreground">{forgotEmail}</span>, recibiras un
+                  enlace para restablecer tu contrasena.
                 </p>
               </div>
               <Button
                 variant="ghost"
-                onClick={() => { setForgotMode(false); setForgotSent(false); setForgotEmail(''); }}
+                onClick={() => {
+                  setForgotMode(false);
+                  setForgotSent(false);
+                  setForgotEmail('');
+                }}
                 className="w-full"
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 Volver al inicio de sesion
               </Button>
             </div>
@@ -139,10 +145,13 @@ const LoginForm = () => {
               </div>
               <button
                 type="button"
-                onClick={() => { setForgotMode(false); setForgotEmail(''); }}
-                className="text-sm text-muted-foreground hover:underline text-center"
+                onClick={() => {
+                  setForgotMode(false);
+                  setForgotEmail('');
+                }}
+                className="text-center text-sm text-muted-foreground hover:underline"
               >
-                <ArrowLeft className="w-3.5 h-3.5 inline mr-1" />
+                <ArrowLeft className="mr-1 inline h-3.5 w-3.5" />
                 Volver al inicio de sesion
               </button>
             </>
@@ -154,16 +163,14 @@ const LoginForm = () => {
 
   return (
     <AuthLayout variant="split">
-      <div className="flex flex-col w-full gap-6">
+      <div className="flex w-full flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-            Iniciar sesion
-          </h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Iniciar sesion</h2>
           <p className="text-sm text-muted-foreground">Ingresa tus datos para continuar</p>
         </div>
 
         {(registrationSuccess || emailConfirmed) && (
-          <div className="bg-emerald-50 rounded-md border border-emerald-200 p-4" role="alert">
+          <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4" role="alert">
             <p className="text-sm font-medium text-emerald-600">
               {emailConfirmed
                 ? 'Email confirmado exitosamente. Inicia sesion para continuar con el registro de tu institucion.'
@@ -224,9 +231,9 @@ const LoginForm = () => {
               />
             </div>
 
-            {error && <p className="text-sm text-destructive text-center mt-3">{error}</p>}
+            {error && <p className="mt-3 text-center text-sm text-destructive">{error}</p>}
 
-            <div className="flex flex-col gap-4 mt-6">
+            <div className="mt-6 flex flex-col gap-4">
               <Button type="submit" loading={isLoading} className="w-full">
                 {isLoading ? 'Autenticando...' : 'Iniciar sesion'}
               </Button>

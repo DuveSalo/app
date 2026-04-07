@@ -11,11 +11,7 @@ import { Form } from '@/components/ui/form';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { SkeletonForm } from '../../components/common/SkeletonLoader';
 import PageLayout from '../../components/layout/PageLayout';
-import {
-  fireExtinguisherSchema,
-  type FireExtinguisherFormValues,
-  TAB_FIELDS,
-} from './schemas';
+import { fireExtinguisherSchema, type FireExtinguisherFormValues, TAB_FIELDS } from './schemas';
 import {
   IdentificationSection,
   LocationSection,
@@ -54,6 +50,16 @@ const DEFAULT_VALUES: FireExtinguisherFormValues = {
   signageHeight: '' as FireExtinguisherFormValues['signageHeight'],
   observations: '',
 };
+
+const TAB_KEYS = [
+  'identification',
+  'location',
+  'conditions',
+  'cabinet',
+  'accessibility',
+  'signage',
+  'observations',
+] as const;
 
 const CreateEditFireExtinguisherPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -100,7 +106,7 @@ const CreateEditFireExtinguisherPage = () => {
 
   const isIdentificationComplete = useMemo(
     () => !!controlDate && !!extinguisherNumber && !!type && !!capacity && !!extClass,
-    [controlDate, extinguisherNumber, type, capacity, extClass],
+    [controlDate, extinguisherNumber, type, capacity, extClass]
   );
   const isLocationComplete = useMemo(
     () =>
@@ -109,23 +115,29 @@ const CreateEditFireExtinguisherPage = () => {
       !!hydraulicPressureExpirationDate &&
       !!manufacturingYear &&
       !!tagColor,
-    [positionNumber, chargeExpirationDate, hydraulicPressureExpirationDate, manufacturingYear, tagColor],
+    [
+      positionNumber,
+      chargeExpirationDate,
+      hydraulicPressureExpirationDate,
+      manufacturingYear,
+      tagColor,
+    ]
   );
   const isConditionsComplete = useMemo(
     () => !!containerCondition && !!nozzleCondition,
-    [containerCondition, nozzleCondition],
+    [containerCondition, nozzleCondition]
   );
   const isCabinetComplete = useMemo(
     () => !!glassCondition && !!doorOpensEasily && !!cabinetClean,
-    [glassCondition, doorOpensEasily, cabinetClean],
+    [glassCondition, doorOpensEasily, cabinetClean]
   );
   const isAccessibilityComplete = useMemo(
     () => !!visibilityObstructed && !!accessObstructed,
-    [visibilityObstructed, accessObstructed],
+    [visibilityObstructed, accessObstructed]
   );
   const isSignageComplete = useMemo(
     () => !!signageCondition && !!signageFloor && !!signageWall && !!signageHeight,
-    [signageCondition, signageFloor, signageWall, signageHeight],
+    [signageCondition, signageFloor, signageWall, signageHeight]
   );
 
   const tabCompletions = useMemo(
@@ -144,7 +156,7 @@ const CreateEditFireExtinguisherPage = () => {
       isCabinetComplete,
       isAccessibilityComplete,
       isSignageComplete,
-    ],
+    ]
   );
 
   const maxAllowedStep = useMemo(() => {
@@ -159,10 +171,7 @@ const CreateEditFireExtinguisherPage = () => {
     return step;
   }, [tabCompletions]);
 
-  const isFormComplete = useMemo(
-    () => tabCompletions.every(Boolean),
-    [tabCompletions],
-  );
+  const isFormComplete = useMemo(() => tabCompletions.every(Boolean), [tabCompletions]);
 
   const canAdvanceFromTab = useCallback(
     (tab: number): boolean => {
@@ -170,7 +179,12 @@ const CreateEditFireExtinguisherPage = () => {
       if (tab === 6) return true; // observations tab — always passable
       return false;
     },
-    [tabCompletions],
+    [tabCompletions]
+  );
+
+  const handleTabChange = useCallback(
+    (v: string) => setActiveTab(TAB_KEYS.indexOf(v as (typeof TAB_KEYS)[number])),
+    []
   );
 
   useEffect(() => {
@@ -210,7 +224,8 @@ const CreateEditFireExtinguisherPage = () => {
           });
         })
         .catch((error: unknown) => {
-          const message = error instanceof Error ? error.message : 'Error al cargar datos del extintor.';
+          const message =
+            error instanceof Error ? error.message : 'Error al cargar datos del extintor.';
           setPageError(message);
         })
         .finally(() => setIsLoadingData(false));
@@ -236,7 +251,8 @@ const CreateEditFireExtinguisherPage = () => {
       toast.success('Extintor guardado');
       navigate(ROUTE_PATHS.FIRE_EXTINGUISHERS);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al guardar el control de extintor.';
+      const message =
+        err instanceof Error ? err.message : 'Error al guardar el control de extintor.';
       setFormError(message);
       toast.error('Error al guardar', { description: message });
     } finally {
@@ -307,43 +323,36 @@ const CreateEditFireExtinguisherPage = () => {
     </div>
   );
 
-  const tabKeys = [
-    'identification',
-    'location',
-    'conditions',
-    'cabinet',
-    'accessibility',
-    'signage',
-    'observations',
-  ];
-  const currentTabKey = tabKeys[activeTab];
+  const currentTabKey = TAB_KEYS[activeTab];
 
   return (
     <PageLayout title={pageTitle} footer={footerActions}>
       <Form {...form}>
         <form id="fire-extinguisher-form" onSubmit={form.handleSubmit(onSubmit)}>
-          <Tabs value={currentTabKey} onValueChange={(v) => setActiveTab(tabKeys.indexOf(v))}>
-            <TabsList>
-              <TabsTrigger value="identification">Identificacion</TabsTrigger>
-              <TabsTrigger value="location" disabled={maxAllowedStep < 1}>
-                Ubicacion
-              </TabsTrigger>
-              <TabsTrigger value="conditions" disabled={maxAllowedStep < 2}>
-                Condiciones
-              </TabsTrigger>
-              <TabsTrigger value="cabinet" disabled={maxAllowedStep < 3}>
-                Gabinete
-              </TabsTrigger>
-              <TabsTrigger value="accessibility" disabled={maxAllowedStep < 4}>
-                Accesibilidad
-              </TabsTrigger>
-              <TabsTrigger value="signage" disabled={maxAllowedStep < 5}>
-                Senalizacion
-              </TabsTrigger>
-              <TabsTrigger value="observations" disabled={maxAllowedStep < 6}>
-                Observaciones
-              </TabsTrigger>
-            </TabsList>
+          <Tabs value={currentTabKey} onValueChange={handleTabChange}>
+            <div className="overflow-x-auto">
+              <TabsList>
+                <TabsTrigger value="identification">Identificacion</TabsTrigger>
+                <TabsTrigger value="location" disabled={maxAllowedStep < 1}>
+                  Ubicacion
+                </TabsTrigger>
+                <TabsTrigger value="conditions" disabled={maxAllowedStep < 2}>
+                  Condiciones
+                </TabsTrigger>
+                <TabsTrigger value="cabinet" disabled={maxAllowedStep < 3}>
+                  Gabinete
+                </TabsTrigger>
+                <TabsTrigger value="accessibility" disabled={maxAllowedStep < 4}>
+                  Accesibilidad
+                </TabsTrigger>
+                <TabsTrigger value="signage" disabled={maxAllowedStep < 5}>
+                  Senalizacion
+                </TabsTrigger>
+                <TabsTrigger value="observations" disabled={maxAllowedStep < 6}>
+                  Observaciones
+                </TabsTrigger>
+              </TabsList>
+            </div>
             <div className="mt-4">
               <TabsContent value="identification">
                 <IdentificationSection form={form} />

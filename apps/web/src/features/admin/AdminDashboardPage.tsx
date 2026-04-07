@@ -236,7 +236,7 @@ const AdminDashboardPage = () => {
                           disabled={loading}
                           onClick={() => handleApprove(row.id)}
                           aria-label={`Aprobar pago de ${row.companyName}`}
-                          className="inline-flex items-center justify-center rounded-md h-8 w-8 hover:bg-accent disabled:opacity-50"
+                          className="inline-flex items-center justify-center rounded-lg h-8 w-8 hover:bg-accent disabled:opacity-50"
                         >
                           <Check className="h-4 w-4 text-emerald-600" />
                         </button>
@@ -245,7 +245,7 @@ const AdminDashboardPage = () => {
                           disabled={loading}
                           onClick={() => setRejectDialog({ open: true, paymentId: row.id })}
                           aria-label={`Rechazar pago de ${row.companyName}`}
-                          className="inline-flex items-center justify-center rounded-md h-8 w-8 hover:bg-accent disabled:opacity-50"
+                          className="inline-flex items-center justify-center rounded-lg h-8 w-8 hover:bg-accent disabled:opacity-50"
                         >
                           <X className="h-4 w-4 text-destructive" />
                         </button>

@@ -1,96 +1,95 @@
 import { type ReactNode } from 'react';
 
-const OnboardingStepper = ({ steps, currentStep }: { steps: string[]; currentStep: number }) => {
-  return (
-    <div className="flex items-center gap-8">
-      {steps.map((label, index) => {
-        const stepNumber = index + 1;
-        const isDone = stepNumber < currentStep;
-        const isActive = stepNumber === currentStep;
-        const isCompleted = isDone || isActive;
-
-        return (
-          <div key={label} className="contents">
-            {index > 0 && (
-              <div className={`w-10 h-px ${isDone ? 'bg-primary' : 'bg-border'}`} />
-            )}
-            <div className="flex items-center gap-2.5">
-              <div
-                className={`flex items-center justify-center rounded-md w-7 h-7 text-xs font-medium transition-all duration-200 ${
-                  isCompleted
-                    ? 'bg-primary text-primary-foreground'
-                    : 'border border-border text-muted-foreground'
-                }`}
-              >
-                {stepNumber}
-              </div>
-              <span
-                className={`text-sm ${
-                  isCompleted ? 'font-medium text-foreground' : 'text-muted-foreground'
-                }`}
-              >
-                {label}
-              </span>
-            </div>
-          </div>
-        );
-      })}
+const BrandMark = ({
+  nameClassName = 'text-base font-semibold text-foreground',
+}: {
+  nameClassName?: string;
+}) => (
+  <>
+    <div className="bg-primary text-primary-foreground flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold">
+      ES
     </div>
-  );
-};
+    <span className={nameClassName}>Escuela Segura</span>
+  </>
+);
+
+const HERO_STATS = [
+  { value: '2,400+', label: 'Documentos gestionados' },
+  { value: '99.8%', label: 'Uptime' },
+  { value: '150+', label: 'Escuelas activas' },
+] as const;
+
+const OnboardingStepper = ({ steps, currentStep }: { steps: string[]; currentStep: number }) => (
+  <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6">
+    {steps.map((label, index) => {
+      const stepNumber = index + 1;
+      const isDone = stepNumber < currentStep;
+      const isActive = stepNumber === currentStep;
+      const isCompleted = isDone || isActive;
+
+      return (
+        <div key={label} className="contents">
+          {index > 0 && (
+            <div className={`hidden h-px w-8 sm:block ${isDone ? 'bg-primary' : 'bg-border'}`} />
+          )}
+          <div className="flex items-center gap-2.5">
+            <div
+              className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-medium transition-all duration-200 ${
+                isCompleted
+                  ? 'bg-primary text-primary-foreground'
+                  : 'border border-border text-muted-foreground'
+              }`}
+            >
+              {stepNumber}
+            </div>
+            <span
+              className={
+                isCompleted
+                  ? 'text-sm font-medium text-foreground'
+                  : 'text-sm text-muted-foreground'
+              }
+            >
+              {label}
+            </span>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+);
 
 interface AuthLayoutProps {
   children: ReactNode;
   variant: 'split' | 'wizard';
-  title?: string;
-  subtitle?: string;
   wizardSteps?: string[];
   currentStep?: number;
 }
 
-const AuthLayout = ({
-  children,
-  variant,
-  wizardSteps = [],
-  currentStep = 1,
-}: AuthLayoutProps) => {
+const AuthLayout = ({ children, variant, wizardSteps = [], currentStep = 1 }: AuthLayoutProps) => {
   if (variant === 'split') {
     return (
-      <div className="h-screen flex bg-background">
-        {/* Left: Hero */}
-        <div className="hidden lg:flex flex-col justify-between flex-1 px-20 py-16 bg-background">
-          {/* Top: Logo */}
+      <div className="flex min-h-screen bg-background">
+        <div className="hidden flex-1 flex-col justify-between bg-background px-20 py-16 lg:flex">
           <div className="flex items-center gap-3">
-            <div className="bg-primary text-primary-foreground rounded-lg w-7 h-7 flex items-center justify-center text-xs font-bold">
-              ES
-            </div>
-            <span className="text-base font-bold text-foreground">
-              Escuela Segura
-            </span>
+            <BrandMark nameClassName="text-base font-bold text-foreground" />
           </div>
 
-          {/* Middle: Hero text */}
-          <div className="flex flex-col gap-6">
-            <h1 className="text-5xl font-semibold leading-[1.1] text-foreground max-w-[560px] tracking-tight">
-              Gestión de seguridad escolar, simplificada.
+          <div className="flex max-w-[560px] flex-col gap-6">
+            <h1 className="text-5xl font-semibold leading-[1.1] tracking-tight text-foreground">
+              Gestion de seguridad escolar, simplificada.
             </h1>
-            <p className="text-base leading-relaxed text-muted-foreground max-w-[440px]">
+            <p className="max-w-[440px] text-base leading-relaxed text-muted-foreground">
               Controla vencimientos, certificados y normativas en un solo lugar. Sin complicaciones.
             </p>
           </div>
 
-          {/* Bottom: Stats */}
           <div className="flex items-center gap-12">
-            {[
-              { value: '2,400+', label: 'Documentos gestionados' },
-              { value: '99.8%', label: 'Uptime' },
-              { value: '150+', label: 'Escuelas activas' },
-            ].map((stat) => (
+            {HERO_STATS.map((stat) => (
               <div key={stat.label} className="flex flex-col gap-1.5 text-center">
                 <span className="text-2xl font-bold tracking-tight text-foreground">
                   {stat.value}
                 </span>
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   {stat.label}
                 </span>
               </div>
@@ -98,16 +97,9 @@ const AuthLayout = ({
           </div>
         </div>
 
-        {/* Right: Form */}
-        <div className="flex flex-col justify-center border-l border-border w-full lg:w-[480px] lg:flex-shrink-0 px-12 sm:px-20">
-          {/* Mobile logo */}
-          <div className="flex items-center justify-center mb-10 lg:hidden gap-3">
-            <div className="bg-primary text-primary-foreground rounded-lg w-7 h-7 flex items-center justify-center text-xs font-bold">
-              ES
-            </div>
-            <span className="text-base font-semibold text-foreground">
-              Escuela Segura
-            </span>
+        <div className="flex w-full flex-col justify-center px-12 py-10 sm:px-20 lg:w-[480px] lg:flex-shrink-0 lg:border-l lg:border-border lg:py-0">
+          <div className="mb-10 flex items-center justify-center gap-3 lg:hidden">
+            <BrandMark />
           </div>
           {children}
         </div>
@@ -115,25 +107,19 @@ const AuthLayout = ({
     );
   }
 
-  // --- Wizard Layout (Onboarding) ---
   return (
-    <div className="min-h-screen flex flex-col items-center overflow-y-auto custom-scrollbar bg-muted">
-      {/* Top bar */}
-      <div className="w-full flex items-center flex-shrink-0 h-16 px-10 gap-3">
-        <div className="bg-primary text-primary-foreground rounded-lg w-7 h-7 flex items-center justify-center text-xs font-bold">
-          ES
+    <div className="custom-scrollbar min-h-screen overflow-y-auto bg-muted">
+      <div className="flex min-h-screen flex-col">
+        <div className="flex h-12 w-full flex-shrink-0 items-center gap-3 px-6 sm:px-10">
+          <BrandMark />
         </div>
-        <span className="text-base font-semibold text-foreground">
-          Escuela Segura
-        </span>
-      </div>
 
-      {/* Center content */}
-      <div className="flex-1 flex flex-col items-center justify-center w-full gap-8 px-4 pb-10">
-        {wizardSteps.length > 0 && (
-          <OnboardingStepper steps={wizardSteps} currentStep={currentStep} />
-        )}
-        {children}
+        <div className="mx-auto flex w-full max-w-[1120px] flex-1 flex-col items-center gap-2 px-4 pb-1 pt-1 sm:gap-3 sm:px-6 sm:pb-1 sm:pt-2">
+          {wizardSteps.length > 0 && (
+            <OnboardingStepper steps={wizardSteps} currentStep={currentStep} />
+          )}
+          <div className="flex w-full flex-col items-center">{children}</div>
+        </div>
       </div>
     </div>
   );

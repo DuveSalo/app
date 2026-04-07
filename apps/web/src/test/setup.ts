@@ -4,79 +4,81 @@ import { afterEach, vi } from 'vitest';
 
 // Cleanup DOM after each test
 afterEach(() => {
-    cleanup();
+  cleanup();
 });
 
 // Mock matchMedia for components that use responsive features
 Object.defineProperty(window, 'matchMedia', {
-    writable: true,
-    value: (query: string) => ({
-        matches: false,
-        media: query,
-        onchange: null,
-        addListener: () => { },
-        removeListener: () => { },
-        addEventListener: () => { },
-        removeEventListener: () => { },
-        dispatchEvent: () => false,
-    }),
+  writable: true,
+  value: (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }),
 });
 
 // Mock IntersectionObserver
 class MockIntersectionObserver {
-    observe = () => null;
-    disconnect = () => null;
-    unobserve = () => null;
+  observe = () => null;
+  disconnect = () => null;
+  unobserve = () => null;
 }
 
 Object.defineProperty(window, 'IntersectionObserver', {
-    writable: true,
-    value: MockIntersectionObserver,
+  writable: true,
+  value: MockIntersectionObserver,
 });
 
 // Mock ResizeObserver
 class MockResizeObserver {
-    observe = () => null;
-    disconnect = () => null;
-    unobserve = () => null;
+  observe = () => null;
+  disconnect = () => null;
+  unobserve = () => null;
 }
 
 Object.defineProperty(window, 'ResizeObserver', {
-    writable: true,
-    value: MockResizeObserver,
+  writable: true,
+  value: MockResizeObserver,
 });
 
 // Global Supabase client mock
-vi.mock('@/lib/supabase', () => ({
-    supabase: {
-        auth: {
-            getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
-            getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
-            onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
-            signInWithOAuth: vi.fn(),
-            signOut: vi.fn(),
-        },
-        from: vi.fn().mockReturnValue({
-            select: vi.fn().mockReturnThis(),
-            insert: vi.fn().mockReturnThis(),
-            update: vi.fn().mockReturnThis(),
-            delete: vi.fn().mockReturnThis(),
-            eq: vi.fn().mockReturnThis(),
-            single: vi.fn().mockResolvedValue({ data: null, error: null }),
-            maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-            order: vi.fn().mockReturnThis(),
-            limit: vi.fn().mockReturnThis(),
-            then: vi.fn(),
-        }),
-        storage: {
-            from: vi.fn().mockReturnValue({
-                upload: vi.fn().mockResolvedValue({ data: null, error: null }),
-                createSignedUrl: vi.fn().mockResolvedValue({ data: { signedUrl: '' }, error: null }),
-                remove: vi.fn().mockResolvedValue({ data: null, error: null }),
-            }),
-        },
-        functions: {
-            invoke: vi.fn().mockResolvedValue({ data: null, error: null }),
-        },
+vi.mock('@/lib/supabase/client', () => ({
+  supabase: {
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+      onAuthStateChange: vi
+        .fn()
+        .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+      signInWithOAuth: vi.fn(),
+      signOut: vi.fn(),
     },
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      then: vi.fn(),
+    }),
+    storage: {
+      from: vi.fn().mockReturnValue({
+        upload: vi.fn().mockResolvedValue({ data: null, error: null }),
+        createSignedUrl: vi.fn().mockResolvedValue({ data: { signedUrl: '' }, error: null }),
+        remove: vi.fn().mockResolvedValue({ data: null, error: null }),
+      }),
+    },
+    functions: {
+      invoke: vi.fn().mockResolvedValue({ data: null, error: null }),
+    },
+  },
 }));
