@@ -28,11 +28,20 @@ export class ResendError extends Error {
   }
 }
 
-interface SendEmailOptions {
+export interface ResendEmailTag {
+  name: string;
+  value: string;
+}
+
+export interface SendEmailOptions {
   to: string | string[];
   subject: string;
   html: string;
+  text?: string;
   from?: string;
+  replyTo?: string | string[];
+  tags?: ResendEmailTag[];
+  idempotencyKey?: string;
 }
 
 interface ResendResponse {
@@ -49,19 +58,33 @@ export async function sendEmail(options: SendEmailOptions): Promise<string> {
     throw new ResendError(500, 'RESEND_API_KEY is not configured');
   }
 
+  const recipients = Array.isArray(options.to) ? options.to : [options.to];
+  if (recipients.length === 0 || recipients.some((recipient) => !recipient.trim())) {
+    throw new ResendError(400, 'At least one recipient email is required');
+  }
+
   const body = {
     from: options.from || getDefaultFrom(),
-    to: Array.isArray(options.to) ? options.to : [options.to],
+    to: recipients,
     subject: options.subject,
     html: options.html,
+    ...(options.text !== undefined ? { text: options.text } : {}),
+    ...(options.replyTo ? { reply_to: options.replyTo } : {}),
+    ...(options.tags?.length ? { tags: options.tags } : {}),
   };
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${apiKey}`,
+    'Content-Type': 'application/json',
+  };
+
+  if (options.idempotencyKey?.trim()) {
+    headers['Idempotency-Key'] = options.idempotencyKey.trim().slice(0, 256);
+  }
 
   const response = await fetch(RESEND_API_URL, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(body),
   });
 

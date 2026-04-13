@@ -12,6 +12,7 @@ Rate limiting is not yet implemented in Escuela Segura. This document outlines t
 | `mp-create-subscription` | 5 req/min | User ID |
 | `mp-manage-subscription` | 10 req/min | User ID |
 | `mp-get-subscription-status` | 20 req/min | User ID |
+| `send-welcome-email` | 3 req/hour | User ID |
 | `send-expiration-emails` | 1 req/min | CRON (service_role) |
 | `cron-check-subscriptions` | 1 req/min | CRON (service_role) |
 | Auth (Supabase built-in) | Configured via `max_frequency` | Email |

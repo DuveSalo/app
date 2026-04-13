@@ -52,11 +52,29 @@ https://<your-preview-domain>/app/reset-password
 Backend/private secrets for Supabase Edge Functions remain in Supabase, not in Vercel:
 
 ```bash
+APP_URL=https://<your-production-domain>
 MP_ACCESS_TOKEN
 MP_WEBHOOK_SECRET
 RESEND_API_KEY
+RESEND_FROM_EMAIL="Escuela Segura <noreply@<verified-email-domain>>"
+SUPPORT_EMAIL=soporte@<your-support-domain>
+ALLOWED_ORIGINS=https://<your-production-domain>,https://<your-preview-domain>
 CRON_SECRET
 ```
+
+Resend transactional emails are sent from Supabase Edge Functions, not from the
+browser. Configure and verify the sender domain in Resend before setting
+`RESEND_FROM_EMAIL`; the Resend test sender is only appropriate for smoke tests.
+`ALLOWED_ORIGINS` is optional when `APP_URL` matches the deployed origin, but useful
+for explicit Preview domains. Keep it comma-separated and never use `*`.
+The implemented email cases are:
+
+1. Welcome after onboarding creates the company workspace.
+2. Subscription plan changes.
+3. Payment card changes.
+4. Upcoming document expirations.
+5. Already expired documents.
+6. Account deletion confirmation.
 
 ## Local pre-deploy verification
 

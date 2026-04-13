@@ -11,7 +11,7 @@ import { CancelPlanSection } from './billing/CancelPlanSection';
 import { CardPaymentDialog } from './billing/CardPaymentDialog';
 import { BankTransferDialog } from './billing/BankTransferDialog';
 import { useBankTransferFlow } from './billing/useBankTransferFlow';
-import type { Subscription, PaymentTransaction } from '../../../types/subscription';
+import type { ChangeCardData, Subscription, PaymentTransaction } from '../../../types/subscription';
 
 interface BillingSectionProps {
   companyId: string;
@@ -22,11 +22,14 @@ interface BillingSectionProps {
   onReactivate: () => Promise<void>;
   onSubscriptionChange: () => Promise<void>;
   onChangePlan: (newPlanKey: string) => Promise<void>;
-  onChangeCard: (cardTokenId: string) => Promise<void>;
+  onChangeCard: (data: ChangeCardData) => Promise<void>;
   onCreateSubscription: (data: {
     planKey: string;
     cardTokenId: string;
     payerEmail: string;
+    cardBrand?: string | null;
+    cardLastFour?: string | null;
+    paymentTypeId?: string | null;
   }) => Promise<void>;
   onBankTransferPayment: (data: { planKey: string; amount: number }) => Promise<void>;
   userEmail?: string;

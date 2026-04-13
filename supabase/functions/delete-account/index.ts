@@ -14,6 +14,7 @@ import { getCorsHeaders } from '../_shared/cors.ts';
 import { getMpConfig, getMpHeaders } from '../_shared/mp-auth.ts';
 import { supabaseAdmin } from '../_shared/supabase-admin.ts';
 import { sendEmailSafe } from '../_shared/resend.ts';
+import { accountDeletedEmail } from '../_shared/email-templates.ts';
 
 async function cleanupUserReferences(userId: string): Promise<void> {
   const { error: reviewedPaymentsError } = await supabaseAdmin
@@ -130,16 +131,16 @@ Deno.serve(async (req) => {
     // Send farewell email (non-blocking)
     if (user.email) {
       const userName = user.user_metadata?.name || user.email.split('@')[0] || 'Usuario';
+      const supportEmail = Deno.env.get('SUPPORT_EMAIL') || 'soporte@escuelasegura.com';
       await sendEmailSafe({
         to: user.email,
         subject: 'Tu cuenta de Escuela Segura ha sido eliminada',
-        html: `
-          <p>Hola ${userName},</p>
-          <p>Confirmamos que tu cuenta de <strong>Escuela Segura</strong> y todos tus datos asociados han sido eliminados permanentemente.</p>
-          <p>Si esto fue un error o tenés alguna consulta, contactanos a soporte@escuelasegura.com.</p>
-          <p>¡Hasta pronto!</p>
-          <p><em>El equipo de Escuela Segura</em></p>
-        `,
+        html: accountDeletedEmail(userName, supportEmail),
+        idempotencyKey: `account-deleted-${user.id}`,
+        tags: [
+          { name: 'event', value: 'account-deleted' },
+          { name: 'source', value: 'delete-account' },
+        ],
       });
     }
 

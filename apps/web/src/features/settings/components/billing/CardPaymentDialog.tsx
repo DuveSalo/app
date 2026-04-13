@@ -21,6 +21,9 @@ interface CardPaymentDialogProps {
     planKey: string;
     cardTokenId: string;
     payerEmail: string;
+    cardBrand?: string | null;
+    cardLastFour?: string | null;
+    paymentTypeId?: string | null;
   }) => Promise<void>;
 }
 
@@ -72,6 +75,9 @@ export const CardPaymentDialog = ({
                   planKey: selectedPlanId,
                   cardTokenId: data.token,
                   payerEmail: data.email || userEmail || '',
+                  cardBrand: data.paymentMethodId || null,
+                  cardLastFour: data.lastFourDigits,
+                  paymentTypeId: data.paymentTypeId,
                 });
                 onOpenChange(false);
               } catch (err) {

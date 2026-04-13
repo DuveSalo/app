@@ -9,13 +9,14 @@ import {
 } from '@/components/ui/dialog';
 import { CARD_BRANDS } from './billingConstants';
 import { ChangeCardForm } from './ChangeCardForm';
+import type { ChangeCardData } from '@/types/subscription';
 
 interface PaymentMethodSectionProps {
   canChangePlan: boolean;
   cardBrand?: string | null;
   cardLastFour?: string | null;
   mpPreapprovalId?: string | null;
-  onChangeCard: (cardTokenId: string) => Promise<void>;
+  onChangeCard: (data: ChangeCardData) => Promise<void>;
 }
 
 export const PaymentMethodSection = ({
@@ -27,8 +28,8 @@ export const PaymentMethodSection = ({
 }: PaymentMethodSectionProps) => {
   const [showChangeCardDialog, setShowChangeCardDialog] = useState(false);
 
-  const handleTokenReady = async (cardTokenId: string) => {
-    await onChangeCard(cardTokenId);
+  const handleTokenReady = async (data: ChangeCardData) => {
+    await onChangeCard(data);
     setShowChangeCardDialog(false);
   };
 

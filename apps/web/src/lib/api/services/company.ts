@@ -8,6 +8,20 @@ import { Tables, TablesUpdate } from '../../../types/database.types';
 const isNotFoundError = (error: { code?: string; message: string }): boolean =>
   error.code === 'PGRST116' || error.message.toLowerCase() === 'not found';
 
+const sendWelcomeEmailSafe = async (companyId: string): Promise<void> => {
+  try {
+    const { error } = await supabase.functions.invoke('send-welcome-email', {
+      body: { companyId },
+    });
+
+    if (error) {
+      console.error('[company] Welcome email failed:', error.message);
+    }
+  } catch (error) {
+    console.error('[company] Welcome email invocation failed:', error);
+  }
+};
+
 export const createCompany = async (
   companyData: Omit<Company, 'id' | 'userId' | 'employees' | 'isSubscribed' | 'selectedPlan'>
 ): Promise<Company> => {
@@ -54,6 +68,8 @@ export const createCompany = async (
     })
     .select('id, name, email, role, company_id, created_at, updated_at')
     .single();
+
+  await sendWelcomeEmailSafe(data.id);
 
   // Return with the created employee (no extra query needed)
   return mapCompanyFromDb(data, employeeData ? [employeeData] : []);

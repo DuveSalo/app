@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getCompanyByUserId, getCompanyIdByUserId, updateCompany } from './company';
+import { createCompany, getCompanyByUserId, getCompanyIdByUserId, updateCompany } from './company';
 
 vi.mock('../../supabase/client', () => ({
   supabase: {
@@ -55,6 +55,96 @@ const mockCompanyRow = {
 describe('company service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  describe('createCompany', () => {
+    const companyInput = {
+      name: 'Escuela Test',
+      cuit: '30-12345678-9',
+      address: 'Calle 123',
+      postalCode: '1000',
+      city: 'Buenos Aires',
+      locality: 'CABA',
+      province: 'Buenos Aires',
+      country: 'Argentina',
+      ramaKey: 'educacion',
+      ownerEntity: 'Privada',
+      phone: '1122334455',
+      services: {},
+      paymentMethods: [],
+    };
+
+    it('sends the welcome email after creating the company workspace', async () => {
+      const fromMock = supabase.from as ReturnType<typeof vi.fn>;
+      const invokeMock = supabase.functions.invoke as ReturnType<typeof vi.fn>;
+      invokeMock.mockResolvedValue({ data: { success: true }, error: null });
+
+      const companyChainMock = {
+        insert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: mockCompanyRow, error: null }),
+      };
+      const employeeRow = {
+        id: 'emp-1',
+        name: 'Test',
+        email: 'test@test.com',
+        role: 'Administrador',
+        company_id: COMPANY_ID,
+        created_at: '2026-01-01T00:00:00Z',
+        updated_at: '2026-01-01T00:00:00Z',
+      };
+      const employeeChainMock = {
+        insert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: employeeRow, error: null }),
+      };
+
+      fromMock.mockImplementation((table: string) =>
+        table === 'companies' ? companyChainMock : employeeChainMock
+      );
+
+      const result = await createCompany(companyInput);
+
+      expect(result.id).toBe(COMPANY_ID);
+      expect(result.employees).toHaveLength(1);
+      expect(invokeMock).toHaveBeenCalledWith('send-welcome-email', {
+        body: { companyId: COMPANY_ID },
+      });
+    });
+
+    it('does not fail company creation when the welcome email function fails', async () => {
+      const fromMock = supabase.from as ReturnType<typeof vi.fn>;
+      const invokeMock = supabase.functions.invoke as ReturnType<typeof vi.fn>;
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      invokeMock.mockResolvedValue({ data: null, error: { message: 'Resend unavailable' } });
+
+      const companyChainMock = {
+        insert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: mockCompanyRow, error: null }),
+      };
+      const employeeChainMock = {
+        insert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      };
+
+      fromMock.mockImplementation((table: string) =>
+        table === 'companies' ? companyChainMock : employeeChainMock
+      );
+
+      try {
+        const result = await createCompany(companyInput);
+
+        expect(result.id).toBe(COMPANY_ID);
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          '[company] Welcome email failed:',
+          'Resend unavailable'
+        );
+      } finally {
+        consoleErrorSpy.mockRestore();
+      }
+    });
   });
 
   describe('getCompanyIdByUserId', () => {

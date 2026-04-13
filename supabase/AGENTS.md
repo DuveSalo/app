@@ -19,6 +19,7 @@ supabase/
 │   ├── mp-manage-subscription/    # MercadoPago manage subscription (change plan, cancel, pause, reactivate, change card)
 │   ├── webhook-mercadopago/       # MercadoPago webhook handler
 │   ├── cron-check-subscriptions/  # Scheduled subscription sync
+│   ├── send-welcome-email/        # Onboarding welcome email
 │   └── send-expiration-emails/    # Expiration notification emails
 └── migrations/                    # SQL migration files (chronological)
 ```
@@ -54,6 +55,10 @@ MP_PLAN_ID_BASICO
 MP_PLAN_ID_PROFESIONAL
 MP_PLAN_ID_ENTERPRISE
 RESEND_API_KEY              # Resend email API key
+RESEND_FROM_EMAIL           # Verified sender, e.g. "Escuela Segura <noreply@your-domain>"
+SUPPORT_EMAIL               # Support address used in account-deletion emails
+APP_URL                     # Public app base URL used in email links and MP back_url
+ALLOWED_ORIGINS             # Optional comma-separated browser origins for Edge Function CORS
 SUPABASE_URL                # Auto-provided
 SUPABASE_ANON_KEY           # Auto-provided
 SUPABASE_SERVICE_ROLE_KEY   # Auto-provided

@@ -26,6 +26,10 @@ type MpAction = 'change_plan' | 'change_card' | 'cancel' | 'pause' | 'reactivate
 
 const VALID_ACTIONS: MpAction[] = ['change_plan', 'change_card', 'cancel', 'pause', 'reactivate'];
 
+function sanitizeCardLastFour(value: unknown): string | null {
+  return typeof value === 'string' && /^\d{4}$/.test(value.trim()) ? value.trim() : null;
+}
+
 Deno.serve(async (req) => {
   const cors = getCorsHeaders(req.headers.get('origin'));
 
@@ -60,12 +64,21 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { action, mpPreapprovalId, newPlanKey, cardTokenId, idempotencyKey, reason } =
+    const {
+      action,
+      mpPreapprovalId,
+      newPlanKey,
+      cardTokenId,
+      cardLastFour,
+      idempotencyKey,
+      reason,
+    } =
       (await req.json()) as {
       action: string;
       mpPreapprovalId: string;
       newPlanKey?: string;
       cardTokenId?: string;
+      cardLastFour?: string | null;
       idempotencyKey?: string;
       reason?: string;
     };
@@ -75,6 +88,7 @@ Deno.serve(async (req) => {
       mpPreapprovalId,
       newPlanKey,
       hasCardToken: !!cardTokenId,
+      hasCardLastFour: !!sanitizeCardLastFour(cardLastFour),
       reason,
     });
 
@@ -317,7 +331,12 @@ Deno.serve(async (req) => {
           await sendEmailSafe({
             to: email,
             subject: 'Medio de pago actualizado — Escuela Segura',
-            html: cardChangedEmail(userName, '****'),
+            html: cardChangedEmail(userName, sanitizeCardLastFour(cardLastFour)),
+            idempotencyKey: `mp-change-card-${mpPreapprovalId}-${requestId}`,
+            tags: [
+              { name: 'event', value: 'card-changed' },
+              { name: 'source', value: 'mp-manage-subscription' },
+            ],
           });
           break;
         case 'change_plan': {
@@ -332,6 +351,11 @@ Deno.serve(async (req) => {
               resolvedNewPlanMeta!.amount,
               resolvedNewPlanMeta!.currency
             ),
+            idempotencyKey: `mp-change-plan-${mpPreapprovalId}-${requestId}`,
+            tags: [
+              { name: 'event', value: 'plan-changed' },
+              { name: 'source', value: 'mp-manage-subscription' },
+            ],
           });
           break;
         }
@@ -361,7 +385,6 @@ Deno.serve(async (req) => {
           break;
       }
     }
-
     console.log('[MP] mp-manage-subscription: SUCCESS', {
       action,
       status: dbUpdates.status || subscription.status,

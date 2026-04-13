@@ -243,4 +243,34 @@ describe('subscription service', () => {
       ).rejects.toThrow('Edge function error');
     });
   });
+
+  describe('mpManageSubscription (change card action)', () => {
+    it('passes non-sensitive card metadata to the edge function for the email receipt', async () => {
+      const invokeMock = supabase.functions.invoke as ReturnType<typeof vi.fn>;
+      invokeMock.mockResolvedValue({
+        data: { success: true, action: 'change_card', status: 'active' },
+        error: null,
+      });
+
+      await mpManageSubscription({
+        action: 'change_card',
+        mpPreapprovalId: 'mp-pre-1',
+        cardTokenId: 'card-token-1',
+        cardLastFour: '1234',
+        idempotencyKey: 'change-card-request-1',
+      });
+
+      expect(invokeMock).toHaveBeenCalledWith('mp-manage-subscription', {
+        body: {
+          action: 'change_card',
+          mpPreapprovalId: 'mp-pre-1',
+          cardTokenId: 'card-token-1',
+          cardLastFour: '1234',
+        },
+        headers: {
+          'X-Idempotency-Key': 'change-card-request-1',
+        },
+      });
+    });
+  });
 });

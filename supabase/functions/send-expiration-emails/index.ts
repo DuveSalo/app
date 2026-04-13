@@ -1,23 +1,23 @@
 /**
  * Edge Function: send-expiration-emails
- * CRON job that sends email digests for upcoming expirations.
+ * CRON job that sends email digests for upcoming and expired documents.
  *
  * Queries certificates, fire extinguishers, and self-protection systems
- * expiring within 30 days, groups by company, and sends a single
- * digest email per company owner.
+ * expiring within 30 days or already expired, groups by company, and sends
+ * separate digest emails per company owner so each message has one job.
  *
  * Security: Accepts CRON_SECRET and the legacy scheduler service-role Bearer token.
  */
 
 import { supabaseAdmin } from '../_shared/supabase-admin.ts';
 import { sendEmailSafe } from '../_shared/resend.ts';
-import { expirationWarningEmail } from '../_shared/email-templates.ts';
+import {
+  expiredDocumentsEmail,
+  expirationWarningEmail,
+  type ExpirationEmailItem,
+} from '../_shared/email-templates.ts';
 
-interface ExpiringItem {
-  type: string;
-  name: string;
-  expiresAt: string;
-  daysLeft: number;
+interface ExpiringItem extends ExpirationEmailItem {
   companyId: string;
 }
 
@@ -133,9 +133,18 @@ Deno.serve(async (req) => {
 
     if (items.length === 0) {
       console.log('No expiring items found within 30 days');
-      return new Response(JSON.stringify({ success: true, emailsSent: 0 }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({
+          success: true,
+          itemsFound: 0,
+          emailsSent: 0,
+          upcomingEmailsSent: 0,
+          expiredEmailsSent: 0,
+        }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Group items by company
@@ -177,8 +186,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Send one digest email per company
+    // Send separate digests per company: upcoming vs already expired.
     let emailsSent = 0;
+    let upcomingEmailsSent = 0;
+    let expiredEmailsSent = 0;
+
     for (const company of companies) {
       const companyItems = byCompany.get(company.id);
       if (!companyItems?.length) continue;
@@ -192,25 +204,58 @@ Deno.serve(async (req) => {
       // Sort: most urgent first
       companyItems.sort((a, b) => a.daysLeft - b.daysLeft);
 
-      const hasExpired = companyItems.some((i) => i.daysLeft < 0);
-      const subjectLabel = hasExpired
-        ? 'vencimientos próximos y vencidos'
-        : `vencimiento${companyItems.length > 1 ? 's' : ''} próximo${companyItems.length > 1 ? 's' : ''}`;
-      await sendEmailSafe({
-        to: user.email,
-        subject: `${companyItems.length} ${subjectLabel} — ${company.name}`,
-        html: expirationWarningEmail(user.name, companyItems),
-      });
-      emailsSent++;
+      const expiredItems = companyItems.filter((item) => item.daysLeft < 0);
+      const upcomingItems = companyItems.filter((item) => item.daysLeft >= 0);
+
+      if (upcomingItems.length > 0) {
+        const subjectLabel = `vencimiento${upcomingItems.length > 1 ? 's' : ''} próximo${upcomingItems.length > 1 ? 's' : ''}`;
+        await sendEmailSafe({
+          to: user.email,
+          subject: `${upcomingItems.length} ${subjectLabel} — ${company.name}`,
+          html: expirationWarningEmail(user.name, upcomingItems),
+          idempotencyKey: `expiration-upcoming-${todayStr}-${company.id}`,
+          tags: [
+            { name: 'event', value: 'expiration-upcoming' },
+            { name: 'source', value: 'send-expiration-emails' },
+          ],
+        });
+        emailsSent++;
+        upcomingEmailsSent++;
+      }
+
+      if (expiredItems.length > 0) {
+        const subjectLabel = `documento${expiredItems.length > 1 ? 's' : ''} vencido${expiredItems.length > 1 ? 's' : ''}`;
+        await sendEmailSafe({
+          to: user.email,
+          subject: `${expiredItems.length} ${subjectLabel} — ${company.name}`,
+          html: expiredDocumentsEmail(user.name, expiredItems),
+          idempotencyKey: `expiration-expired-${todayStr}-${company.id}`,
+          tags: [
+            { name: 'event', value: 'documents-expired' },
+            { name: 'source', value: 'send-expiration-emails' },
+          ],
+        });
+        emailsSent++;
+        expiredEmailsSent++;
+      }
     }
 
     console.log(
       `send-expiration-emails complete: ${items.length} items, ${emailsSent} emails sent`
     );
 
-    return new Response(JSON.stringify({ success: true, itemsFound: items.length, emailsSent }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        itemsFound: items.length,
+        emailsSent,
+        upcomingEmailsSent,
+        expiredEmailsSent,
+      }),
+      {
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   } catch (error) {
     console.error('send-expiration-emails error:', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {

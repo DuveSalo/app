@@ -111,7 +111,41 @@ function formatDate(dateStr: string): string {
   }
 }
 
+export interface ExpirationEmailItem {
+  type: string;
+  name: string;
+  expiresAt: string;
+  daysLeft: number;
+}
+
+function primaryButton(label: string, href: string): string {
+  return `<a href="${escapeHtml(href)}" style="display:inline-block;margin:8px 0 0;padding:11px 16px;background-color:#18181b;color:#fafafa;text-decoration:none;border-radius:10px;font-size:14px;font-weight:600;">
+    ${escapeHtml(label)}
+  </a>`;
+}
+
 // ─── Templates ───────────────────────────────────────────────
+
+/** Sent after onboarding creates the company workspace. */
+export function welcomeEmail(name: string, companyName: string, appUrl: string): string {
+  return layout('Bienvenido a Escuela Segura', `
+    ${greeting(name)}
+    <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#09090b;">
+      ¡Bienvenido a <strong>Escuela Segura</strong>! Ya creamos el espacio de trabajo para tu institución.
+    </p>
+    ${infoTable(
+      infoRow('Institución', companyName)
+    )}
+    <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#09090b;">
+      Desde ahora podés centralizar certificados, matafuegos, sistemas de autoprotección,
+      vencimientos y documentación crítica en un solo lugar.
+    </p>
+    ${primaryButton('Entrar a Escuela Segura', appUrl)}
+    <p style="margin:16px 0 0;font-size:13px;color:#71717a;">
+      Consejo: cargá primero los vencimientos más críticos. La aplicación te va a ayudar a priorizarlos.
+    </p>
+  `);
+}
 
 /** Sent when a subscription is activated. */
 export function subscriptionActivatedEmail(
@@ -161,14 +195,19 @@ export function paymentReceiptEmail(
 }
 
 /** Sent when the payment card is changed (MP only). */
-export function cardChangedEmail(name: string, last4: string): string {
+export function cardChangedEmail(name: string, last4?: string | null): string {
+  const hasLast4 = Boolean(last4 && /^\d{4}$/.test(last4));
+  const cardLabel = hasLast4
+    ? `•••• •••• •••• ${last4}`
+    : 'Tarjeta nueva registrada';
+
   return layout('Medio de pago actualizado', `
     ${greeting(name)}
     <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#09090b;">
       Tu medio de pago fue actualizado correctamente.
     </p>
     ${infoTable(
-      infoRow('Tarjeta', `•••• •••• •••• ${last4}`)
+      infoRow('Tarjeta', cardLabel)
     )}
     <p style="margin:16px 0 0;font-size:13px;color:#71717a;">
       Si no realizaste este cambio, contactanos de inmediato.
@@ -253,28 +292,87 @@ export function subscriptionReactivatedEmail(
   `);
 }
 
+/** Sent after account deletion completes. */
+export function accountDeletedEmail(name: string, supportEmail: string): string {
+  return layout('Cuenta eliminada', `
+    ${greeting(name)}
+    <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#09090b;">
+      Confirmamos que tu cuenta de <strong>Escuela Segura</strong> fue eliminada.
+    </p>
+    <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#09090b;">
+      Los datos asociados fueron eliminados según las reglas de retención y seguridad de la plataforma.
+    </p>
+    ${infoTable(
+      infoRow('Canal de soporte', supportEmail)
+    )}
+    <p style="margin:16px 0 0;font-size:13px;color:#71717a;">
+      Si esto fue un error o necesitás asistencia, escribinos a ${escapeHtml(supportEmail)}.
+    </p>
+  `);
+}
+
+/** Sent as a digest of already expired documents. */
+export function expiredDocumentsEmail(
+  name: string,
+  items: ExpirationEmailItem[],
+): string {
+  function itemRows(list: ExpirationEmailItem[]): string {
+    return list.map((item) => {
+      const overdueDays = Math.abs(item.daysLeft);
+      return `
+        <tr>
+          <td style="padding:8px 12px;font-size:14px;color:#09090b;border-bottom:1px solid #f4f4f5;">${escapeHtml(item.name)}</td>
+          <td style="padding:8px 12px;font-size:14px;color:#71717a;border-bottom:1px solid #f4f4f5;">${escapeHtml(item.type)}</td>
+          <td style="padding:8px 12px;font-size:14px;color:#09090b;border-bottom:1px solid #f4f4f5;">${escapeHtml(formatDate(item.expiresAt))}</td>
+          <td style="padding:8px 12px;font-size:14px;color:#e40014;font-weight:600;border-bottom:1px solid #f4f4f5;text-align:right;">${overdueDays} día${overdueDays === 1 ? '' : 's'}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  return layout('Documentos vencidos', `
+    ${greeting(name)}
+    <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#09090b;">
+      Tenés <strong>${items.length}</strong> documento${items.length === 1 ? '' : 's'} vencido${items.length === 1 ? '' : 's'}
+      que requieren regularización.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e4e4e7;border-radius:10px;overflow:hidden;">
+      <tr style="background-color:#fafafa;">
+        <th style="padding:8px 12px;font-size:12px;color:#71717a;text-align:left;font-weight:500;">Nombre</th>
+        <th style="padding:8px 12px;font-size:12px;color:#71717a;text-align:left;font-weight:500;">Tipo</th>
+        <th style="padding:8px 12px;font-size:12px;color:#71717a;text-align:left;font-weight:500;">Venció</th>
+        <th style="padding:8px 12px;font-size:12px;color:#71717a;text-align:right;font-weight:500;">Demora</th>
+      </tr>
+      ${itemRows(items)}
+    </table>
+    <p style="margin:16px 0 0;font-size:13px;color:#71717a;">
+      Priorizá estos elementos antes de cargar nuevos vencimientos. En seguridad, lo vencido no es un detalle: es riesgo operativo.
+    </p>
+  `);
+}
+
 /** Sent as a digest of upcoming expirations. */
 export function expirationWarningEmail(
   name: string,
-  items: Array<{ type: string; name: string; expiresAt: string; daysLeft: number }>,
+  items: ExpirationEmailItem[],
 ): string {
   const urgentItems = items.filter((i) => i.daysLeft <= 3);
   const warningItems = items.filter((i) => i.daysLeft > 3 && i.daysLeft <= 10);
   const noticeItems = items.filter((i) => i.daysLeft > 10);
 
-  function itemRows(list: typeof items): string {
+  function itemRows(list: ExpirationEmailItem[]): string {
     return list.map((item) => `
       <tr>
         <td style="padding:8px 12px;font-size:14px;color:#09090b;border-bottom:1px solid #f4f4f5;">${escapeHtml(item.name)}</td>
         <td style="padding:8px 12px;font-size:14px;color:#71717a;border-bottom:1px solid #f4f4f5;">${escapeHtml(item.type)}</td>
         <td style="padding:8px 12px;font-size:14px;border-bottom:1px solid #f4f4f5;text-align:right;${
           item.daysLeft <= 3 ? 'color:#e40014;font-weight:600;' : 'color:#09090b;'
-        }">${item.daysLeft <= 0 ? 'Vencido' : `${item.daysLeft} días`}</td>
+        }">${item.daysLeft === 0 ? 'Hoy' : `${item.daysLeft} días`}</td>
       </tr>
     `).join('');
   }
 
-  function section(title: string, color: string, list: typeof items): string {
+  function section(title: string, color: string, list: ExpirationEmailItem[]): string {
     if (list.length === 0) return '';
     return `
       <p style="margin:16px 0 8px;font-size:14px;font-weight:600;color:${color};">${title}</p>

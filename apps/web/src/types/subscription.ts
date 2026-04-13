@@ -75,6 +75,7 @@ export interface MpManageSubscriptionRequest {
   mpPreapprovalId: string;
   newPlanKey?: string;
   cardTokenId?: string;
+  cardLastFour?: string | null;
   reason?: string;
 }
 
@@ -88,4 +89,11 @@ export interface MpSubscriptionStatusResponse {
   nextPaymentDate: string | null;
   paymentMethodId: string | null;
   cardLastFour: string | null;
+}
+
+export interface ChangeCardData {
+  cardTokenId: string;
+  cardLastFour?: string | null;
+  cardBrand?: string | null;
+  paymentTypeId?: string | null;
 }

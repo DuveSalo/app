@@ -1,27 +1,34 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { CardForm } from '@/features/auth/components/CardForm';
+import { CardForm, type CardTokenData } from '@/features/auth/components/CardForm';
+import type { ChangeCardData } from '@/types/subscription';
 import { toast } from 'sonner';
 
 interface ChangeCardFormProps {
-  onTokenReady: (cardTokenId: string) => Promise<void>;
+  onTokenReady: (data: ChangeCardData) => Promise<void>;
   onCancel: () => void;
 }
 
 /**
  * Wraps the shared CardForm in compact mode for the change-card flow.
  * Only collects card number, expiration, CVV and cardholder name.
- * Calls onTokenReady with the card token ID after tokenization.
+ * Calls onTokenReady with the card token ID and safe non-sensitive card metadata
+ * after tokenization.
  */
 export const ChangeCardForm = ({ onTokenReady, onCancel }: ChangeCardFormProps) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
 
-  const handleTokenReady = async (data: { token: string }) => {
+  const handleTokenReady = async (data: CardTokenData) => {
     setError('');
     setIsProcessing(true);
     try {
-      await onTokenReady(data.token);
+      await onTokenReady({
+        cardTokenId: data.token,
+        cardLastFour: data.lastFourDigits,
+        cardBrand: data.paymentMethodId || null,
+        paymentTypeId: data.paymentTypeId,
+      });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Error al actualizar la tarjeta.';
       setError(msg);

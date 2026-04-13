@@ -3,17 +3,19 @@ import { loadMercadoPago } from '@mercadopago/sdk-js';
 import { MP_PUBLIC_KEY } from '@/lib/mercadopago/config';
 import { Button } from '@/components/ui/button';
 
+export interface CardTokenData {
+  token: string;
+  paymentMethodId: string;
+  lastFourDigits: string | null;
+  paymentTypeId: string | null;
+  email: string;
+  identificationType: string;
+  identificationNumber: string;
+}
+
 interface CardFormProps {
   amount: number;
-  onTokenReady: (data: {
-    token: string;
-    paymentMethodId: string;
-    lastFourDigits: string | null;
-    paymentTypeId: string | null;
-    email: string;
-    identificationType: string;
-    identificationNumber: string;
-  }) => void;
+  onTokenReady: (data: CardTokenData) => void;
   onError: (error: string) => void;
   isProcessing: boolean;
   /** Compact mode hides email/document fields (for change-card flows) */

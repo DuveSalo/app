@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth/AuthContext';
 import * as api from '@/lib/api/services';
-import type { Subscription, PaymentTransaction } from '../../../types/subscription';
+import type { ChangeCardData, Subscription, PaymentTransaction } from '../../../types/subscription';
 import { toast } from 'sonner';
 import { queryKeys } from '@/lib/queryKeys';
 
@@ -160,7 +160,7 @@ export const useBillingData = () => {
     }
   };
 
-  const handleChangeCard = async (cardTokenId: string) => {
+  const handleChangeCard = async (data: ChangeCardData) => {
     if (!subscription?.mpPreapprovalId || !currentCompany) return;
     setIsLoading(true);
     setError('');
@@ -168,11 +168,12 @@ export const useBillingData = () => {
       await api.mpManageSubscription({
         action: 'change_card',
         mpPreapprovalId: subscription.mpPreapprovalId,
-        cardTokenId,
+        cardTokenId: data.cardTokenId,
+        cardLastFour: data.cardLastFour,
       });
       const status = await api.mpGetSubscriptionStatus(subscription.mpPreapprovalId);
-      setCardBrand(status.paymentMethodId);
-      setCardLastFour(status.cardLastFour);
+      setCardBrand(status.paymentMethodId || data.cardBrand || null);
+      setCardLastFour(status.cardLastFour || data.cardLastFour || null);
       toast.success('Tarjeta actualizada correctamente');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error al actualizar la tarjeta';
