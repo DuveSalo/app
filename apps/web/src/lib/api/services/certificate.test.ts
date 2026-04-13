@@ -177,13 +177,16 @@ describe('certificate service', () => {
       // Second call: delete
       const deleteChain = {
         delete: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ error: null }),
+        eq: vi.fn(),
       };
+      deleteChain.eq.mockReturnValueOnce(deleteChain).mockResolvedValueOnce({ error: null });
 
       fromMock.mockReturnValueOnce(selectChain).mockReturnValueOnce(deleteChain);
 
       await expect(deleteCertificate('cert-1')).resolves.toBeUndefined();
       expect(fromMock).toHaveBeenCalledWith('conservation_certificates');
+      expect(deleteChain.eq).toHaveBeenNthCalledWith(1, 'id', 'cert-1');
+      expect(deleteChain.eq).toHaveBeenNthCalledWith(2, 'company_id', COMPANY_ID);
     });
 
     it('throws when delete fails', async () => {
@@ -195,8 +198,11 @@ describe('certificate service', () => {
       };
       const deleteChain = {
         delete: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ error: { message: 'Delete failed' } }),
+        eq: vi.fn(),
       };
+      deleteChain.eq
+        .mockReturnValueOnce(deleteChain)
+        .mockResolvedValueOnce({ error: { message: 'Delete failed' } });
 
       fromMock.mockReturnValueOnce(selectChain).mockReturnValueOnce(deleteChain);
 

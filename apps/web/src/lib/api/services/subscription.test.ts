@@ -201,6 +201,7 @@ describe('subscription service', () => {
         action: 'cancel',
         mpPreapprovalId: 'mp-pre-1',
         reason: 'User requested cancellation',
+        idempotencyKey: 'cancel-request-1',
       });
 
       expect(invokeMock).toHaveBeenCalledWith('mp-manage-subscription', {
@@ -208,6 +209,9 @@ describe('subscription service', () => {
           action: 'cancel',
           mpPreapprovalId: 'mp-pre-1',
           reason: 'User requested cancellation',
+        },
+        headers: {
+          'X-Idempotency-Key': 'cancel-request-1',
         },
       });
       expect(result.success).toBe(true);

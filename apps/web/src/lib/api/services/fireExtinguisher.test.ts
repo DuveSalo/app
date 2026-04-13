@@ -204,20 +204,26 @@ describe('fireExtinguisher service', () => {
       const fromMock = supabase.from as ReturnType<typeof vi.fn>;
       const chainMock = {
         delete: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ error: null }),
+        eq: vi.fn(),
       };
+      chainMock.eq.mockReturnValueOnce(chainMock).mockResolvedValueOnce({ error: null });
       fromMock.mockReturnValue(chainMock);
 
       await expect(deleteFireExtinguisher('fe-1')).resolves.toBeUndefined();
       expect(fromMock).toHaveBeenCalledWith('fire_extinguishers');
+      expect(chainMock.eq).toHaveBeenNthCalledWith(1, 'id', 'fe-1');
+      expect(chainMock.eq).toHaveBeenNthCalledWith(2, 'company_id', COMPANY_ID);
     });
 
     it('throws when supabase returns an error', async () => {
       const fromMock = supabase.from as ReturnType<typeof vi.fn>;
       const chainMock = {
         delete: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockResolvedValue({ error: { message: 'Delete failed' } }),
+        eq: vi.fn(),
       };
+      chainMock.eq
+        .mockReturnValueOnce(chainMock)
+        .mockResolvedValueOnce({ error: { message: 'Delete failed' } });
       fromMock.mockReturnValue(chainMock);
 
       await expect(deleteFireExtinguisher('fe-1')).rejects.toThrow();
