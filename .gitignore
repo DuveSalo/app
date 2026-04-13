@@ -69,3 +69,6 @@ next-env.d.ts
 .playwright-mcp/
 testsprite_tests/
 nul
+
+# MCP config (contains API keys)
+.mcp.json
