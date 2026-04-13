@@ -25,7 +25,7 @@ Set these in **Vercel Project Settings > Environment Variables** for Production 
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<supabase-anon-key>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<supabase-publishable-key>
 NEXT_PUBLIC_MP_PUBLIC_KEY=<mercadopago-public-key>
 NEXT_PUBLIC_APP_URL=https://<your-production-domain>
 ```
@@ -36,7 +36,10 @@ Optional:
 NEXT_PUBLIC_LOG_LEVEL=info
 ```
 
-Important: every `NEXT_PUBLIC_*` variable is exposed to the browser. Do not put Supabase service-role keys, MercadoPago access tokens, webhook secrets, Resend keys, or any private credential in Vercel public variables.
+Important: every `NEXT_PUBLIC_*` variable is exposed to the browser. Use the
+Supabase publishable key (`sb_publishable_...`) here. Do not put Supabase secret
+keys, legacy service-role keys, MercadoPago access tokens, webhook secrets,
+Resend keys, or any private credential in Vercel public variables.
 
 ## Supabase settings to update after the Vercel domain exists
 
@@ -53,6 +56,8 @@ Backend/private secrets for Supabase Edge Functions remain in Supabase, not in V
 
 ```bash
 APP_URL=https://<your-production-domain>
+SB_PUBLISHABLE_KEY=<supabase-publishable-key>
+SB_SECRET_KEY=<supabase-secret-key>
 MP_ACCESS_TOKEN
 MP_WEBHOOK_SECRET
 RESEND_API_KEY
@@ -65,6 +70,9 @@ CRON_SECRET
 Resend transactional emails are sent from Supabase Edge Functions, not from the
 browser. Configure and verify the sender domain in Resend before setting
 `RESEND_FROM_EMAIL`; the Resend test sender is only appropriate for smoke tests.
+If legacy Supabase API keys are disabled, `SB_PUBLISHABLE_KEY` and
+`SB_SECRET_KEY` are required for Edge Functions. Do not put `SB_SECRET_KEY` in
+Vercel.
 `ALLOWED_ORIGINS` is optional when `APP_URL` matches the deployed origin, but useful
 for explicit Preview domains. Keep it comma-separated and never use `*`.
 The implemented email cases are:

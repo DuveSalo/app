@@ -10,6 +10,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getCorsHeaders } from '../_shared/cors.ts';
+import { getSupabasePublishableKey } from '../_shared/supabase-keys.ts';
 import { getMpConfig, getMpHeaders, mpFetch, MercadoPagoError } from '../_shared/mp-auth.ts';
 import { isValidPlanKey, getPlanMetadataFromDb } from '../_shared/mp-plans.ts';
 import { supabaseAdmin } from '../_shared/supabase-admin.ts';
@@ -49,7 +50,7 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
+      getSupabasePublishableKey(),
       { global: { headers: { Authorization: authHeader } } }
     );
 

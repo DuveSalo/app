@@ -10,6 +10,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getCorsHeaders } from '../_shared/cors.ts';
+import { getSupabasePublishableKey } from '../_shared/supabase-keys.ts';
 import { sendEmailSafe } from '../_shared/resend.ts';
 import { welcomeEmail } from '../_shared/email-templates.ts';
 
@@ -47,7 +48,7 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
+      getSupabasePublishableKey(),
       { global: { headers: { Authorization: authHeader } } },
     );
 

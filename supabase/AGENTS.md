@@ -54,14 +54,16 @@ MP_WEBHOOK_SECRET           # MercadoPago webhook signing secret
 MP_PLAN_ID_BASICO
 MP_PLAN_ID_PROFESIONAL
 MP_PLAN_ID_ENTERPRISE
+SB_PUBLISHABLE_KEY          # New Supabase publishable key (sb_publishable_...)
+SB_SECRET_KEY               # New Supabase secret key (sb_secret_...) for admin/server use
 RESEND_API_KEY              # Resend email API key
 RESEND_FROM_EMAIL           # Verified sender, e.g. "Escuela Segura <noreply@your-domain>"
 SUPPORT_EMAIL               # Support address used in account-deletion emails
 APP_URL                     # Public app base URL used in email links and MP back_url
 ALLOWED_ORIGINS             # Optional comma-separated browser origins for Edge Function CORS
 SUPABASE_URL                # Auto-provided
-SUPABASE_ANON_KEY           # Auto-provided
-SUPABASE_SERVICE_ROLE_KEY   # Auto-provided
+SUPABASE_ANON_KEY           # Auto-provided legacy fallback only
+SUPABASE_SERVICE_ROLE_KEY   # Auto-provided legacy fallback only
 ```
 
 ## Useful Commands

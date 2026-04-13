@@ -11,6 +11,7 @@
 
 import { createLogger } from '../_shared/logger.ts';
 import { supabaseAdmin } from '../_shared/supabase-admin.ts';
+import { getSupabaseSecretKey } from '../_shared/supabase-keys.ts';
 
 const log = createLogger('cron-expiration-notifications');
 
@@ -30,6 +31,7 @@ function isAuthorizedCronRequest(req: Request): boolean {
   const validTokens = [
     Deno.env.get('CRON_SECRET'),
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+    Deno.env.get('SB_SECRET_KEY') ? getSupabaseSecretKey() : null,
   ].filter((value): value is string => Boolean(value));
 
   return Boolean(token && validTokens.includes(token));
