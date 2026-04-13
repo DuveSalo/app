@@ -1,67 +1,73 @@
 # Escuela Segura
 
-Safety compliance management SaaS for schools. Built with React 19 + Vite + Supabase.
+Safety compliance management SaaS for schools. Built with Next.js 16, React 19, pnpm workspaces, and Supabase.
+
+## Repository layout
+
+```text
+apps/web/   Next.js application deployed to Vercel
+supabase/   Supabase migrations, Edge Functions, and backend configuration
+docs/       Operational documentation
+```
 
 ## Prerequisites
 
-- Node.js 20+
-- [pnpm](https://pnpm.io/) (package manager)
-- Supabase project (for backend)
+- Node.js 22.x (see `.node-version` and `engines`)
+- pnpm 10.30.2 (declared in `packageManager`)
+- Supabase project
+- MercadoPago public key for browser card tokenization
 
-## Getting Started
+## Getting started
 
 ```bash
 # Install dependencies
 pnpm install
 
-# Start dev server (port 3000)
+# Start the web app locally
 pnpm dev
 
-# Build for production
-pnpm build
+# Run non-build verification
+pnpm run verify
 ```
 
-## Environment Variables
+## Environment variables
 
-Create a `.env.local` file:
+Create `apps/web/.env.local` from `apps/web/.env.example`:
 
-```
-VITE_SUPABASE_URL=<your-supabase-url>
-VITE_SUPABASE_ANON_KEY=<your-supabase-anon-key>
-VITE_MP_PUBLIC_KEY=<mercadopago-public-key>
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
+NEXT_PUBLIC_MP_PUBLIC_KEY=<your-mp-public-key>
+NEXT_PUBLIC_APP_URL=https://<your-production-domain>
+# NEXT_PUBLIC_LOG_LEVEL=info
 ```
 
-Optional:
-```
-VITE_GEMINI_API_KEY=<gemini-api-key>
-VITE_LOG_LEVEL=debug|info|warn|error
-```
+Only public browser-safe values belong in `NEXT_PUBLIC_*` variables. Keep private credentials such as Supabase service-role keys, MercadoPago access tokens, webhook secrets, and Resend keys out of the web app environment.
 
 ## Scripts
 
 | Command | Description |
-|---|---|
-| `pnpm dev` | Start development server |
-| `pnpm build` | Production build |
-| `pnpm preview` | Preview production build |
-| `pnpm format` | Format code with Prettier |
-| `pnpm test` | Run unit tests in watch mode |
-| `pnpm test:run` | Run unit tests once |
-| `pnpm test:coverage` | Run unit tests with coverage report |
-| `pnpm test:e2e` | Run Playwright E2E tests |
-| `pnpm test:e2e:ui` | Run E2E tests with Playwright UI |
-| `pnpm test:e2e:headed` | Run E2E tests in headed browser |
+| --- | --- |
+| `pnpm dev` | Start the Next.js web app |
+| `pnpm build` | Build the web app for production |
+| `pnpm start` | Start the production server after a build |
+| `pnpm run audit:prod` | Audit production dependencies |
+| `pnpm run typecheck` | Run TypeScript typecheck with no emit |
+| `pnpm run test:run` | Run unit tests once |
+| `pnpm run verify` | Run audit, typecheck, and unit tests without a local build |
 
-## Testing
+## Vercel deployment
 
-See [TESTING.md](TESTING.md) for testing conventions, structure, and how to add tests.
+See [`docs/VERCEL.md`](docs/VERCEL.md) for the exact Vercel project settings, required environment variables, Supabase redirect URL checklist, and CI verification details.
 
 ## Architecture
 
-- **Features**: `src/features/{name}/` — domain modules
-- **Common UI**: `src/components/common/`
-- **shadcn/ui**: `src/components/ui/` (do not modify)
-- **API services**: `src/lib/api/services/`
+- **Next.js App Router**: `apps/web/src/app/`
+- **Client app shell**: `apps/web/src/App.tsx`
+- **Features**: `apps/web/src/features/{name}/`
+- **Common UI**: `apps/web/src/components/common/`
+- **shadcn/ui**: `apps/web/src/components/ui/` (do not modify casually)
+- **API services**: `apps/web/src/lib/api/services/`
 - **Edge Functions**: `supabase/functions/`
 
-See [CLAUDE.md](CLAUDE.md) for full architecture details.
+See [`CLAUDE.md`](CLAUDE.md) for full architecture details.

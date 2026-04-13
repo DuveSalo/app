@@ -1,10 +1,19 @@
 {
-    "private":  true,
-    "name":  "escuela-segura-monorepo",
-    "scripts":  {
-                    "lint":  "pnpm -r run lint",
-                    "build":  "pnpm -r run build",
-                    "dev":  "pnpm -r --parallel run dev",
-                    "test":  "pnpm -r run test"
-                }
+  "private": true,
+  "name": "escuela-segura-monorepo",
+  "scripts": {
+    "dev": "pnpm --filter web run dev",
+    "build": "pnpm --filter web run build",
+    "start": "pnpm --filter web run start",
+    "lint": "pnpm -r --if-present run lint",
+    "typecheck": "pnpm --filter web exec tsc --noEmit",
+    "test": "pnpm --filter web run test",
+    "test:run": "pnpm --filter web run test:run",
+    "audit:prod": "pnpm audit --prod",
+    "verify": "pnpm run audit:prod && pnpm run typecheck && pnpm run test:run"
+  },
+  "packageManager": "pnpm@10.30.2",
+  "engines": {
+    "node": "22.x"
+  }
 }

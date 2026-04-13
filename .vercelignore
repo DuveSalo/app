@@ -1,0 +1,36 @@
+# Vercel local metadata
+.vercel/
+
+# Environment files must stay in Vercel Project Settings, never in deploy uploads
+.env
+.env.*
+!.env.example
+
+# Dependencies and build outputs
+node_modules/
+.next/
+out/
+dist/
+build/
+coverage/
+
+# Test and automation artifacts
+test-results/
+playwright-report/
+testsprite_tests/
+*.log
+*.tmp
+*.temp
+
+# Local agent/tooling artifacts
+.agent/
+.agents/
+.atl/
+.claude/
+.playwright-mcp/
+.mcp.json
+
+# Local visual debugging artifacts in the current repo
+apps/web/app-*.png
+apps/web/playwright-*.png
+apps/web/login-page-debug.png

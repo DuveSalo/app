@@ -77,3 +77,9 @@ nul
 
 # Screenshots (dev artifacts)
 *.png
+
+# Vercel
+.vercel
+
+# TypeScript incremental artifacts
+*.tsbuildinfo
