@@ -9,4 +9,5 @@ export interface ConservationCertificate {
   registrationNumber: string;
   pdfFile?: File | string;
   pdfFileName?: string;
+  pdfFilePath?: string;
 }

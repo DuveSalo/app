@@ -25,7 +25,7 @@ export const getCertificates = async (
   }
 
   const columns =
-    'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path';
+    'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path, created_at, updated_at';
 
   let query = supabase
     .from('conservation_certificates')
@@ -54,7 +54,7 @@ export const getCertificatesCursor = async (
   params: CursorPaginationParams = {}
 ): Promise<CursorPaginatedResult<ConservationCertificate>> => {
   const columns =
-    'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path';
+    'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path, created_at, updated_at';
   const limit = params.limit || 20;
   const fetchLimit = limit + 1;
 
@@ -98,7 +98,7 @@ export const getCertificateById = async (id: string): Promise<ConservationCertif
   const companyId = await getAuthenticatedCompanyId();
 
   const columns =
-    'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path';
+    'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path, created_at, updated_at';
 
   const { data, error } = await supabase
     .from('conservation_certificates')
@@ -172,7 +172,7 @@ export const createCertificate = async (
       pdf_file_name: certData.pdfFileName || null,
     })
     .select(
-      'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path'
+      'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path, created_at, updated_at'
     )
     .single();
 
@@ -258,7 +258,7 @@ export const updateCertificate = async (
     .eq('id', certData.id)
     .eq('company_id', companyId)
     .select(
-      'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path'
+      'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path, created_at, updated_at'
     )
     .single();
 

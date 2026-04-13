@@ -25,8 +25,8 @@ type NotificationQueryData = {
 
 const FILTER_BUTTONS: { value: FilterType; label: string }[] = [
   { value: 'all', label: 'Todas' },
-  { value: 'unread', label: 'No leidas' },
-  { value: 'read', label: 'Leidas' },
+  { value: 'unread', label: 'No leídas' },
+  { value: 'read', label: 'Leídas' },
 ];
 
 const isFilterType = (value: unknown): value is FilterType =>
@@ -137,7 +137,7 @@ const NotificationsPage = () => {
         queryClient.invalidateQueries({ queryKey: queryKeys.notifications(companyId) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.notificationCount(companyId) }),
       ]);
-      toast.error('Error al marcar como leida');
+      toast.error('Error al marcar como leída');
     }
   };
 
@@ -166,13 +166,13 @@ const NotificationsPage = () => {
 
     try {
       await notificationService.markAllAsRead(companyId);
-      toast.success('Todas las notificaciones marcadas como leidas');
+      toast.success('Todas las notificaciones marcadas como leídas');
     } catch {
       previousQueries.forEach(([queryKey, previousValue]) => {
         queryClient.setQueryData(queryKey, previousValue);
       });
       queryClient.setQueryData(queryKeys.notificationCount(companyId), previousCount);
-      toast.error('Error al marcar todas como leidas');
+      toast.error('Error al marcar todas como leídas');
     }
   };
 
@@ -210,7 +210,7 @@ const NotificationsPage = () => {
               ? 'No hay notificaciones'
               : filter === 'unread'
                 ? 'No hay notificaciones sin leer'
-                : 'No hay notificaciones leidas'
+                : 'No hay notificaciones leídas'
           }
         />
       ) : (
@@ -267,7 +267,7 @@ const NotificationsPage = () => {
                     onClick={() => {
                       void markNotificationAsRead(notification);
                     }}
-                    aria-label={`Marcar "${notification.title}" como leida`}
+                    aria-label={`Marcar "${notification.title}" como leída`}
                   >
                     <Check className="w-4 h-4 text-muted-foreground" />
                   </Button>

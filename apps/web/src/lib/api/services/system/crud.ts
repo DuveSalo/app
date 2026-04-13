@@ -16,7 +16,7 @@ import { SYSTEM_STORAGE_BUCKET, createSystemDocumentSignedUrl } from './document
 const logger = createLogger('SystemService');
 
 const SYSTEM_COLUMNS =
-  'id, company_id, probatory_disposition_date, probatory_disposition_pdf_name, probatory_disposition_pdf_url, probatory_disposition_pdf_path, extension_date, extension_pdf_name, extension_pdf_url, extension_pdf_path, expiration_date, drills, intervener, registration_number';
+  'id, company_id, probatory_disposition_date, probatory_disposition_pdf_name, probatory_disposition_pdf_url, probatory_disposition_pdf_path, extension_date, extension_pdf_name, extension_pdf_url, extension_pdf_path, expiration_date, drills, intervener, registration_number, created_at, updated_at';
 
 export const getSelfProtectionSystems = async (
   companyId?: string,

@@ -14,6 +14,9 @@ major_version = 17
 [functions.send-expiration-emails]
 verify_jwt = false
 
+[functions.cron-expiration-notifications]
+verify_jwt = false
+
 [functions.cron-check-subscriptions]
 verify_jwt = false
 
@@ -33,6 +36,8 @@ verify_jwt = false
 verify_jwt = false
 
 [auth]
+# Local dev only — Supabase Cloud overrides these via the dashboard.
+# For staging/prod, set Auth > URL Configuration in the Supabase dashboard.
 site_url = "http://localhost:3000"
 additional_redirect_urls = ["http://localhost:3000/app/auth/callback"]
 jwt_expiry = 3600

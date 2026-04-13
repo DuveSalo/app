@@ -19,7 +19,7 @@ const variantStyles: Record<StatCardVariant, string> = {
 
 export const StatCard = ({ label, value, icon, changeText, variant }: StatCardProps) => {
     return (
-        <div className={`rounded-md border p-5 ${variantStyles[variant]}`}>
+        <div className={`rounded-lg border p-5 ${variantStyles[variant]}`}>
             <span className="text-sm text-muted-foreground block">
                 {label}
             </span>

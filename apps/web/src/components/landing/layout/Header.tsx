@@ -1,21 +1,34 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { APP_ROUTES } from "@/constants/landing";
+import { useState, useEffect } from 'react';
+import { Menu, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { APP_ROUTES } from '@/constants/landing';
 
 const NAV_LINKS = [
-  { label: "Funcionalidades", href: "#funcionalidades" },
-  { label: "Precios", href: "#precios" },
-  { label: "FAQ", href: "#faq" },
+  { label: 'Funcionalidades', href: '#funcionalidades' },
+  { label: 'Precios', href: '#precios' },
+  { label: 'FAQ', href: '#faq' },
 ] as const;
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handler, { passive: true });
+    return () => window.removeEventListener('scroll', handler);
+  }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? 'bg-background/95 backdrop-blur-md border-b border-border'
+          : 'bg-transparent border-b border-transparent'
+      }`}
+    >
       <div className="mx-auto max-w-6xl px-6">
         <div className="flex h-14 items-center justify-between">
           <a href="/" className="flex items-center gap-2.5">
@@ -49,7 +62,7 @@ export function Header() {
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="md:hidden p-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
-            aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+            aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
           >
             {mobileOpen ? <X size={18} /> : <Menu size={18} />}
           </button>

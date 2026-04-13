@@ -4,6 +4,7 @@ import { Menu, X, LogOut, Building2, CreditCard, Users, User, ArrowRight } from 
 import { useAuth } from '@/lib/auth/AuthContext';
 import { ROUTE_PATHS } from '@/constants/index';
 import { ConfirmDialog } from '../common/ConfirmDialog';
+import { TrialMobileIndicator } from '../common/TrialBanner';
 import NotificationBell from './NotificationBell';
 import { useNavigationItems } from './useNavigationItems';
 
@@ -45,7 +46,7 @@ const MobileNav = () => {
           <button
             onClick={() => setIsOpen(true)}
             className="p-2 rounded-lg hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none"
-            aria-label="Abrir menu"
+            aria-label="Abrir menú"
           >
             <Menu className="w-5 h-5 text-foreground" />
           </button>
@@ -57,7 +58,7 @@ const MobileNav = () => {
           type="button"
           className="fixed inset-0 bg-foreground/30 backdrop-blur-[2px] z-40 md:hidden"
           onClick={closeDrawer}
-          aria-label="Cerrar menu"
+          aria-label="Cerrar menú"
         />
       )}
 
@@ -84,7 +85,7 @@ const MobileNav = () => {
             <button
               onClick={closeDrawer}
               className="p-1.5 rounded-lg hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none"
-              aria-label="Cerrar menu"
+              aria-label="Cerrar menú"
             >
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -121,7 +122,7 @@ const MobileNav = () => {
             </div>
 
             <div className="mt-2 pt-2 border-t border-border">
-              <p className="text-xs text-muted-foreground px-3 py-1.5">Configuracion</p>
+              <p className="text-xs text-muted-foreground px-3 py-1.5">Configuración</p>
               <div className="flex flex-col gap-0.5">
                 {settingsItems.map((item) => {
                   const Icon = item.icon;
@@ -160,13 +161,15 @@ const MobileNav = () => {
             )}
           </nav>
 
+          <TrialMobileIndicator onNavigate={closeDrawer} />
+
           <div className="border-t border-border p-2">
             <button
               onClick={() => setIsLogoutModalOpen(true)}
               className="w-full flex items-center gap-2.5 py-2 px-3 rounded-lg text-sm text-destructive hover:bg-destructive/10 transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none"
             >
               <LogOut className="w-4 h-4" strokeWidth={1.75} />
-              Cerrar sesion
+              Cerrar sesión
             </button>
           </div>
         </div>
@@ -176,9 +179,9 @@ const MobileNav = () => {
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
         onConfirm={handleLogout}
-        title="Deseas cerrar sesion?"
-        message="Se cerrara tu sesion actual y tendras que volver a iniciar sesion para acceder."
-        confirmText="Cerrar sesion"
+        title="¿Deseas cerrar sesión?"
+        message="Se cerrará tu sesión actual y tendrás que volver a iniciar sesión para acceder."
+        confirmText="Cerrar sesión"
         cancelText="Cancelar"
         variant="destructive"
       />

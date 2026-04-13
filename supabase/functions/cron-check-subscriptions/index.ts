@@ -8,26 +8,33 @@
  * - Logs discrepancies when DB status differs from MercadoPago status
  */
 
-import {
-  getMpConfig,
-  getMpHeaders,
-  mpFetch,
-} from '../_shared/mp-auth.ts';
+import { getMpConfig, getMpHeaders, mpFetch } from '../_shared/mp-auth.ts';
 import { createLogger } from '../_shared/logger.ts';
 import { supabaseAdmin } from '../_shared/supabase-admin.ts';
 
 const log = createLogger('cron-check-subscriptions');
 
+function isAuthorizedCronRequest(req: Request): boolean {
+  const authHeader = req.headers.get('Authorization');
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const validTokens = [
+    Deno.env.get('CRON_SECRET'),
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+  ].filter((value): value is string => Boolean(value));
+
+  return Boolean(token && validTokens.includes(token));
+}
+
 async function syncMpSubscription(
   sub: { mp_preapproval_id: string; company_id: string },
-  config: { baseUrl: string },
+  config: { baseUrl: string }
 ): Promise<{ synced: boolean; revoked: boolean; discrepancy: boolean }> {
   const headers = getMpHeaders();
 
   try {
     const preapproval = await mpFetch<Record<string, unknown>>(
       `${config.baseUrl}/preapproval/${sub.mp_preapproval_id}`,
-      { method: 'GET', headers },
+      { method: 'GET', headers }
     );
 
     const mpStatus = preapproval.status as string;
@@ -85,10 +92,8 @@ Deno.serve(async (req) => {
   const startTime = performance.now();
 
   try {
-    // Verify this is called by service role (CRON or admin)
-    const authHeader = req.headers.get('Authorization');
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    if (!serviceRoleKey || authHeader !== `Bearer ${serviceRoleKey}`) {
+    // Accept the dedicated CRON secret and the legacy scheduler service-role token.
+    if (!isAuthorizedCronRequest(req)) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
@@ -158,19 +163,20 @@ Deno.serve(async (req) => {
 
     log.info('CRON complete', { synced, revoked, discrepancies, durationMs });
 
-    return new Response(
-      JSON.stringify({ success: true, synced, revoked, discrepancies }),
-      { headers: { 'Content-Type': 'application/json' } },
-    );
+    return new Response(JSON.stringify({ success: true, synced, revoked, discrepancies }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     const durationMs = Math.round(performance.now() - startTime);
     log.error('cron-check-subscriptions error', {
       error: error instanceof Error ? error.message : String(error),
       durationMs,
     });
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } },
-    );
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 });
+
+

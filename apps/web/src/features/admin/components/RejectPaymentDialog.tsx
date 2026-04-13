@@ -17,11 +17,7 @@ interface RejectPaymentDialogProps {
   onConfirm: (reason: string) => void;
 }
 
-export const RejectPaymentDialog = ({
-  open,
-  onClose,
-  onConfirm,
-}: RejectPaymentDialogProps) => {
+export const RejectPaymentDialog = ({ open, onClose, onConfirm }: RejectPaymentDialogProps) => {
   const [reason, setReason] = useState('');
 
   const handleConfirm = () => {
@@ -41,8 +37,7 @@ export const RejectPaymentDialog = ({
         <AlertDialogHeader>
           <AlertDialogTitle>Rechazar pago</AlertDialogTitle>
           <AlertDialogDescription>
-            Indicá el motivo del rechazo. El usuario recibirá una notificación con esta
-            información.
+            Indicá el motivo del rechazo. El usuario recibirá una notificación con esta información.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <Textarea
@@ -56,7 +51,7 @@ export const RejectPaymentDialog = ({
           <AlertDialogAction
             onClick={handleConfirm}
             disabled={!reason.trim()}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            variant="destructive"
           >
             Rechazar pago
           </AlertDialogAction>

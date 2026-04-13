@@ -5,7 +5,9 @@ import { SectionProps } from '../types';
 export const CabinetSection = ({ form }: SectionProps) => {
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">Indique el estado del gabinete donde se encuentra el extintor.</p>
+      <p className="text-sm text-muted-foreground">
+        Indique el estado del gabinete donde se encuentra el extintor.
+      </p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <FormField
           control={form.control}
@@ -14,7 +16,7 @@ export const CabinetSection = ({ form }: SectionProps) => {
             <FormItem>
               <FormControl>
                 <Select
-                  label="El vidrio esta en condiciones?"
+                  label="¿El vidrio está en condiciones?"
                   id="glassCondition"
                   value={field.value}
                   onChange={(e) => field.onChange(e.target.value)}
@@ -24,7 +26,7 @@ export const CabinetSection = ({ form }: SectionProps) => {
                   required
                 >
                   <option value="">Seleccione...</option>
-                  <option value="Si">Si</option>
+                  <option value="Sí">Sí</option>
                   <option value="No">No</option>
                   <option value="N/A">N/A</option>
                 </Select>
@@ -40,7 +42,7 @@ export const CabinetSection = ({ form }: SectionProps) => {
             <FormItem>
               <FormControl>
                 <Select
-                  label="La puerta se abre sin dificultad?"
+                  label="¿La puerta se abre sin dificultad?"
                   id="doorOpensEasily"
                   value={field.value}
                   onChange={(e) => field.onChange(e.target.value)}
@@ -50,7 +52,7 @@ export const CabinetSection = ({ form }: SectionProps) => {
                   required
                 >
                   <option value="">Seleccione...</option>
-                  <option value="Si">Si</option>
+                  <option value="Sí">Sí</option>
                   <option value="No">No</option>
                   <option value="N/A">N/A</option>
                 </Select>
@@ -66,7 +68,7 @@ export const CabinetSection = ({ form }: SectionProps) => {
             <FormItem>
               <FormControl>
                 <Select
-                  label="El gabinete esta limpio?"
+                  label="¿El gabinete está limpio?"
                   id="cabinetClean"
                   value={field.value}
                   onChange={(e) => field.onChange(e.target.value)}
@@ -76,7 +78,7 @@ export const CabinetSection = ({ form }: SectionProps) => {
                   required
                 >
                   <option value="">Seleccione...</option>
-                  <option value="Si">Si</option>
+                  <option value="Sí">Sí</option>
                   <option value="No">No</option>
                   <option value="N/A">N/A</option>
                 </Select>

@@ -68,6 +68,33 @@ export const formatDateLocal = (
 };
 
 /**
+ * Formats a date relative to now for notification-style UI.
+ */
+export const formatRelativeTimeLocal = (
+  dateString: string | null | undefined,
+  locale: string = 'es-AR'
+): string => {
+  if (!dateString) return '-';
+
+  const date = parseLocalDate(dateString);
+  if (isNaN(date.getTime())) return '-';
+
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMinutes < 1) return 'Hace un momento';
+  if (diffMinutes < 60) return `Hace ${diffMinutes} min`;
+  if (diffHours < 24) return `Hace ${diffHours} h`;
+  if (diffDays === 1) return 'Ayer';
+  if (diffDays < 7) return `Hace ${diffDays} dias`;
+
+  return formatDateLocal(dateString, { day: 'numeric', month: 'short' }, locale);
+};
+
+/**
  * Formatea una fecha para mostrar en emails (día mes_largo año).
  */
 export const formatDateForEmail = (date: string, locale: string = 'es-AR'): string => {

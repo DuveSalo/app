@@ -1,115 +1,203 @@
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
 import {
-  LayoutDashboard,
+  FireExtinguisher,
   FileCheck,
-  FlameKindling,
-  QrCode,
+  ShieldCheck,
+  CalendarDays,
   Bell,
-  ClipboardList,
-} from "lucide-react";
-import { useInView } from "@/lib/hooks/useInView";
+  Zap,
+  ArrowUpDown,
+  Thermometer,
+  FlameKindling,
+  ScanSearch,
+} from 'lucide-react';
+import { useInView } from '@/lib/hooks/useInView';
 
-const FEATURES = [
+const SERVICES = [
   {
-    icon: LayoutDashboard,
-    title: "Panel de Vencimientos",
+    icon: FireExtinguisher,
+    title: 'Control de Extintores',
     description:
-      "Visualice el estado de toda su documentación en un dashboard centralizado con códigos de color.",
+      'Inspecciones digitales con más de 40 campos de verificación. Historial completo y trazabilidad por unidad.',
+    items: [
+      'Tipo, capacidad y ubicación',
+      'Fechas de recarga y vencimiento',
+      'Estado y observaciones',
+    ],
+    iconBg: 'bg-orange-50',
+    iconColor: 'text-orange-600',
+    dotColor: 'bg-orange-500',
+    ringColor: 'ring-orange-200',
   },
   {
     icon: FileCheck,
-    title: "Certificados de Conservación",
+    title: 'Certificado de Conservación',
     description:
-      "Cargue, rastree y reciba alertas de vencimiento para todos sus certificados obligatorios.",
+      'Cargue y rastree todos los certificados obligatorios de su edificio con alertas de vencimiento automáticas.',
+    items: ['N° de expediente e interventor', 'Fecha de presentación y vencimiento', 'PDF adjunto'],
+    iconBg: 'bg-blue-50',
+    iconColor: 'text-blue-600',
+    dotColor: 'bg-blue-500',
+    ringColor: 'ring-blue-200',
   },
   {
-    icon: FlameKindling,
-    title: "Control de Matafuegos",
+    icon: ShieldCheck,
+    title: 'Sistema de Autoprotección',
     description:
-      "Inspecciones digitales con más de 40 campos de verificación. Nunca pierda un control.",
+      'Gestione disposiciones, extensiones y simulacros del plan de autoprotección de su institución.',
+    items: ['Disposición probatoria', 'Registro de simulacros con actas', 'Fecha de vencimiento'],
+    iconBg: 'bg-violet-50',
+    iconColor: 'text-violet-600',
+    dotColor: 'bg-violet-500',
+    ringColor: 'ring-violet-200',
   },
   {
-    icon: QrCode,
-    title: "Documentos QR",
+    icon: CalendarDays,
+    title: 'Información del Evento',
     description:
-      "Gestione documentación de ascensores, termotanques, instalaciones eléctricas y más.",
+      'Documente simulacros, incidentes y acciones correctivas con todo el detalle normativo requerido.',
+    items: ['Simulacros de evacuación', 'Incidentes y accidentes', 'Acciones correctivas'],
+    iconBg: 'bg-emerald-50',
+    iconColor: 'text-emerald-600',
+    dotColor: 'bg-emerald-500',
+    ringColor: 'ring-emerald-200',
   },
   {
     icon: Bell,
-    title: "Alertas Automáticas",
+    title: 'Alertas Automáticas',
     description:
-      "Notificaciones proactivas antes de que sus documentos venzan. Cero multas por olvido.",
+      'Notificaciones proactivas por email antes de cada vencimiento. Panel de estado centralizado.',
+    items: [
+      'Alertas programadas con anticipación',
+      'Dashboard con código de colores',
+      'Historial de notificaciones',
+    ],
+    iconBg: 'bg-amber-50',
+    iconColor: 'text-amber-600',
+    dotColor: 'bg-amber-500',
+    ringColor: 'ring-amber-200',
   },
   {
-    icon: ClipboardList,
-    title: "Registro de Eventos",
+    icon: Zap,
+    title: 'Medición de Puesta a Tierra',
+    description: 'Mediciones de puesta a tierra e instalaciones eléctricas.',
+    items: ['Medición de resistencia', 'Informe técnico', 'Certificación profesional'],
+    iconBg: 'bg-yellow-50',
+    iconColor: 'text-yellow-600',
+    dotColor: 'bg-yellow-500',
+    ringColor: 'ring-yellow-200',
+  },
+  {
+    icon: ArrowUpDown,
+    title: 'Ascensores',
     description:
-      "Documente simulacros, incidentes y acciones correctivas con todo el detalle requerido.",
+      'Gestione la documentación obligatoria de ascensores y montacargas de su institución.',
+    items: ['Habilitación vigente', 'Certificado de mantenimiento', 'Fecha de vencimiento'],
+    iconBg: 'bg-teal-50',
+    iconColor: 'text-teal-600',
+    dotColor: 'bg-teal-500',
+    ringColor: 'ring-teal-200',
+  },
+  {
+    icon: Thermometer,
+    title: 'Termotanques y Calderas',
+    description:
+      'Control de termotanques, calderas y equipos de calefacción con seguimiento de habilitaciones.',
+    items: ['Habilitación del equipo', 'Mantenimiento periódico', 'Certificación profesional'],
+    iconBg: 'bg-rose-50',
+    iconColor: 'text-rose-600',
+    dotColor: 'bg-rose-500',
+    ringColor: 'ring-rose-200',
+  },
+  {
+    icon: FlameKindling,
+    title: 'Inst. Fija Contra Incendios',
+    description:
+      'Registro y seguimiento de instalaciones fijas contra incendios: rociadores, hidrantes y más.',
+    items: ['Sistema de rociadores', 'Red de hidrantes', 'Certificación y vencimiento'],
+    iconBg: 'bg-red-50',
+    iconColor: 'text-red-600',
+    dotColor: 'bg-red-500',
+    ringColor: 'ring-red-200',
+  },
+  {
+    icon: ScanSearch,
+    title: 'Detección',
+    description:
+      'Sistemas de detección de incendio y monóxido de carbono con control de mantenimiento.',
+    items: ['Detectores de humo', 'Detectores de monóxido', 'Fecha de revisión y vencimiento'],
+    iconBg: 'bg-cyan-50',
+    iconColor: 'text-cyan-600',
+    dotColor: 'bg-cyan-500',
+    ringColor: 'ring-cyan-200',
   },
 ] as const;
 
-const containerVariants = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.06 },
-  },
-} as const;
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: "easeOut" as const },
-  },
-} as const;
-
 export function Features() {
-  const { ref, isInView } = useInView({ threshold: 0.15 });
+  const { ref, isInView } = useInView({ threshold: 0.05 });
 
   return (
-    <section id="funcionalidades" className="bg-muted py-20 lg:py-24">
+    <section id="funcionalidades" className="bg-muted py-24 lg:py-32">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="text-center max-w-xl mx-auto mb-12">
-          <h2 className="text-3xl font-bold text-foreground tracking-tight">
+        <div className="max-w-xl mx-auto text-center mb-14">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+            Funcionalidades
+          </p>
+          <h2 className="text-3xl lg:text-4xl font-bold text-foreground tracking-tight">
             Todo lo que necesita para cumplir
           </h2>
-          <p className="mt-3 text-muted-foreground">
-            Herramientas diseñadas para simplificar la gestión de seguridad en
-            instituciones educativas.
+          <p className="mt-4 text-muted-foreground leading-relaxed">
+            Gestione cada servicio de seguridad de su institución desde un único panel centralizado.
           </p>
         </div>
 
-        <motion.div
+        <div
           ref={ref}
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 landing-fade-in ${isInView ? 'is-visible' : ''}`}
         >
-          {FEATURES.map((feature) => {
-            const Icon = feature.icon;
+          {SERVICES.map((service) => {
+            const Icon = service.icon;
+
             return (
-              <motion.div
-                key={feature.title}
-                variants={itemVariants}
-                className="border border-border rounded-lg p-6 bg-background hover:border-foreground/20 transition-colors"
+              <div
+                key={service.title}
+                className="landing-stagger-item group relative border border-border rounded-lg p-6 bg-background hover:border-foreground/20 transition-all duration-200 overflow-hidden"
               >
-                <div className="inline-flex items-center justify-center bg-muted rounded-lg p-2.5">
-                  <Icon className="h-5 w-5 text-foreground" />
+                {/* Subtle corner accent */}
+                <div
+                  className={`absolute -top-12 -right-12 w-24 h-24 rounded-full ${service.iconBg} opacity-50 transition-opacity group-hover:opacity-80`}
+                />
+
+                <div className="relative">
+                  <div
+                    className={`inline-flex items-center justify-center rounded-lg p-2.5 ring-1 ${service.iconBg} ${service.ringColor}`}
+                  >
+                    <Icon className={`h-5 w-5 ${service.iconColor}`} />
+                  </div>
+
+                  <h3 className="text-base font-semibold text-foreground mt-4">{service.title}</h3>
+                  <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                    {service.description}
+                  </p>
+                  <ul className="mt-3 space-y-1.5">
+                    {service.items.map((item) => (
+                      <li
+                        key={item}
+                        className="flex items-center gap-2 text-xs text-muted-foreground"
+                      >
+                        <span
+                          className={`w-1 h-1 rounded-full flex-shrink-0 ${service.dotColor}`}
+                        />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <h3 className="text-base font-semibold text-foreground mt-4">
-                  {feature.title}
-                </h3>
-                <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                  {feature.description}
-                </p>
-              </motion.div>
+              </div>
             );
           })}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

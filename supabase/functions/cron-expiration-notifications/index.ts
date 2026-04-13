@@ -6,7 +6,7 @@
  * Deduplication: skips if an unread notification with same
  * related_table + related_id + type exists from the last 7 days.
  *
- * Security: Requires CRON_SECRET Bearer token.
+ * Security: Accepts CRON_SECRET and the legacy scheduler service-role Bearer token.
  */
 
 import { createLogger } from '../_shared/logger.ts';
@@ -22,6 +22,17 @@ interface ExpiringItem {
   name: string;
   daysLeft: number;
   link: string;
+}
+
+function isAuthorizedCronRequest(req: Request): boolean {
+  const authHeader = req.headers.get('Authorization');
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const validTokens = [
+    Deno.env.get('CRON_SECRET'),
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+  ].filter((value): value is string => Boolean(value));
+
+  return Boolean(token && validTokens.includes(token));
 }
 
 function daysBetween(dateStr: string): number {
@@ -55,10 +66,8 @@ Deno.serve(async (req) => {
   const startTime = performance.now();
 
   try {
-    // Verify this is called by the CRON scheduler (CRON_SECRET only)
-    const cronSecret = Deno.env.get('CRON_SECRET');
-    const authHeader = req.headers.get('Authorization');
-    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+    // Accept the dedicated CRON secret and the legacy scheduler service-role token.
+    if (!isAuthorizedCronRequest(req)) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },

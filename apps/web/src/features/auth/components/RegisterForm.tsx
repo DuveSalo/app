@@ -9,11 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PasswordInput } from '@/components/common/PasswordInput';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from '@/components/ui/input-otp';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import {
   Form,
   FormField,
@@ -26,7 +22,7 @@ import AuthLayout from '@/components/layout/AuthLayout';
 import { ROUTE_PATHS } from '@/constants/index';
 import { registerSchema, otpSchema, type RegisterFormValues, type OtpFormValues } from '../schemas';
 
-const wizardSteps = ['Crear Cuenta', 'Registrar Escuela', 'Suscripcion'];
+const wizardSteps = ['Crear Cuenta', 'Registrar Escuela', 'Suscripción'];
 
 const RegisterForm = () => {
   const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null);
@@ -101,9 +97,10 @@ const RegisterForm = () => {
     try {
       await loginWithGoogle();
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al iniciar sesion con Google.';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error al iniciar sesión con Google.';
       setError(errorMessage);
-      toast.error('Error al iniciar sesion', { description: errorMessage });
+      toast.error('Error al iniciar sesión', { description: errorMessage });
       setIsLoading(false);
     }
   };
@@ -111,9 +108,9 @@ const RegisterForm = () => {
   return (
     <AuthLayout variant="wizard" wizardSteps={wizardSteps} currentStep={1}>
       {confirmationEmail ? (
-        <Card className="w-full max-w-[440px]">
-          <CardContent className="p-8 flex flex-col items-center gap-5">
-            <div className="flex items-center justify-center h-12 w-12 rounded-full bg-muted">
+        <Card className="mx-auto w-full max-w-[540px] gap-4 py-4">
+          <CardContent className="flex flex-col items-center gap-4 p-6 sm:p-7">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted">
               <Mail className="h-6 w-6 text-muted-foreground" />
             </div>
 
@@ -126,7 +123,10 @@ const RegisterForm = () => {
             </div>
 
             <Form {...otpForm}>
-              <form onSubmit={otpForm.handleSubmit(handleVerifyOtp)} className="flex flex-col items-center gap-4 w-full">
+              <form
+                onSubmit={otpForm.handleSubmit(handleVerifyOtp)}
+                className="flex w-full flex-col items-center gap-3.5"
+              >
                 <FormField
                   control={otpForm.control}
                   name="token"
@@ -162,7 +162,7 @@ const RegisterForm = () => {
               </form>
             </Form>
 
-            <div className="flex flex-col items-center gap-3 w-full pt-2">
+            <div className="flex w-full flex-col items-center gap-2.5 pt-1">
               <p className="text-sm text-muted-foreground">
                 No recibiste el codigo?{' '}
                 <button
@@ -179,15 +179,15 @@ const RegisterForm = () => {
                 to={ROUTE_PATHS.LOGIN}
                 className="text-sm text-muted-foreground hover:underline"
               >
-                Volver al inicio de sesion
+                Volver al inicio de sesión
               </Link>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <Card className="w-full max-w-[440px]">
-          <CardContent className="p-8 flex flex-col gap-5">
-            <div className="flex flex-col gap-2">
+        <Card className="mx-auto w-full max-w-[540px] gap-4 py-4">
+          <CardContent className="flex flex-col gap-4 p-6 sm:p-7">
+            <div className="flex flex-col gap-1.5">
               <h2 className="text-2xl font-semibold tracking-tight text-foreground">
                 Crear Cuenta
               </h2>
@@ -196,7 +196,7 @@ const RegisterForm = () => {
 
             <Form {...registerForm}>
               <form onSubmit={registerForm.handleSubmit(handleRegister)}>
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3.5">
                   <FormField
                     control={registerForm.control}
                     name="name"
@@ -204,7 +204,12 @@ const RegisterForm = () => {
                       <FormItem>
                         <FormLabel>Nombre Completo</FormLabel>
                         <FormControl>
-                          <Input type="text" placeholder="Juan Perez" disabled={isLoading} {...field} />
+                          <Input
+                            type="text"
+                            placeholder="Juan Perez"
+                            disabled={isLoading}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -216,9 +221,15 @@ const RegisterForm = () => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Direccion de Email</FormLabel>
+                        <FormLabel>Dirección de Email</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="tu@email.com" autoComplete="email" disabled={isLoading} {...field} />
+                          <Input
+                            type="email"
+                            placeholder="tu@email.com"
+                            autoComplete="email"
+                            disabled={isLoading}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -230,9 +241,14 @@ const RegisterForm = () => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Contrasena</FormLabel>
+                        <FormLabel>Contraseña</FormLabel>
                         <FormControl>
-                          <PasswordInput placeholder="--------" autoComplete="new-password" disabled={isLoading} {...field} />
+                          <PasswordInput
+                            placeholder="--------"
+                            autoComplete="new-password"
+                            disabled={isLoading}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -244,9 +260,14 @@ const RegisterForm = () => {
                     name="confirmPassword"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Confirmar Contrasena</FormLabel>
+                        <FormLabel>Confirmar Contraseña</FormLabel>
                         <FormControl>
-                          <PasswordInput placeholder="--------" autoComplete="new-password" disabled={isLoading} {...field} />
+                          <PasswordInput
+                            placeholder="--------"
+                            autoComplete="new-password"
+                            disabled={isLoading}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -254,13 +275,13 @@ const RegisterForm = () => {
                   />
                 </div>
 
-                <p className="text-xs text-muted-foreground mt-2">
-                  Minimo 8 caracteres, 1 mayuscula, 1 minuscula y 1 numero.
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Mínimo 8 caracteres, 1 mayúscula, 1 minúscula y 1 número.
                 </p>
 
-                {error && <p className="text-sm text-destructive text-center mt-2">{error}</p>}
+                {error && <p className="mt-1.5 text-center text-sm text-destructive">{error}</p>}
 
-                <Button type="submit" loading={isLoading} className="w-full mt-4">
+                <Button type="submit" loading={isLoading} className="mt-3 w-full">
                   {isLoading ? 'Creando...' : 'Crear Cuenta'}
                 </Button>
               </form>
@@ -286,7 +307,7 @@ const RegisterForm = () => {
             <div className="flex justify-center gap-1">
               <span className="text-sm text-muted-foreground">Ya tiene una cuenta?</span>
               <Link to={ROUTE_PATHS.LOGIN} className="text-sm font-medium text-foreground">
-                Iniciar sesion
+                Iniciar sesión
               </Link>
             </div>
           </CardContent>

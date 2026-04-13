@@ -5,6 +5,7 @@ export interface Drill {
   pdfFile?: File;
   pdfFileName?: string;
   pdfUrl?: string;
+  pdfPath?: string;
 }
 
 export interface SelfProtectionSystem {
@@ -14,10 +15,12 @@ export interface SelfProtectionSystem {
   probatoryDispositionPdf?: File;
   probatoryDispositionPdfName?: string;
   probatoryDispositionPdfUrl?: string;
+  probatoryDispositionPdfPath?: string;
   extensionDate: string;
   extensionPdf?: File;
   extensionPdfName?: string;
   extensionPdfUrl?: string;
+  extensionPdfPath?: string;
   expirationDate: string;
   drills: Drill[];
   intervener: string;

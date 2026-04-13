@@ -11,6 +11,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import PageLayout from '@/components/layout/PageLayout';
 import { SkeletonTable } from '@/components/common/SkeletonLoader';
 import { DataTable } from '@/components/common/DataTable';
@@ -28,7 +35,10 @@ const logger = createLogger('AdminPaymentsPage');
 
 // --- Payment Status Badge ---
 
-const paymentStatusConfig: Record<string, { variant: 'emerald' | 'amber' | 'red' | 'muted'; label: string }> = {
+const paymentStatusConfig: Record<
+  string,
+  { variant: 'emerald' | 'amber' | 'red' | 'muted'; label: string }
+> = {
   pending: { variant: 'amber', label: 'Pendiente' },
   approved: { variant: 'emerald', label: 'Aprobado' },
   rejected: { variant: 'red', label: 'Rechazado' },
@@ -64,7 +74,10 @@ const AdminPaymentsPage = () => {
     open: false,
     paymentId: '',
   });
-  const [detailDialog, setDetailDialog] = useState<{ open: boolean; payment: AdminPaymentRow | null }>({
+  const [detailDialog, setDetailDialog] = useState<{
+    open: boolean;
+    payment: AdminPaymentRow | null;
+  }>({
     open: false,
     payment: null,
   });
@@ -137,9 +150,7 @@ const AdminPaymentsPage = () => {
             <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
           </Button>
         ),
-        cell: ({ row }) => (
-          <span className="font-medium">{row.original.companyName}</span>
-        ),
+        cell: ({ row }) => <span className="font-medium">{row.original.companyName}</span>,
       },
       {
         accessorKey: 'amount',
@@ -154,11 +165,19 @@ const AdminPaymentsPage = () => {
           </Button>
         ),
         cell: ({ row }) => formatCurrency(row.original.amount),
+        meta: { hideOnMobile: true },
       },
       {
         accessorKey: 'paymentMethod',
         header: 'Método',
-        cell: ({ row }) => <PaymentMethodBadge method={row.original.paymentMethod} />,
+        cell: ({ row }) => (
+          <PaymentMethodBadge
+            method={row.original.paymentMethod}
+            cardBrand={row.original.cardBrand}
+            cardLastFour={row.original.cardLastFour}
+          />
+        ),
+        meta: { hideOnMobile: true },
       },
       {
         accessorKey: 'status',
@@ -187,6 +206,7 @@ const AdminPaymentsPage = () => {
           </Button>
         ),
         cell: ({ row }) => formatDateLocal(row.original.createdAt),
+        meta: { hideOnMobile: true },
       },
       {
         id: 'actions',
@@ -207,9 +227,7 @@ const AdminPaymentsPage = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => setDetailDialog({ open: true, payment })}
-                  >
+                  <DropdownMenuItem onClick={() => setDetailDialog({ open: true, payment })}>
                     <FileText className="mr-2 h-4 w-4" />
                     Ver detalles
                   </DropdownMenuItem>
@@ -246,27 +264,41 @@ const AdminPaymentsPage = () => {
   // --- Status filter toolbar ---
 
   const toolbar = (
-    <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-      <TabsList>
-        {STATUS_TABS.map((tab) => (
-          <TabsTrigger key={tab.value} value={tab.value}>
-            {tab.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-    </Tabs>
+    <div className="w-full">
+      <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <SelectTrigger className="sm:hidden">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {STATUS_TABS.map((tab) => (
+            <SelectItem key={tab.value} value={tab.value}>
+              {tab.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Tabs value={statusFilter} onValueChange={setStatusFilter} className="hidden sm:block">
+        <TabsList>
+          {STATUS_TABS.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+    </div>
   );
 
   if (isLoading) {
     return (
-      <PageLayout title="Pagos">
+      <PageLayout title="Pagos" showNotifications={false}>
         <SkeletonTable rows={8} />
       </PageLayout>
     );
   }
 
   return (
-    <PageLayout title="Pagos">
+    <PageLayout title="Pagos" showNotifications={false}>
       <DataTable
         columns={columns}
         data={filteredPayments}
@@ -274,6 +306,66 @@ const AdminPaymentsPage = () => {
         searchPlaceholder="Buscar escuela..."
         toolbar={toolbar}
         pageSize={10}
+        cardRenderer={(row) => {
+          const loading = actionLoading === row.id;
+          const isPending = row.status === 'pending';
+          const isBankTransfer = row.paymentMethod === 'bank_transfer';
+          return (
+            <div className="border rounded-lg p-4 bg-card">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">{row.companyName}</span>
+                <PaymentStatusBadge status={row.status} />
+              </div>
+              <div className="mt-1 text-sm text-muted-foreground flex items-center gap-2">
+                {formatCurrency(row.amount)} ·{' '}
+                <PaymentMethodBadge
+                  method={row.paymentMethod}
+                  cardBrand={row.cardBrand}
+                  cardLastFour={row.cardLastFour}
+                />
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  {formatDateLocal(row.createdAt)}
+                </span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" disabled={loading}>
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Acciones</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setDetailDialog({ open: true, payment: row })}>
+                      <FileText className="mr-2 h-4 w-4" />
+                      Ver detalles
+                    </DropdownMenuItem>
+                    {isBankTransfer && row.receiptUrl && (
+                      <DropdownMenuItem onClick={() => handleViewReceipt(row)}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        Ver comprobante
+                      </DropdownMenuItem>
+                    )}
+                    {isPending && isBankTransfer && (
+                      <>
+                        <DropdownMenuItem onClick={() => handleApprove(row.id)}>
+                          <Check className="mr-2 h-4 w-4 text-emerald-600" />
+                          Aprobar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setRejectDialog({ open: true, paymentId: row.id })}
+                        >
+                          <X className="mr-2 h-4 w-4 text-destructive" />
+                          Rechazar
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          );
+        }}
       />
 
       <RejectPaymentDialog

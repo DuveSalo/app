@@ -3,12 +3,12 @@ import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const chipVariants = cva(
-  'flex items-center justify-center h-7 rounded-md px-3 text-xs font-medium border transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/10',
+  'flex items-center justify-center h-7 rounded-lg px-3 text-xs font-medium border transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/10',
   {
     variants: {
       isSelected: {
-        true: 'bg-primary border-primary text-white',
-        false: 'bg-white border-border text-neutral-700 hover:bg-neutral-50',
+        true: 'bg-primary border-primary text-primary-foreground',
+        false: 'bg-background border-border text-foreground hover:bg-accent',
       },
     },
   }
@@ -26,10 +26,7 @@ const Chip = ({ label, isSelected, onSelect, disabled }: ChipProps) => (
     type="button"
     onClick={onSelect}
     disabled={disabled}
-    className={cn(
-      chipVariants({ isSelected }),
-      disabled && 'opacity-50 cursor-not-allowed'
-    )}
+    className={cn(chipVariants({ isSelected }), disabled && 'opacity-50 cursor-not-allowed')}
   >
     {isSelected && <Check className="w-3 h-3 mr-1.5" strokeWidth={2.5} />}
     {label}
@@ -64,11 +61,7 @@ export const ChipGroup = ({
 
   return (
     <div className={cn('w-full', className)}>
-      {label && (
-        <label className="block text-sm font-medium text-neutral-900 mb-1.5">
-          {label}
-        </label>
-      )}
+      {label && <label className="block text-sm font-medium text-foreground mb-1.5">{label}</label>}
       <div className="flex flex-wrap gap-1.5">
         {options.map((option) => (
           <Chip

@@ -12,7 +12,7 @@ import {
 import { parseCursor } from '../../utils/pagination';
 
 const EVENT_COLUMNS =
-  'id, company_id, date, time, description, corrective_actions, testimonials, observations, final_checks';
+  'id, company_id, date, time, description, corrective_actions, testimonials, observations, final_checks, created_at, updated_at';
 
 export const getEvents = async (
   companyId: string,

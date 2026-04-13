@@ -8,10 +8,10 @@ export const APP_ROUTES = {
 } as const;
 
 export const SITE_CONFIG = {
-  name: "Escuela Segura",
+  name: 'Escuela Segura',
   description:
-    "Centralice certificados, inspecciones y vencimientos de seguridad de su escuela. Alertas automáticas, dashboard de cumplimiento y preparación de auditorías en minutos.",
-  url: "https://escuelasegura.com",
+    'Centralice certificados, inspecciones y vencimientos de seguridad de su escuela. Alertas automáticas, dashboard de cumplimiento y preparación de auditorías en minutos.',
+  url: 'https://escuelasegura.com',
 } as const;
 
 export interface PlanData {
@@ -33,43 +33,43 @@ export interface FAQItem {
 
 export const FAQ_DATA: FAQItem[] = [
   {
-    question: "¿Qué es Escuela Segura?",
+    question: '¿Qué es Escuela Segura?',
     answer:
-      "Escuela Segura es una plataforma web para gestionar toda la documentación de seguridad y cumplimiento normativo de su escuela. Centralice certificados, inspecciones de matafuegos, documentos QR y más en un solo lugar.",
+      'Escuela Segura es una plataforma web para gestionar toda la documentación de seguridad y cumplimiento normativo de su escuela. Centralice certificados, inspecciones de matafuegos, documentos QR y más en un solo lugar.',
   },
   {
-    question: "¿Necesito instalar algo?",
+    question: '¿Necesito instalar algo?',
     answer:
-      "No. Escuela Segura es una aplicación web que funciona directamente desde su navegador. Solo necesita una cuenta de Google para registrarse y comenzar a usar la plataforma.",
+      'No. Escuela Segura es una aplicación web que funciona directamente desde su navegador. Solo necesita una cuenta de Google para registrarse y comenzar a usar la plataforma.',
   },
   {
-    question: "¿Qué incluye la prueba gratuita?",
+    question: '¿Qué incluye la prueba gratuita?',
     answer:
-      "La prueba gratuita de 14 días incluye acceso completo a todas las funcionalidades de la plataforma, sin necesidad de ingresar datos de pago.",
+      'La prueba gratuita de 14 días incluye acceso completo a todas las funcionalidades de la plataforma, sin necesidad de ingresar datos de pago.',
   },
   {
-    question: "¿Qué métodos de pago aceptan?",
+    question: '¿Qué métodos de pago aceptan?',
     answer:
-      "Procesamos todos los pagos a través de MercadoPago. Puede pagar con tarjeta de crédito o débito de cualquier banco argentino.",
+      'Procesamos todos los pagos de forma segura a través de MercadoPago. Puede pagar con tarjeta de crédito, débito o transferencia bancaria.',
   },
   {
-    question: "¿Puedo cambiar de plan en cualquier momento?",
+    question: '¿Puedo cambiar de plan en cualquier momento?',
     answer:
-      "Sí. Puede actualizar o cambiar su plan desde la sección de Configuración de su cuenta. Los cambios se aplican en el siguiente ciclo de facturación.",
+      'Sí. Puede actualizar o cambiar su plan desde la sección de Configuración de su cuenta. Los cambios se aplican en el siguiente ciclo de facturación.',
   },
   {
-    question: "¿Mis datos están seguros?",
+    question: '¿Mis datos están seguros?',
     answer:
-      "Absolutamente. Utilizamos Supabase con Row Level Security (RLS), lo que garantiza que cada escuela solo pueda acceder a sus propios datos. Toda la comunicación está encriptada con TLS.",
+      'Absolutamente. Utilizamos Supabase con Row Level Security (RLS), lo que garantiza que cada escuela solo pueda acceder a sus propios datos. Toda la comunicación está encriptada con TLS.',
   },
   {
-    question: "¿Cómo funcionan las alertas de vencimiento?",
+    question: '¿Cómo funcionan las alertas de vencimiento?',
     answer:
-      "El sistema monitorea automáticamente las fechas de vencimiento de todos sus documentos y certificados. Recibirá notificaciones con anticipación para que nunca se le pase una renovación.",
+      'El sistema monitorea automáticamente las fechas de vencimiento de todos sus documentos y certificados. Recibirá notificaciones con anticipación para que nunca se le pase una renovación.',
   },
   {
-    question: "¿Puedo agregar más usuarios a mi cuenta?",
+    question: '¿Puedo agregar más usuarios a mi cuenta?',
     answer:
-      "Sí. Desde la sección de Configuración puede invitar a otros miembros de su equipo para que colaboren en la gestión de la documentación.",
+      'Sí. Desde la sección de Configuración puede invitar a otros miembros de su equipo para que colaboren en la gestión de la documentación.',
   },
 ];

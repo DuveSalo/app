@@ -35,7 +35,7 @@ export const PrincipalTab = ({ form, isEditing }: PrincipalTabProps) => {
       />
 
       {isEditing && form.getValues('probatoryDispositionPdfUrl') && !form.getValues('probatoryDispositionPdf') && (
-        <div className="p-3 bg-muted border border-border rounded-md">
+        <div className="p-3 bg-muted border border-border rounded-lg">
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <p className="text-sm font-medium text-foreground">PDF actual:</p>
@@ -84,7 +84,7 @@ export const PrincipalTab = ({ form, isEditing }: PrincipalTabProps) => {
       </div>
 
       {isEditing && form.getValues('extensionPdfUrl') && !form.getValues('extensionPdf') && (
-        <div className="p-3 bg-muted border border-border rounded-md">
+        <div className="p-3 bg-muted border border-border rounded-lg">
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <p className="text-sm font-medium text-foreground">PDF actual:</p>

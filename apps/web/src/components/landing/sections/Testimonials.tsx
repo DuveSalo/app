@@ -1,32 +1,38 @@
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
-import { useInView } from "@/lib/hooks/useInView";
+import { Star } from 'lucide-react';
+import { useInView } from '@/lib/hooks/useInView';
 
 const TESTIMONIALS = [
   {
     quote:
-      "Antes tardábamos semanas en preparar las auditorías. Ahora con Escuela Segura tenemos todo centralizado y listo en minutos.",
-    name: "María González",
-    role: "Directora",
-    school: "Instituto San Martín",
-    initials: "MG",
+      'Antes tardábamos semanas en preparar las auditorías. Ahora con Escuela Segura tenemos todo centralizado y listo en minutos.',
+    name: 'María González',
+    role: 'Directora',
+    school: 'Instituto San Martín',
+    initials: 'MG',
+    avatarBg: 'bg-blue-100',
+    avatarText: 'text-blue-700',
   },
   {
     quote:
-      "El control de matafuegos digital es increíble. Las inspecciones que antes se hacían en papel ahora están digitalizadas con más de 40 campos de verificación.",
-    name: "Carlos Ruiz",
-    role: "Jefe de Mantenimiento",
-    school: "Colegio Belgrano",
-    initials: "CR",
+      'El control de extintores digital es increíble. Las inspecciones que antes se hacían en papel ahora están digitalizadas con más de 40 campos de verificación.',
+    name: 'Carlos Ruiz',
+    role: 'Jefe de Mantenimiento',
+    school: 'Colegio Belgrano',
+    initials: 'CR',
+    avatarBg: 'bg-violet-100',
+    avatarText: 'text-violet-700',
   },
   {
     quote:
-      "Las alertas automáticas nos salvaron de varias multas. Ahora recibimos notificaciones antes de que venzan los certificados.",
-    name: "Laura Fernández",
-    role: "Administradora",
-    school: "Escuela Técnica N°5",
-    initials: "LF",
+      'Las alertas automáticas nos salvaron de varias multas. Ahora recibimos notificaciones antes de que venzan los certificados.',
+    name: 'Laura Fernández',
+    role: 'Administradora',
+    school: 'Escuela Técnica N°5',
+    initials: 'LF',
+    avatarBg: 'bg-emerald-100',
+    avatarText: 'text-emerald-700',
   },
 ] as const;
 
@@ -34,64 +40,56 @@ export function Testimonials() {
   const { ref, isInView } = useInView({ threshold: 0.15 });
 
   return (
-    <section className="bg-background py-20 lg:py-24">
+    <section className="bg-background py-24 lg:py-32">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-foreground tracking-tight">
+        <div className="max-w-xl mx-auto text-center mb-14">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+            Testimonios
+          </p>
+          <h2 className="text-3xl lg:text-4xl font-bold text-foreground tracking-tight">
             Lo que dicen nuestros clientes
           </h2>
-          <p className="mt-3 text-muted-foreground">
+          <p className="mt-4 text-muted-foreground leading-relaxed">
             Instituciones educativas de todo el país confían en Escuela Segura.
           </p>
         </div>
 
-        <motion.div
+        <div
           ref={ref}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          variants={{
-            hidden: {},
-            visible: { transition: { staggerChildren: 0.08 } },
-          }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4"
+          className={`grid grid-cols-1 md:grid-cols-3 gap-4 landing-fade-in ${isInView ? 'is-visible' : ''}`}
         >
           {TESTIMONIALS.map((t) => (
-            <motion.div
+            <div
               key={t.name}
-              variants={{
-                hidden: { opacity: 0, y: 16 },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                  transition: { duration: 0.4, ease: "easeOut" as const },
-                },
-              }}
-              className="border border-border rounded-lg p-6 bg-background"
+              className="landing-stagger-item border border-border rounded-lg p-6 bg-background flex flex-col transition-all duration-200"
             >
-              <svg
-                className="h-6 w-6 text-muted-foreground/30 mb-3"
-                fill="currentColor"
-                viewBox="0 0 32 32"
-              >
-                <path d="M10 8c-3.3 0-6 2.7-6 6v10h10V14H8c0-1.1.9-2 2-2V8zm14 0c-3.3 0-6 2.7-6 6v10h10V14h-6c0-1.1.9-2 2-2V8z" />
-              </svg>
+              {/* Stars */}
+              <div className="flex gap-0.5 mb-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} className="h-4 w-4 text-amber-400 fill-amber-400" />
+                ))}
+              </div>
 
-              <p className="text-sm text-foreground italic leading-relaxed">{t.quote}</p>
+              <p className="text-sm text-foreground leading-relaxed flex-1">
+                &ldquo;{t.quote}&rdquo;
+              </p>
 
-              <div className="pt-4 mt-4 border-t border-border flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center bg-muted text-foreground text-xs font-bold rounded-lg">
+              <div className="pt-4 mt-5 border-t border-border flex items-center gap-3">
+                <div
+                  className={`flex h-9 w-9 items-center justify-center ${t.avatarBg} ${t.avatarText} text-xs font-bold rounded-lg flex-shrink-0`}
+                >
                   {t.initials}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{t.name}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm font-semibold text-foreground leading-none">{t.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {t.role}, {t.school}
                   </p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

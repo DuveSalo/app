@@ -124,10 +124,7 @@ export const DatePicker = ({
   return (
     <div className={cn('w-full', className)}>
       {label && (
-        <label
-          htmlFor={id}
-          className="block text-sm font-medium text-foreground mb-1.5"
-        >
+        <label htmlFor={id} className="block text-sm font-medium text-foreground mb-1.5">
           {label}
           {required && <span className="text-destructive ml-0.5">*</span>}
         </label>
@@ -148,19 +145,19 @@ export const DatePicker = ({
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
               className={cn(
-                'flex w-full h-10 rounded-md border bg-background px-3 text-sm transition-colors duration-150 pr-9',
+                'flex w-full h-8 rounded-lg border bg-background px-3 text-sm transition-colors duration-150 pr-9',
                 'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0',
                 'disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground',
                 hasError
                   ? 'border-destructive text-destructive focus-visible:ring-destructive/10 focus-visible:border-destructive'
-                  : 'border-border text-foreground focus-visible:ring-neutral-900/10 focus-visible:border-neutral-300 hover:border-neutral-300',
+                  : 'border-border text-foreground focus-visible:ring-ring/10 focus-visible:border-ring hover:border-input'
               )}
             />
             <PopoverTrigger asChild>
               <button
                 type="button"
                 disabled={disabled}
-                className="absolute right-0 top-0 h-full px-2.5 flex items-center text-neutral-400 hover:text-neutral-600 transition-colors duration-150 disabled:pointer-events-none"
+                className="absolute right-0 top-0 h-full px-2.5 flex items-center text-muted-foreground hover:text-foreground transition-colors duration-150 disabled:pointer-events-none"
                 tabIndex={-1}
               >
                 <CalendarDays className="h-4 w-4" />
@@ -179,12 +176,8 @@ export const DatePicker = ({
           />
         </PopoverContent>
       </Popover>
-      {error && (
-        <p className="mt-1 text-xs text-destructive">{error}</p>
-      )}
-      {helperText && !error && (
-        <p className="mt-1 text-xs text-muted-foreground">{helperText}</p>
-      )}
+      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
+      {helperText && !error && <p className="mt-1 text-xs text-muted-foreground">{helperText}</p>}
     </div>
   );
 };

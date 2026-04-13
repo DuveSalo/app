@@ -37,7 +37,7 @@ const AdminMetricsPage = () => {
 
   if (isLoading) {
     return (
-      <PageLayout title="Metricas">
+      <PageLayout title="Metricas" showNotifications={false}>
         <div className="flex flex-col gap-6">
           <SkeletonCards />
           <div className="border border-border rounded-lg p-4 h-[340px] animate-pulse bg-muted/30" />
@@ -61,7 +61,7 @@ const AdminMetricsPage = () => {
   ];
 
   return (
-    <PageLayout title="Metricas">
+    <PageLayout title="Metricas" showNotifications={false}>
       <div className="flex flex-col gap-6">
         {/* Stat cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

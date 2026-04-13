@@ -6,6 +6,7 @@ const drillSchema = z.object({
   pdfFile: pdfFileSchema.optional(),
   pdfFileName: z.string().max(500).optional(),
   pdfUrl: z.string().max(2000).optional(),
+  pdfPath: z.string().max(2000).optional(),
 });
 
 export const selfProtectionSystemSchema = z.object({
@@ -14,10 +15,12 @@ export const selfProtectionSystemSchema = z.object({
   probatoryDispositionPdf: pdfFileSchema.optional(),
   probatoryDispositionPdfName: z.string().max(500).optional(),
   probatoryDispositionPdfUrl: z.string().max(2000).optional(),
+  probatoryDispositionPdfPath: z.string().max(2000).optional(),
   extensionDate: z.string().max(10).regex(/^\d{4}-\d{2}-\d{2}$/, { error: 'Formato de fecha inválido' }).or(z.literal('')),
   extensionPdf: pdfFileSchema.optional(),
   extensionPdfName: z.string().max(500).optional(),
   extensionPdfUrl: z.string().max(2000).optional(),
+  extensionPdfPath: z.string().max(2000).optional(),
   expirationDate: z.string().max(10).regex(/^\d{4}-\d{2}-\d{2}$/, { error: 'Formato de fecha inválido' }).or(z.literal('')),
 
   // Simulacros tab

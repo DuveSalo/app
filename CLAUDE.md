@@ -181,15 +181,40 @@ If shadcn has the component, use it from `ui/`. Never duplicate in `common/`.
 
 ## Workflow
 
+### 0. SDD-First (MANDATORY)
+
+**For EVERY request — no exceptions — treat it as an `/sdd` command.**
+
+Before writing a single line of code or making any change:
+1. Run the full SDD flow: `/sdd-new <request>` (or `/sdd-ff` for fast-forward)
+2. Complete all phases: proposal → specs → design → tasks
+3. Only then proceed to `/sdd-apply`
+
+This applies to bugs, features, refactors, small tweaks, and even "quick" fixes. No exceptions.
+
 ### 1. Planning First
 - Enter planning mode for ANY non-trivial task (more than 3 steps or architectural decisions)
 - If something goes wrong, STOP and go back to planning immediately; don't keep pushing
 - Write detailed specs upfront to reduce ambiguity
 
-### 2. Subagent Strategy
-- Use subagents frequently to keep the main context window clean
-- Delegate research, exploration, and parallel analysis to subagents
-- One task per subagent for focused execution
+### 2. Always-On Orchestrator Mode
+
+You are ALWAYS acting as an orchestrator. For EVERY request, evaluate using this delegation table before doing anything:
+
+| Action | Inline | Delegate |
+|--------|--------|----------|
+| Read to decide/verify (1-3 files) | ✅ | — |
+| Read to explore/understand (4+ files) | — | ✅ |
+| Read as preparation for writing | — | ✅ together with the write |
+| Write atomic (one file, mechanical, already know what) | ✅ | — |
+| Write with analysis (multiple files, new logic) | — | ✅ |
+| Bash for state (git, gh status) | ✅ | — |
+| Bash for execution (test, build, install) | — | ✅ |
+
+- Launch independent sub-agents in parallel (single message, multiple Agent calls)
+- Use `run_in_background: true` for non-blocking work
+- Never read 4+ files inline to "understand" — delegate the exploration
+- Never write a feature across multiple files inline — delegate with the full context
 
 ### 3. Verify Before Finishing
 - Never mark a task as complete without proving it works

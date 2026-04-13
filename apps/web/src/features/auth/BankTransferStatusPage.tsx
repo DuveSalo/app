@@ -69,7 +69,7 @@ const BankTransferStatusPage = () => {
         },
         () => {
           fetchPayment();
-        },
+        }
       )
       .subscribe();
 
@@ -111,8 +111,7 @@ const BankTransferStatusPage = () => {
     return () => {
       if (autoRedirectRef.current) clearTimeout(autoRedirectRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [payment?.status]);
+  }, [payment?.status, refreshCompany, navigate]);
 
   const handleGoToDashboard = async () => {
     await refreshCompany(true);
@@ -123,7 +122,7 @@ const BankTransferStatusPage = () => {
     return (
       <AuthLayout
         variant="wizard"
-        wizardSteps={['Cuenta', 'Empresa', 'Suscripcion']}
+        wizardSteps={['Cuenta', 'Empresa', 'Suscripción']}
         currentStep={3}
       >
         <Card className="w-full max-w-md">
@@ -140,11 +139,7 @@ const BankTransferStatusPage = () => {
   if (!payment) return null;
 
   return (
-    <AuthLayout
-      variant="wizard"
-      wizardSteps={['Cuenta', 'Empresa', 'Suscripcion']}
-      currentStep={3}
-    >
+    <AuthLayout variant="wizard" wizardSteps={['Cuenta', 'Empresa', 'Suscripción']} currentStep={3}>
       <Card className="w-full max-w-md">
         <CardContent className="p-8 text-center">
           {payment.status === 'pending' && (
@@ -152,7 +147,7 @@ const BankTransferStatusPage = () => {
               <div className="mx-auto h-14 w-14 rounded-lg bg-amber-50 border border-amber-200/50 flex items-center justify-center mb-6">
                 <Clock className="w-7 h-7 text-amber-600" />
               </div>
-              <h2 className="text-xl font-semibold text-foreground tracking-tight mb-2">
+              <h2 className="text-2xl font-semibold text-foreground tracking-tight mb-2">
                 Pago pendiente de verificacion
               </h2>
               <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
@@ -169,7 +164,7 @@ const BankTransferStatusPage = () => {
                   </Button>
                 )}
                 <Button variant="ghost" onClick={() => logout()} className="w-full">
-                  Cerrar sesion
+                  Cerrar sesión
                 </Button>
               </div>
             </>
@@ -180,11 +175,11 @@ const BankTransferStatusPage = () => {
               <div className="mx-auto h-14 w-14 rounded-lg bg-emerald-50 border border-emerald-200/50 flex items-center justify-center mb-6">
                 <CheckCircle className="w-7 h-7 text-emerald-600" />
               </div>
-              <h2 className="text-xl font-semibold text-foreground tracking-tight mb-2">
+              <h2 className="text-2xl font-semibold text-foreground tracking-tight mb-2">
                 Pago aprobado!
               </h2>
               <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
-                Tu suscripcion esta activa. Ya podes usar todas las funcionalidades.
+                Tu suscripción está activa. Ya podés usar todas las funcionalidades.
               </p>
               <div className="space-y-3">
                 <Button onClick={handleGoToDashboard} className="w-full">
@@ -197,9 +192,9 @@ const BankTransferStatusPage = () => {
           {payment.status === 'rejected' && (
             <>
               <div className="mx-auto h-14 w-14 rounded-lg bg-red-50 border border-red-200/50 flex items-center justify-center mb-6">
-                <XCircle className="w-7 h-7 text-red-600" />
+                <XCircle className="w-7 h-7 text-destructive" />
               </div>
-              <h2 className="text-xl font-semibold text-foreground tracking-tight mb-2">
+              <h2 className="text-2xl font-semibold text-foreground tracking-tight mb-2">
                 Pago rechazado
               </h2>
               <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
@@ -219,7 +214,7 @@ const BankTransferStatusPage = () => {
                   Subir nuevo comprobante
                 </Button>
                 <Button variant="ghost" onClick={() => logout()} className="w-full">
-                  Cerrar sesion
+                  Cerrar sesión
                 </Button>
               </div>
             </>

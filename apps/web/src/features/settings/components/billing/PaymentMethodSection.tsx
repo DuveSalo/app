@@ -39,7 +39,12 @@ export const PaymentMethodSection = ({
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-base font-medium text-foreground">Método de pago</h3>
         {canChangePlan && mpPreapprovalId && (
-          <Button type="button" variant="ghost" onClick={() => setShowChangeCardDialog(true)}>
+          <Button
+            type="button"
+            variant="ghost"
+            className="border border-border"
+            onClick={() => setShowChangeCardDialog(true)}
+          >
             Cambiar
           </Button>
         )}

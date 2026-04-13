@@ -22,7 +22,7 @@ import { FileUpload } from '../../components/common/FileUpload';
 import { SkeletonForm } from '../../components/common/SkeletonLoader';
 import { PdfPreview } from '../../components/common/PdfPreview';
 import PageLayout from '../../components/layout/PageLayout';
-import { TrashIcon, EyeIcon } from '../../components/common/Icons';
+import { EyeIcon } from '../../components/common/Icons';
 import { createLogger } from '../../lib/utils/logger';
 import {
   selfProtectionSystemSchema,
@@ -74,6 +74,7 @@ const CreateEditSelfProtectionSystemPage = () => {
   const [pageError, setPageError] = useState('');
   const [activeTab, setActiveTab] = useState(0);
   const [maxAllowedStep, setMaxAllowedStep] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const form = useForm<SelfProtectionSystemFormValues>({
     resolver: zodResolver(selfProtectionSystemSchema),
@@ -168,16 +169,6 @@ const CreateEditSelfProtectionSystemPage = () => {
     }
   }, [probatoryDispositionDate]);
 
-  const handleClearDrill = (index: number) => {
-    form.setValue(`drills.${index}`, {
-      date: '',
-      pdfFile: undefined,
-      pdfFileName: undefined,
-      pdfUrl: undefined,
-      pdfPath: undefined,
-    });
-  };
-
   const handleOpenDocument = useCallback(
     async (document: SelfProtectionSystemDocumentReference) => {
       try {
@@ -219,7 +210,9 @@ const CreateEditSelfProtectionSystemPage = () => {
       if (!valid) return;
     }
     if (activeTab < 2) {
+      setIsTransitioning(true);
       setActiveTab(activeTab + 1);
+      setTimeout(() => setIsTransitioning(false), 400);
     }
   };
 
@@ -264,7 +257,12 @@ const CreateEditSelfProtectionSystemPage = () => {
             <Button type="button" variant="ghost" onClick={handleBack} disabled={saving}>
               Atrás
             </Button>
-            <Button type="submit" form="sps-form" loading={saving} disabled={!isFormComplete}>
+            <Button
+              type="submit"
+              form="sps-form"
+              loading={saving}
+              disabled={!isFormComplete || isTransitioning}
+            >
               {id ? 'Actualizar' : 'Guardar'}
             </Button>
           </>
@@ -284,6 +282,11 @@ const CreateEditSelfProtectionSystemPage = () => {
     handleBack,
   ]);
 
+  const handleTabChange = useCallback(
+    (v: string) => setActiveTab(SPS_TAB_KEYS.indexOf(v as (typeof SPS_TAB_KEYS)[number])),
+    []
+  );
+
   if (isLoadingData) return <SkeletonForm />;
   if (pageError)
     return (
@@ -296,11 +299,6 @@ const CreateEditSelfProtectionSystemPage = () => {
 
   const currentTabKey = SPS_TAB_KEYS[activeTab];
 
-  const handleTabChange = useCallback(
-    (v: string) => setActiveTab(SPS_TAB_KEYS.indexOf(v as (typeof SPS_TAB_KEYS)[number])),
-    []
-  );
-
   return (
     <PageLayout title={pageTitle} footer={footerActions}>
       <div className="h-full overflow-y-auto custom-scrollbar">
@@ -308,17 +306,15 @@ const CreateEditSelfProtectionSystemPage = () => {
           <Form {...form}>
             <form id="sps-form" onSubmit={form.handleSubmit(onSubmit)}>
               <Tabs value={currentTabKey} onValueChange={handleTabChange}>
-                <div className="overflow-x-auto">
-                  <TabsList>
-                    <TabsTrigger value="principal">Principal</TabsTrigger>
-                    <TabsTrigger value="simulacros" disabled={maxAllowedStep < 1}>
-                      Simulacros
-                    </TabsTrigger>
-                    <TabsTrigger value="profesional" disabled={maxAllowedStep < 2}>
-                      Profesional
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
+                <TabsList>
+                  <TabsTrigger value="principal">Principal</TabsTrigger>
+                  <TabsTrigger value="simulacros" disabled={maxAllowedStep < 1}>
+                    Simulacros
+                  </TabsTrigger>
+                  <TabsTrigger value="profesional" disabled={maxAllowedStep < 2}>
+                    Profesional
+                  </TabsTrigger>
+                </TabsList>
                 <div className="mt-4">
                   <TabsContent value="principal">
                     <div className="space-y-4">
@@ -499,20 +495,11 @@ const CreateEditSelfProtectionSystemPage = () => {
                         de los 4 simulacros para continuar.
                       </p>
                       {drills.map((drill, index) => (
-                        <div key={index} className="p-4 border border-border bg-muted rounded-lg">
-                          <div className="flex justify-between items-center mb-3">
+                        <div key={index} className="p-4 border border-border rounded-lg">
+                          <div className="mb-3">
                             <h4 className="text-sm font-medium text-foreground">
                               Simulacro {index + 1}
                             </h4>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              onClick={() => handleClearDrill(index)}
-                              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 px-2 py-1"
-                              aria-label={`Limpiar Simulacro ${index + 1}`}
-                            >
-                              <TrashIcon className="w-4 h-4" /> Limpiar
-                            </Button>
                           </div>
                           <div className="space-y-3">
                             <FormField

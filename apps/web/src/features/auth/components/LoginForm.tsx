@@ -48,7 +48,7 @@ const LoginForm = () => {
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Ocurrio un error.';
       setError(errorMessage);
-      toast.error('Error al iniciar sesion', { description: errorMessage });
+      toast.error('Error al iniciar sesión', { description: errorMessage });
     } finally {
       setIsLoading(false);
     }
@@ -75,9 +75,9 @@ const LoginForm = () => {
       await loginWithGoogle();
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof Error ? err.message : 'Error al iniciar sesion con Google.';
+        err instanceof Error ? err.message : 'Error al iniciar sesión con Google.';
       setError(errorMessage);
-      toast.error('Error al iniciar sesion', { description: errorMessage });
+      toast.error('Error al iniciar sesión', { description: errorMessage });
       setIsLoading(false);
     }
   };
@@ -88,10 +88,10 @@ const LoginForm = () => {
         <div className="flex w-full flex-col gap-6">
           <div className="flex flex-col gap-2">
             <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-              Restablecer contrasena
+              Restablecer contraseña
             </h2>
             <p className="text-sm text-muted-foreground">
-              Ingresa tu email y te enviaremos un enlace para crear una nueva contrasena.
+              Ingresa tu email y te enviaremos un enlace para crear una nueva contraseña.
             </p>
           </div>
 
@@ -105,7 +105,7 @@ const LoginForm = () => {
                 <p className="text-sm text-muted-foreground">
                   Si existe una cuenta con{' '}
                   <span className="font-medium text-foreground">{forgotEmail}</span>, recibiras un
-                  enlace para restablecer tu contrasena.
+                  enlace para restablecer tu contraseña.
                 </p>
               </div>
               <Button
@@ -118,7 +118,7 @@ const LoginForm = () => {
                 className="w-full"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Volver al inicio de sesion
+                Volver al inicio de sesión
               </Button>
             </div>
           ) : (
@@ -152,7 +152,7 @@ const LoginForm = () => {
                 className="text-center text-sm text-muted-foreground hover:underline"
               >
                 <ArrowLeft className="mr-1 inline h-3.5 w-3.5" />
-                Volver al inicio de sesion
+                Volver al inicio de sesión
               </button>
             </>
           )}
@@ -165,7 +165,7 @@ const LoginForm = () => {
     <AuthLayout variant="split">
       <div className="flex w-full flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Iniciar sesion</h2>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">Iniciar sesión</h2>
           <p className="text-sm text-muted-foreground">Ingresa tus datos para continuar</p>
         </div>
 
@@ -173,8 +173,8 @@ const LoginForm = () => {
           <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4" role="alert">
             <p className="text-sm font-medium text-emerald-600">
               {emailConfirmed
-                ? 'Email confirmado exitosamente. Inicia sesion para continuar con el registro de tu institucion.'
-                : 'Registro exitoso. Ahora podes iniciar sesion.'}
+                ? 'Email confirmado exitosamente. Inicia sesión para continuar con el registro de tu institución.'
+                : 'Registro exitoso. Ahora podés iniciar sesión.'}
             </p>
           </div>
         )}
@@ -208,7 +208,7 @@ const LoginForm = () => {
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex justify-between">
-                      <FormLabel>Contrasena</FormLabel>
+                      <FormLabel>Contraseña</FormLabel>
                       <button
                         type="button"
                         onClick={() => setForgotMode(true)}
@@ -235,7 +235,7 @@ const LoginForm = () => {
 
             <div className="mt-6 flex flex-col gap-4">
               <Button type="submit" loading={isLoading} className="w-full">
-                {isLoading ? 'Autenticando...' : 'Iniciar sesion'}
+                {isLoading ? 'Autenticando...' : 'Iniciar sesión'}
               </Button>
 
               <div className="flex items-center w-full gap-4">

@@ -324,7 +324,7 @@ const AdminPlansPage = () => {
                     onClick={() => setDeleteDialog({ open: true, planId: plan.id })}
                     className="text-destructive focus:text-destructive"
                   >
-                    <Trash2 className="mr-2 h-4 w-4" />
+                    <Trash2 className="mr-2 h-4 w-4 text-destructive" />
                     Eliminar
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -402,7 +402,7 @@ const AdminPlansPage = () => {
                       onClick={() => setDeleteDialog({ open: true, planId: row.id })}
                       className="text-destructive focus:text-destructive"
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
+                      <Trash2 className="mr-2 h-4 w-4 text-destructive" />
                       Eliminar
                     </DropdownMenuItem>
                   </DropdownMenuContent>

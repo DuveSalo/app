@@ -59,7 +59,7 @@ const ChangeEmailPage = () => {
               para confirmar tu nuevo email.
             </p>
             <Button
-              variant="outline"
+              variant="ghost"
               className="w-full"
               onClick={() => navigate(ROUTE_PATHS.SETTINGS)}
             >

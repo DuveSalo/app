@@ -46,12 +46,12 @@ export const Checkbox = forwardRef<
         onCheckedChange={handleCheckedChange}
         disabled={disabled}
         className={cn(
-          'peer h-4 w-4 shrink-0 rounded-sm border border-neutral-300 bg-white',
+          'peer h-4 w-4 shrink-0 rounded-[4px] border border-input bg-background',
           'transition-colors duration-150',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900/10',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/10',
           'disabled:cursor-not-allowed disabled:opacity-50',
-          'data-[state=checked]:bg-neutral-900 data-[state=checked]:border-neutral-900 data-[state=checked]:text-white',
-          'hover:border-neutral-400'
+          'data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground',
+          'hover:border-ring'
         )}
       >
         <CheckboxPrimitive.Indicator className="flex items-center justify-center text-current">
@@ -62,7 +62,7 @@ export const Checkbox = forwardRef<
         <label
           htmlFor={id}
           className={cn(
-            'text-sm font-medium text-neutral-900 cursor-pointer select-none',
+            'text-sm font-medium text-foreground cursor-pointer select-none',
             'peer-disabled:cursor-not-allowed peer-disabled:opacity-50'
           )}
         >

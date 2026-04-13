@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getActiveSubscription, mpManageSubscription } from './subscription';
+import { DatabaseError, AuthError } from '../../utils/errors';
 
 vi.mock('../../supabase/client', () => ({
   supabase: {
     auth: {
-      getSession: vi.fn().mockResolvedValue({
-        data: { session: { access_token: 'mock-token' } },
+      getUser: vi.fn().mockResolvedValue({
+        data: { user: { id: 'user-1' } },
+        error: null,
       }),
     },
     functions: { invoke: vi.fn() },
@@ -111,7 +113,7 @@ describe('subscription service', () => {
       expect(result).toBeNull();
     });
 
-    it('throws when supabase returns an error', async () => {
+    it('throws a DatabaseError when supabase returns an error', async () => {
       const fromMock = supabase.from as ReturnType<typeof vi.fn>;
       const chainMock = {
         select: vi.fn().mockReturnThis(),
@@ -126,7 +128,28 @@ describe('subscription service', () => {
       };
       fromMock.mockReturnValue(chainMock);
 
+      // Must throw a DatabaseError (not a plain Error) — this verifies task 3.6
       await expect(getActiveSubscription(COMPANY_ID)).rejects.toThrow('Database error');
+      await expect(getActiveSubscription(COMPANY_ID)).rejects.toBeInstanceOf(DatabaseError);
+    });
+
+    it('throws an AuthError (not plain Error) when session is expired', async () => {
+      const authMock = supabase.auth.getUser as ReturnType<typeof vi.fn>;
+      authMock.mockResolvedValueOnce({
+        data: { user: null },
+        error: { message: 'Token expired' },
+      });
+
+      // getActiveSubscription calls ensureValidSession indirectly via mpManageSubscription
+      // but getActiveSubscription itself doesn't call ensureValidSession.
+      // This triangulates the AuthError path directly from the ensureValidSession guard
+      // called by mpManageSubscription.
+      const invokeMock = supabase.functions.invoke as ReturnType<typeof vi.fn>;
+      invokeMock.mockResolvedValue({ data: null, error: null });
+
+      await expect(
+        mpManageSubscription({ action: 'cancel', mpPreapprovalId: 'mp-pre-1' })
+      ).rejects.toBeInstanceOf(AuthError);
     });
 
     it('uses ARS as default currency when currency is null', async () => {
@@ -186,7 +209,6 @@ describe('subscription service', () => {
           mpPreapprovalId: 'mp-pre-1',
           reason: 'User requested cancellation',
         },
-        headers: { Authorization: 'Bearer mock-token' },
       });
       expect(result.success).toBe(true);
       expect(result.action).toBe('cancel');
@@ -195,12 +217,13 @@ describe('subscription service', () => {
 
     it('throws when no active session exists', async () => {
       const { supabase: supabaseMock } = await import('../../supabase/client');
-      (supabaseMock.auth.getSession as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        data: { session: null },
+      (supabaseMock.auth.getUser as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        data: { user: null },
+        error: null,
       });
 
       await expect(
-        mpManageSubscription({ action: 'cancel', mpPreapprovalId: 'mp-pre-1' }),
+        mpManageSubscription({ action: 'cancel', mpPreapprovalId: 'mp-pre-1' })
       ).rejects.toThrow('No hay sesión activa');
     });
 
@@ -212,7 +235,7 @@ describe('subscription service', () => {
       });
 
       await expect(
-        mpManageSubscription({ action: 'cancel', mpPreapprovalId: 'mp-pre-1' }),
+        mpManageSubscription({ action: 'cancel', mpPreapprovalId: 'mp-pre-1' })
       ).rejects.toThrow('Edge function error');
     });
   });

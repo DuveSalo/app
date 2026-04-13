@@ -24,7 +24,11 @@ import {
 } from '@/components/ui/form';
 import AuthLayout from '../../components/layout/AuthLayout';
 import { ROUTE_PATHS, MODULE_TITLES } from '../../constants/index';
-import { COUNTRIES, PROVINCES_BY_COUNTRY, CITIES_BY_PROVINCE } from '../../constants/geographic-data';
+import {
+  COUNTRIES,
+  PROVINCES_BY_COUNTRY,
+  CITIES_BY_PROVINCE,
+} from '../../constants/geographic-data';
 import { createCompanySchema, type CreateCompanyFormValues } from './schemas';
 
 /** Auto-format raw digits into XX-XXXXXXXX-X CUIT pattern */
@@ -77,7 +81,10 @@ const CreateCompanyPage = () => {
     { value: QRDocumentType.WaterHeaters, label: MODULE_TITLES.QR_WATER_HEATERS },
     { value: QRDocumentType.FireSafetySystem, label: MODULE_TITLES.QR_FIRE_SAFETY },
     { value: QRDocumentType.DetectionSystem, label: MODULE_TITLES.QR_DETECTION },
-    { value: QRDocumentType.ElectricalInstallations, label: MODULE_TITLES.ELECTRICAL_INSTALLATIONS },
+    {
+      value: QRDocumentType.ElectricalInstallations,
+      label: MODULE_TITLES.ELECTRICAL_INSTALLATIONS,
+    },
   ];
 
   const toggleService = (service: QRDocumentType) => {
@@ -118,18 +125,18 @@ const CreateCompanyPage = () => {
   return (
     <AuthLayout variant="wizard" wizardSteps={wizardSteps} currentStep={2}>
       {showSuccessMessage && (
-        <div className="bg-emerald-50 rounded-md border border-emerald-200 p-4 mb-4 max-w-[680px] w-full">
+        <div className="mb-3 w-full max-w-[860px] rounded-lg border border-emerald-200 bg-emerald-50 p-4">
           <p className="text-sm font-medium text-emerald-600">
             ¡Email confirmado! Ahora completá los datos de tu escuela.
           </p>
         </div>
       )}
 
-      <Card className="w-full max-w-[680px]">
-        <CardContent className="p-8">
+      <Card className="w-full max-w-[860px] gap-4 py-4">
+        <CardContent className="p-6 sm:p-7">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5">
-              <div className="flex flex-col gap-2">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
                 <h2 className="text-2xl font-semibold tracking-tight text-foreground">
                   Registrar Escuela
                 </h2>
@@ -138,7 +145,7 @@ const CreateCompanyPage = () => {
                 </p>
               </div>
 
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3.5">
                 {/* Company name */}
                 <FormField
                   control={form.control}
@@ -155,7 +162,7 @@ const CreateCompanyPage = () => {
                 />
 
                 {/* CUIT + Postal Code row */}
-                <div className="flex gap-4">
+                <div className="flex flex-col gap-3.5 md:flex-row">
                   <FormField
                     control={form.control}
                     name="cuit"
@@ -200,7 +207,7 @@ const CreateCompanyPage = () => {
                 </div>
 
                 {/* Country + Province row */}
-                <div className="flex gap-4">
+                <div className="flex flex-col gap-3.5 md:flex-row">
                   <FormField
                     control={form.control}
                     name="country"
@@ -267,7 +274,7 @@ const CreateCompanyPage = () => {
                 </div>
 
                 {/* City + Phone row */}
-                <div className="flex gap-4">
+                <div className="flex flex-col gap-3.5 md:flex-row">
                   <FormField
                     control={form.control}
                     name="city"
@@ -331,7 +338,7 @@ const CreateCompanyPage = () => {
               <div className="h-px bg-border" />
 
               {/* Services */}
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2.5">
                 <FormLabel>Servicios Requeridos</FormLabel>
                 <div className="flex flex-wrap gap-2">
                   {serviceOptions.map((opt) => {
@@ -342,7 +349,7 @@ const CreateCompanyPage = () => {
                         type="button"
                         variant={isSelected ? 'default' : 'outline'}
                         onClick={() => toggleService(opt.value)}
-                        className="h-9"
+                        className="h-8 px-3 text-xs sm:text-sm"
                       >
                         {opt.label}
                       </Button>
@@ -353,7 +360,7 @@ const CreateCompanyPage = () => {
 
               {error && <p className="text-sm text-destructive text-center">{error}</p>}
 
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Button
                   type="button"
                   variant="ghost"
@@ -361,9 +368,7 @@ const CreateCompanyPage = () => {
                 >
                   &larr; Volver
                 </Button>
-                <Button type="submit">
-                  Continuar
-                </Button>
+                <Button type="submit">Continuar</Button>
               </div>
             </form>
           </Form>

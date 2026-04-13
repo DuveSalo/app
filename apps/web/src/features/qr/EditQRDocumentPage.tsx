@@ -20,6 +20,7 @@ import { SkeletonForm } from '../../components/common/SkeletonLoader';
 import { EyeIcon } from '../../components/common/Icons';
 import PageLayout from '../../components/layout/PageLayout';
 import { editQRDocumentSchema, type EditQRDocumentFormValues } from './schemas';
+import { openSupabaseStorageDocument } from '@/lib/utils/openSupabaseStorageDocument';
 
 interface EditQRDocumentPageProps {
   qrType: QRDocumentType;
@@ -34,6 +35,7 @@ const EditQRDocumentPage = ({ qrType, title, listPath }: EditQRDocumentPageProps
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentFileName, setCurrentFileName] = useState<string>('');
   const [currentPdfUrl, setCurrentPdfUrl] = useState<string>('');
+  const [currentPdfPath, setCurrentPdfPath] = useState<string>('');
 
   const form = useForm<EditQRDocumentFormValues>({
     resolver: zodResolver(editQRDocumentSchema),
@@ -55,6 +57,7 @@ const EditQRDocumentPage = ({ qrType, title, listPath }: EditQRDocumentPageProps
       });
       setCurrentFileName(doc.pdfFileName || '');
       setCurrentPdfUrl(doc.pdfUrl || '');
+      setCurrentPdfPath(doc.pdfPath || '');
     } catch (err: unknown) {
       form.setError('root', {
         message: err instanceof Error ? err.message : 'Error al cargar el documento.',
@@ -63,6 +66,21 @@ const EditQRDocumentPage = ({ qrType, title, listPath }: EditQRDocumentPageProps
       setIsLoading(false);
     }
   }, [id, form]);
+
+  const handleOpenDocument = useCallback(async () => {
+    try {
+      await openSupabaseStorageDocument({
+        bucket: 'qr-documents',
+        path: currentPdfPath || undefined,
+        url: currentPdfUrl || undefined,
+        title: 'Abriendo PDF',
+        message: 'Preparando una vista segura del documento QR.',
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al abrir el PDF';
+      toast.error(message);
+    }
+  }, [currentPdfPath, currentPdfUrl]);
 
   useEffect(() => {
     loadDocument();
@@ -133,7 +151,7 @@ const EditQRDocumentPage = ({ qrType, title, listPath }: EditQRDocumentPageProps
               onSubmit={form.handleSubmit(onSubmit)}
               className="space-y-5"
             >
-              <div className="p-4 bg-muted border border-border rounded-md">
+              <div className="p-4 bg-muted border border-border rounded-lg">
                 <h3 className="text-sm font-medium text-foreground mb-3">
                   Archivo actual
                 </h3>
@@ -141,11 +159,11 @@ const EditQRDocumentPage = ({ qrType, title, listPath }: EditQRDocumentPageProps
                   <p className="text-sm text-muted-foreground">
                     {currentFileName || 'Sin archivo'}
                   </p>
-                  {currentPdfUrl && (
+                  {(currentPdfUrl || currentPdfPath) && (
                     <Button
                       type="button"
                       variant="ghost"
-                      onClick={() => window.open(currentPdfUrl, '_blank')}
+                      onClick={() => void handleOpenDocument()}
                     >
                       <EyeIcon className="w-4 h-4" />
                       Ver PDF

@@ -37,7 +37,10 @@ const logger = createLogger('AdminSchoolsPage');
 const AdminSchoolsPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; school: AdminSchoolRow | null }>({
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    school: AdminSchoolRow | null;
+  }>({
     open: false,
     school: null,
   });
@@ -87,22 +90,21 @@ const AdminSchoolsPage = () => {
     {
       accessorKey: 'email',
       header: 'Email',
-      cell: ({ row }) => (
-        <span className="text-muted-foreground">{row.original.email || '-'}</span>
-      ),
+      cell: ({ row }) => <span className="text-muted-foreground">{row.original.email || '-'}</span>,
+      meta: { hideOnMobile: true },
     },
     {
       accessorKey: 'city',
       header: 'Localidad',
       cell: ({ row }) => (
-        <span>
-          {[row.original.city, row.original.province].filter(Boolean).join(', ') || '-'}
-        </span>
+        <span>{[row.original.city, row.original.province].filter(Boolean).join(', ') || '-'}</span>
       ),
+      meta: { hideOnMobile: true },
     },
     {
       accessorKey: 'plan',
       header: 'Plan',
+      meta: { hideOnMobile: true },
     },
     {
       accessorKey: 'subscriptionStatus',
@@ -122,6 +124,7 @@ const AdminSchoolsPage = () => {
         </Button>
       ),
       cell: ({ row }) => formatDateLocal(row.original.createdAt),
+      meta: { hideOnMobile: true },
     },
     {
       id: 'actions',
@@ -166,20 +169,63 @@ const AdminSchoolsPage = () => {
 
   if (isLoading) {
     return (
-      <PageLayout title="Escuelas">
+      <PageLayout title="Escuelas" showNotifications={false}>
         <SkeletonTable rows={8} />
       </PageLayout>
     );
   }
 
   return (
-    <PageLayout title="Escuelas">
+    <PageLayout title="Escuelas" showNotifications={false}>
       <DataTable
         columns={columns}
         data={schools}
         searchKey="name"
         searchPlaceholder="Buscar escuela..."
         pageSize={10}
+        cardRenderer={(row) => {
+          const isSuspended = row.subscriptionStatus === 'suspended';
+          return (
+            <div className="border rounded-lg p-4 bg-card">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">{row.name}</span>
+                <SubscriptionStatusBadge status={row.subscriptionStatus} />
+              </div>
+              <div className="mt-1 text-sm text-muted-foreground truncate">{row.email || '—'}</div>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="text-sm">
+                  {row.city || '—'} · {row.plan || '—'}
+                </span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Acciones</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => navigate(`/admin/schools/${row.id}`)}>
+                      <FileText className="mr-2 h-4 w-4" />
+                      Ver detalle
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleToggleStatus(row)}>
+                      <Power className="mr-2 h-4 w-4" />
+                      {isSuspended ? 'Activar' : 'Suspender'}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={() => setDeleteDialog({ open: true, school: row })}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Eliminar
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          );
+        }}
       />
 
       <AlertDialog

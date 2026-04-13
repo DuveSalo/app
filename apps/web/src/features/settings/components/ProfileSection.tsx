@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -23,30 +23,13 @@ interface ProfileSectionProps {
   currentUser: User;
 }
 
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-}
-
 export const ProfileSection = ({ currentUser }: ProfileSectionProps) => {
   const { updateUserDetails, logout } = useAuth();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   // Personal info state
   const [name, setName] = useState(currentUser.name);
   const [isSavingName, setIsSavingName] = useState(false);
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
-
-  const handleAvatarUpload = () => {
-    // TODO: Upload to Supabase Storage bucket "avatars" and update user profile
-    toast.info('Función disponible próximamente');
-  };
 
   const handleSaveName = async () => {
     setIsSavingName(true);
@@ -88,30 +71,8 @@ export const ProfileSection = ({ currentUser }: ProfileSectionProps) => {
 
   return (
     <div className="space-y-0">
-      {/* Section 1: Avatar */}
-      <div className="flex items-center gap-4">
-        <div className="h-20 w-20 rounded-lg bg-muted flex items-center justify-center">
-          <span className="text-2xl font-semibold text-muted-foreground">
-            {getInitials(currentUser.name)}
-          </span>
-        </div>
-        <div>
-          <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
-            Cambiar foto
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleAvatarUpload}
-          />
-          <p className="text-xs text-muted-foreground mt-1">JPG, PNG o WebP. Máx 2MB.</p>
-        </div>
-      </div>
-
-      {/* Section 2: Personal info */}
-      <div className="border-t border-border pt-6 mt-6 space-y-4">
+      {/* Section 1: Personal info */}
+      <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="name">Nombre completo</Label>
           <div className="flex gap-3">

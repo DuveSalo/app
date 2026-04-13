@@ -34,7 +34,7 @@ export const IdentificationSection = ({ form }: SectionProps) => {
             <FormItem>
               <FormControl>
                 <Input
-                  label="Numero de Extintor"
+                  label="Número de Extintor"
                   id="extinguisherNumber"
                   type="text"
                   placeholder="Ej: EXT-001"
@@ -65,8 +65,10 @@ export const IdentificationSection = ({ form }: SectionProps) => {
                   required
                 >
                   <option value="">Seleccione...</option>
-                  {Object.values(ExtinguisherType).map(type => (
-                    <option key={type} value={type}>{type}</option>
+                  {Object.values(ExtinguisherType).map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </Select>
               </FormControl>
@@ -91,8 +93,10 @@ export const IdentificationSection = ({ form }: SectionProps) => {
                   required
                 >
                   <option value="">Seleccione...</option>
-                  {Object.values(ExtinguisherCapacity).map(cap => (
-                    <option key={cap} value={cap}>{cap} kg</option>
+                  {Object.values(ExtinguisherCapacity).map((cap) => (
+                    <option key={cap} value={cap}>
+                      {cap} kg
+                    </option>
                   ))}
                 </Select>
               </FormControl>

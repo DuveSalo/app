@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase/client';
+import { AuthError, DatabaseError } from '../../utils/errors';
 import type { Tables } from '../../../types/database.types';
 import type {
   Subscription,
@@ -10,6 +11,10 @@ import type {
   MpManageSubscriptionResponse,
   MpSubscriptionStatusResponse,
 } from '../../../types/subscription';
+
+type MpManageSubscriptionInvokeParams = MpManageSubscriptionRequest & {
+  idempotencyKey?: string;
+};
 
 // DB row to domain mapper
 function mapSubscriptionFromDb(data: Tables<'subscriptions'>): Subscription {
@@ -59,8 +64,9 @@ function mapTransactionFromDb(data: Tables<'payment_transactions'>): PaymentTran
  * This prevents "Invalid JWT" errors when calling Edge Functions with stale tokens.
  */
 async function ensureValidSession(): Promise<void> {
-  const { error } = await supabase.auth.getUser();
-  if (error) throw new Error('Sesión expirada. Iniciá sesión nuevamente.');
+  const { data, error } = await supabase.auth.getUser();
+  if (error) throw new AuthError('Sesión expirada. Iniciá sesión nuevamente.');
+  if (!data.user) throw new AuthError('No hay sesión activa. Iniciá sesión nuevamente.');
 }
 
 /**
@@ -74,7 +80,7 @@ export async function mpCreateSubscription(
   const { data, error } = await supabase.functions.invoke('mp-create-subscription', {
     body: params,
   });
-  if (error) throw new Error(error.message);
+  if (error) throw new DatabaseError(error.message);
   return data as MpCreateSubscriptionResponse;
 }
 
@@ -82,14 +88,20 @@ export async function mpCreateSubscription(
  * Manage MercadoPago subscription (upgrade, downgrade, cancel, pause, reactivate, change card).
  */
 export async function mpManageSubscription(
-  params: MpManageSubscriptionRequest
+  params: MpManageSubscriptionInvokeParams
 ): Promise<MpManageSubscriptionResponse> {
   await ensureValidSession();
 
+  const { idempotencyKey, ...body } = params;
+  const requestId = idempotencyKey?.trim() || globalThis.crypto.randomUUID();
+
   const { data, error } = await supabase.functions.invoke('mp-manage-subscription', {
-    body: params,
+    body,
+    headers: {
+      'X-Idempotency-Key': requestId,
+    },
   });
-  if (error) throw new Error(error.message);
+  if (error) throw new DatabaseError(error.message);
   return data as MpManageSubscriptionResponse;
 }
 
@@ -105,7 +117,7 @@ export async function mpGetSubscriptionStatus(
   const { data, error } = await supabase.functions.invoke('mp-get-subscription-status', {
     body: { mpPreapprovalId },
   });
-  if (error) throw new Error(error.message);
+  if (error) throw new DatabaseError(error.message);
   return data as MpSubscriptionStatusResponse;
 }
 
@@ -115,14 +127,16 @@ export async function mpGetSubscriptionStatus(
 export async function getActiveSubscription(companyId: string): Promise<Subscription | null> {
   const { data, error } = await supabase
     .from('subscriptions')
-    .select('*')
+    .select(
+      'id, company_id, mp_preapproval_id, mp_plan_id, plan_key, plan_name, amount, currency, status, payment_provider, subscriber_email, current_period_start, current_period_end, next_billing_time, activated_at, cancelled_at, suspended_at, failed_payments_count, created_at, updated_at, paypal_plan_id, paypal_subscription_id'
+    )
     .eq('company_id', companyId)
     .in('status', ['active', 'suspended', 'cancelled', 'approval_pending'])
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  if (error) throw new Error(error.message);
+  if (error) throw new DatabaseError(error.message);
   if (!data) return null;
 
   return mapSubscriptionFromDb(data);
@@ -137,12 +151,14 @@ export async function getPaymentHistory(
 ): Promise<PaymentTransaction[]> {
   const { data, error } = await supabase
     .from('payment_transactions')
-    .select('*')
+    .select(
+      'id, subscription_id, company_id, paypal_transaction_id, gross_amount, fee_amount, net_amount, currency, status, paid_at, created_at, card_brand, card_last_four, payment_type_id'
+    )
     .eq('company_id', companyId)
     .order('created_at', { ascending: false })
     .limit(limit);
 
-  if (error) throw new Error(error.message);
+  if (error) throw new DatabaseError(error.message);
   if (!data) return [];
 
   return data.map((row) => mapTransactionFromDb(row));

@@ -53,6 +53,7 @@ const mockCertificate = {
     intervener: 'Inspector García',
     registration_number: 'REG-001',
     pdf_file_url: 'https://example.com/cert.pdf',
+    pdf_file_path: 'comp-1/cert.pdf',
     pdf_file_name: 'cert.pdf',
     created_at: '2025-06-01T00:00:00Z',
     updated_at: '2025-06-01T00:00:00Z',
@@ -64,11 +65,18 @@ const mockSystem = {
     probatory_disposition_date: '2025-01-15',
     probatory_disposition_pdf_name: 'disp.pdf',
     probatory_disposition_pdf_url: 'https://example.com/disp.pdf',
+    probatory_disposition_pdf_path: 'comp-1/probatory/disp.pdf',
     extension_date: '2025-06-15',
     extension_pdf_name: 'ext.pdf',
     extension_pdf_url: 'https://example.com/ext.pdf',
+    extension_pdf_path: 'comp-1/extension/ext.pdf',
     expiration_date: '2026-06-15',
-    drills: [{ date: '2025-03-01', pdfUrl: 'https://example.com/drill.pdf' }],
+    drills: [{
+        date: '2025-03-01',
+        pdfUrl: 'https://example.com/drill.pdf',
+        pdfPath: 'comp-1/drills/drill.pdf',
+        pdfFileName: 'drill.pdf',
+    }],
     intervener: 'Inspector López',
     registration_number: 'SPS-001',
     created_at: '2025-01-15T00:00:00Z',
@@ -83,6 +91,7 @@ const mockQRDocument = {
     floor: '3',
     unit: 'A',
     pdf_file_url: 'https://example.com/plan.pdf',
+    pdf_file_path: 'comp-1/qr/plan.pdf',
     upload_date: '2025-06-01',
     qr_code_data: 'https://qr.example.com/plan-1',
     extracted_date: '2025-06-01',
@@ -172,6 +181,7 @@ describe('mapCertificateFromDb', () => {
             registrationNumber: 'REG-001',
             pdfFile: 'https://example.com/cert.pdf',
             pdfFileName: 'cert.pdf',
+            pdfFilePath: 'comp-1/cert.pdf',
         });
     });
 
@@ -188,8 +198,12 @@ describe('mapSystemFromDb', () => {
         const result = mapSystemFromDb(mockSystem as any);
         expect(result.id).toBe('sys-1');
         expect(result.expirationDate).toBe('2026-06-15');
+        expect(result.probatoryDispositionPdfPath).toBe('comp-1/probatory/disp.pdf');
+        expect(result.extensionPdfPath).toBe('comp-1/extension/ext.pdf');
         expect(result.drills).toHaveLength(1);
         expect(result.drills[0].date).toBe('2025-03-01');
+        expect(result.drills[0].pdfPath).toBe('comp-1/drills/drill.pdf');
+        expect(result.drills[0].pdfFileName).toBe('drill.pdf');
     });
 
     it('should handle null optional fields', () => {
@@ -212,6 +226,15 @@ describe('mapSystemFromDb', () => {
         const result = mapSystemFromDb(withBadDrills as any);
         expect(result.drills).toEqual([]);
     });
+
+    it('should map legacy drill pdfName into pdfFileName', () => {
+        const withLegacyDrillName = {
+            ...mockSystem,
+            drills: [{ date: '2025-03-01', pdfName: 'legacy.pdf' }],
+        };
+        const result = mapSystemFromDb(withLegacyDrillName as any);
+        expect(result.drills[0].pdfFileName).toBe('legacy.pdf');
+    });
 });
 
 describe('mapQRDocumentFromDb', () => {
@@ -222,6 +245,7 @@ describe('mapQRDocumentFromDb', () => {
         expect(result.floor).toBe('3');
         expect(result.unit).toBe('A');
         expect(result.pdfUrl).toBe('https://example.com/plan.pdf');
+        expect(result.pdfPath).toBe('comp-1/qr/plan.pdf');
     });
 
     it('should handle null optional fields', () => {

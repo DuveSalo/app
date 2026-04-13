@@ -52,11 +52,14 @@ vi.mock('@/lib/supabase/client', () => ({
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
       getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+      refreshSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
       onAuthStateChange: vi
         .fn()
         .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
       signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
+      startAutoRefresh: vi.fn().mockResolvedValue(undefined),
+      stopAutoRefresh: vi.fn().mockResolvedValue(undefined),
     },
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),
@@ -81,4 +84,6 @@ vi.mock('@/lib/supabase/client', () => ({
       invoke: vi.fn().mockResolvedValue({ data: null, error: null }),
     },
   },
+  recoverSupabaseAuthSession: vi.fn().mockResolvedValue({ status: 'no-session' }),
+  startManagedSupabaseAutoRefresh: vi.fn(() => vi.fn()),
 }));

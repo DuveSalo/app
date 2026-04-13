@@ -13,9 +13,9 @@ export const SignageSection = ({ form }: SectionProps) => {
           <FormItem>
             <FormControl>
               <Textarea
-                label="Estado y Conservacion"
+                label="Estado y Conservación"
                 id="signageCondition"
-                placeholder="Describa el estado y conservacion de la senalizacion del extintor"
+                placeholder="Describa el estado y conservación de la señalización del extintor"
                 rows={3}
                 required
                 {...field}
@@ -33,7 +33,7 @@ export const SignageSection = ({ form }: SectionProps) => {
             <FormItem>
               <FormControl>
                 <Select
-                  label="Posee en el piso?"
+                  label="¿Posee en el piso?"
                   id="signageFloor"
                   value={field.value}
                   onChange={(e) => field.onChange(e.target.value)}
@@ -43,7 +43,7 @@ export const SignageSection = ({ form }: SectionProps) => {
                   required
                 >
                   <option value="">Seleccione...</option>
-                  <option value="Si">Si</option>
+                  <option value="Sí">Sí</option>
                   <option value="No">No</option>
                   <option value="N/A">N/A</option>
                 </Select>
@@ -59,7 +59,7 @@ export const SignageSection = ({ form }: SectionProps) => {
             <FormItem>
               <FormControl>
                 <Select
-                  label="Posee en la pared?"
+                  label="¿Posee en la pared?"
                   id="signageWall"
                   value={field.value}
                   onChange={(e) => field.onChange(e.target.value)}
@@ -69,7 +69,7 @@ export const SignageSection = ({ form }: SectionProps) => {
                   required
                 >
                   <option value="">Seleccione...</option>
-                  <option value="Si">Si</option>
+                  <option value="Sí">Sí</option>
                   <option value="No">No</option>
                   <option value="N/A">N/A</option>
                 </Select>
@@ -85,7 +85,7 @@ export const SignageSection = ({ form }: SectionProps) => {
             <FormItem>
               <FormControl>
                 <Select
-                  label="Posee en altura?"
+                  label="¿Posee en altura?"
                   id="signageHeight"
                   value={field.value}
                   onChange={(e) => field.onChange(e.target.value)}
@@ -95,7 +95,7 @@ export const SignageSection = ({ form }: SectionProps) => {
                   required
                 >
                   <option value="">Seleccione...</option>
-                  <option value="Si">Si</option>
+                  <option value="Sí">Sí</option>
                   <option value="No">No</option>
                   <option value="N/A">N/A</option>
                 </Select>

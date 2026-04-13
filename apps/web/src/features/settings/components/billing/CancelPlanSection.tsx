@@ -59,11 +59,11 @@ export const CancelPlanSection = ({
       {subscription.status === 'active' && (
         <>
           <p className="text-sm text-muted-foreground mb-4">
-            Al cancelar, mantendras acceso hasta el final del periodo de facturacion actual
+            Al cancelar, mantendrás acceso hasta el final del período de facturación actual
             {subscription.nextBillingTime && (
               <> ({formatBillingDate(subscription.nextBillingTime)})</>
             )}
-            . Despues de eso, perderas acceso a las funcionalidades del plan.
+            . Después de eso, perderás acceso a las funcionalidades del plan.
           </p>
           <Button
             type="button"
@@ -71,7 +71,7 @@ export const CancelPlanSection = ({
             onClick={() => setShowCancelConfirm(true)}
             disabled={isLoading || actionLoading}
           >
-            Cancelar suscripcion
+            Cancelar suscripción
           </Button>
         </>
       )}
@@ -79,7 +79,7 @@ export const CancelPlanSection = ({
       {subscription.status === 'suspended' && (
         <>
           <p className="text-sm text-muted-foreground mb-4">
-            Tu suscripcion esta suspendida. Puedes reactivarla para recuperar el acceso.
+            Tu suscripción está suspendida. Puedes reactivarla para recuperar el acceso.
           </p>
           <Button
             type="button"
@@ -87,14 +87,14 @@ export const CancelPlanSection = ({
             loading={actionLoading}
             disabled={isLoading}
           >
-            Reactivar suscripcion
+            Reactivar suscripción
           </Button>
         </>
       )}
 
       {subscription.status === 'cancelled' && (
         <p className="text-sm text-muted-foreground">
-          Suscripcion cancelada.
+          Suscripción cancelada.
           {subscription.nextBillingTime && (
             <> Acceso disponible hasta {formatBillingDate(subscription.nextBillingTime)}.</>
           )}

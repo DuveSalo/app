@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
   Building2,
@@ -109,19 +109,12 @@ const AdminSidebar = () => {
                 {currentUser?.email}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link to={ROUTE_PATHS.SETTINGS}>
-                  <Settings className="h-4 w-4" />
-                  Ajustes
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
                 onClick={() => setIsLogoutModalOpen(true)}
               >
                 <LogOut className="h-4 w-4 text-destructive" />
-                Cerrar sesion
+                Cerrar sesión
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -132,9 +125,9 @@ const AdminSidebar = () => {
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
         onConfirm={handleLogout}
-        title="Deseas cerrar sesion?"
-        message="Se cerrara tu sesion actual y tendras que volver a iniciar sesion para acceder."
-        confirmText="Cerrar sesion"
+        title="¿Deseas cerrar sesión?"
+        message="Se cerrará tu sesión actual y tendrás que volver a iniciar sesión para acceder."
+        confirmText="Cerrar sesión"
         cancelText="Cancelar"
         variant="destructive"
       />

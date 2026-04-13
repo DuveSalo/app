@@ -88,7 +88,8 @@ describe('getRecentSales', () => {
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe('tx-1');
     expect(result[0].amount).toBe(7000);
-    expect(result[0].status).toBe('MercadoPago');
+    expect(result[0].status).toBe('approved');
+    expect(result[0].paymentMethod).toBe('card');
   });
 
   it('excludes payment_transactions that are not completed', async () => {
@@ -111,13 +112,23 @@ describe('getRecentSales', () => {
     const result = await getRecentSales(10);
 
     expect(result).toHaveLength(0);
-    // Verify the query used status='completed' filter
-    expect(txChain.eq).toHaveBeenCalledWith('status', 'completed');
+    expect(txChain.in).toHaveBeenCalledWith('status', ['approved', 'completed']);
   });
 
   it('includes approved manual payments alongside completed transactions', async () => {
     const manualRows = [
-      { id: 'pay-1', amount: 5000, reviewed_at: '2026-03-05T09:00:00Z', company_id: 'comp-1' },
+      {
+        id: 'pay-1',
+        company_id: 'comp-1',
+        amount: 5000,
+        period_start: '2026-03-01',
+        period_end: '2026-04-01',
+        status: 'approved',
+        created_at: '2026-03-04T09:00:00Z',
+        reviewed_at: '2026-03-05T09:00:00Z',
+        rejection_reason: null,
+        receipt_url: 'receipts/pay-1.pdf',
+      },
     ];
     const manualChain = makeChain({
       limit: vi.fn().mockResolvedValue({ data: manualRows, error: null }),
@@ -125,7 +136,7 @@ describe('getRecentSales', () => {
 
     const companiesChain = makeChain({
       in: vi.fn().mockResolvedValue({
-        data: [{ id: 'comp-1', name: 'Escuela N°42', selected_plan: 'basic' }],
+        data: [{ id: 'comp-1', name: 'Escuela N°42' }],
         error: null,
       }),
     });
@@ -153,13 +164,14 @@ describe('getRecentSales', () => {
     const manualSale = result.find((r) => r.id === 'pay-1');
     expect(manualSale).toBeDefined();
     expect(manualSale?.companyName).toBe('Escuela N°42');
-    expect(manualSale?.plan).toBe('Básico');
-    expect(manualSale?.status).toBe('Transferencia');
+    expect(manualSale?.status).toBe('approved');
+    expect(manualSale?.paymentMethod).toBe('bank_transfer');
 
     const txSale = result.find((r) => r.id === 'tx-2');
     expect(txSale).toBeDefined();
     expect(txSale?.amount).toBe(3000);
-    expect(txSale?.status).toBe('MercadoPago');
+    expect(txSale?.status).toBe('approved');
+    expect(txSale?.paymentMethod).toBe('card');
   });
 
   it('sorts results by date descending', async () => {

@@ -10,8 +10,13 @@ import { toCompanyServices, toPaymentMethods, toStringArray, toBooleanRecord } f
 const DrillSchema = z.object({
   date: z.string(),
   pdfUrl: z.string().optional(),
+  pdfPath: z.string().optional(),
+  pdfFileName: z.string().optional(),
   pdfName: z.string().optional(),
-});
+}).transform(({ pdfName, pdfFileName, ...drill }) => ({
+  ...drill,
+  pdfFileName: pdfFileName ?? pdfName,
+}));
 const DrillsSchema = z.array(DrillSchema).catch([]);
 
 /**
@@ -73,6 +78,7 @@ export const mapCertificateFromDb = (data: Tables<'conservation_certificates'>):
     registrationNumber: data.registration_number,
     pdfFile: data.pdf_file_url || undefined,
     pdfFileName: data.pdf_file_name || undefined,
+    pdfFilePath: data.pdf_file_path || undefined,
   };
 };
 
@@ -87,10 +93,12 @@ export const mapSystemFromDb = (data: Tables<'self_protection_systems'>): SelfPr
     probatoryDispositionPdf: undefined, // Files are not stored in DB, only names/URLs
     probatoryDispositionPdfName: data.probatory_disposition_pdf_name || undefined,
     probatoryDispositionPdfUrl: data.probatory_disposition_pdf_url || undefined,
+    probatoryDispositionPdfPath: data.probatory_disposition_pdf_path || undefined,
     extensionDate: data.extension_date || '',
     extensionPdf: undefined,
     extensionPdfName: data.extension_pdf_name || undefined,
     extensionPdfUrl: data.extension_pdf_url || undefined,
+    extensionPdfPath: data.extension_pdf_path || undefined,
     expirationDate: data.expiration_date || '',
     drills: DrillsSchema.parse(data.drills) as Drill[],
     intervener: data.intervener || '',
@@ -110,6 +118,7 @@ export const mapQRDocumentFromDb = (data: Tables<'qr_documents'>): QRDocument =>
     floor: data.floor || undefined,
     unit: data.unit || undefined,
     pdfUrl: data.pdf_file_url || undefined,
+    pdfPath: data.pdf_file_path || undefined,
     pdfFileName: data.document_name,
     uploadDate: data.upload_date,
     qrCodeData: data.qr_code_data || undefined,

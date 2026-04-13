@@ -12,7 +12,7 @@ import {
 import { parseCursor } from '../../utils/pagination';
 
 const QR_DOCUMENT_COLUMNS =
-  'id, company_id, type, document_name, floor, unit, pdf_file_url, pdf_file_path, upload_date, qr_code_data, extracted_date';
+  'id, company_id, type, document_name, floor, unit, pdf_file_url, pdf_file_path, upload_date, qr_code_data, extracted_date, created_at, updated_at';
 
 export const getQRDocuments = async (
   type: QRDocumentType,

@@ -4,6 +4,13 @@ import { ArrowUpDown } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import PageLayout from '@/components/layout/PageLayout';
 import { SkeletonTable } from '@/components/common/SkeletonLoader';
 import { DataTable } from '@/components/common/DataTable';
@@ -144,6 +151,7 @@ const AdminActivityPage = () => {
             {TARGET_TYPE_LABELS[row.original.targetType] || row.original.targetType}
           </span>
         ),
+        meta: { hideOnMobile: true },
       },
       {
         accessorKey: 'adminEmail',
@@ -157,9 +165,7 @@ const AdminActivityPage = () => {
             <ArrowUpDown className="ml-1 h-3.5 w-3.5" />
           </Button>
         ),
-        cell: ({ row }) => (
-          <span className="font-medium">{row.original.adminEmail}</span>
-        ),
+        cell: ({ row }) => <span className="font-medium">{row.original.adminEmail}</span>,
       },
       {
         accessorKey: 'metadata',
@@ -170,6 +176,7 @@ const AdminActivityPage = () => {
           </span>
         ),
         enableSorting: false,
+        meta: { hideOnMobile: true },
       },
       {
         accessorKey: 'createdAt',
@@ -184,6 +191,7 @@ const AdminActivityPage = () => {
           </Button>
         ),
         cell: ({ row }) => formatDateLocal(row.original.createdAt),
+        meta: { hideOnMobile: true },
       },
     ],
     []
@@ -192,27 +200,41 @@ const AdminActivityPage = () => {
   // --- Filter toolbar ---
 
   const toolbar = (
-    <Tabs value={filter} onValueChange={setFilter}>
-      <TabsList>
-        {FILTER_TABS.map((tab) => (
-          <TabsTrigger key={tab.value} value={tab.value}>
-            {tab.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-    </Tabs>
+    <div className="w-full">
+      <Select value={filter} onValueChange={setFilter}>
+        <SelectTrigger className="sm:hidden">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {FILTER_TABS.map((tab) => (
+            <SelectItem key={tab.value} value={tab.value}>
+              {tab.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Tabs value={filter} onValueChange={setFilter} className="hidden sm:block">
+        <TabsList>
+          {FILTER_TABS.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+    </div>
   );
 
   if (isLoading) {
     return (
-      <PageLayout title="Actividad">
+      <PageLayout title="Actividad" showNotifications={false}>
         <SkeletonTable rows={10} />
       </PageLayout>
     );
   }
 
   return (
-    <PageLayout title="Actividad">
+    <PageLayout title="Actividad" showNotifications={false}>
       <DataTable
         columns={columns}
         data={filteredLogs}
@@ -220,6 +242,22 @@ const AdminActivityPage = () => {
         searchPlaceholder="Buscar por admin..."
         toolbar={toolbar}
         pageSize={10}
+        cardRenderer={(row) => (
+          <div className="border rounded-lg p-4 bg-card">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-medium">
+                <ActionBadge action={row.action} />
+              </span>
+              <span className="text-sm text-muted-foreground">
+                {TARGET_TYPE_LABELS[row.targetType] || row.targetType || '—'}
+              </span>
+            </div>
+            <div className="mt-1 text-sm text-muted-foreground">{row.adminEmail}</div>
+            <div className="mt-2 text-sm text-muted-foreground">
+              {formatDateLocal(row.createdAt)}
+            </div>
+          </div>
+        )}
       />
     </PageLayout>
   );

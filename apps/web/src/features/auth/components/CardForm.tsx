@@ -224,7 +224,7 @@ export const CardForm = ({
         {/* Card number */}
         <div>
           <label className="mb-0.5 block text-sm font-medium text-foreground">
-            Numero de tarjeta
+            Número de tarjeta
           </label>
           <div
             id="mp-card-number"
@@ -321,7 +321,7 @@ export const CardForm = ({
                   htmlFor="identificationNumber"
                   className="mb-0.5 block text-sm font-medium text-foreground"
                 >
-                  Numero de documento
+                  Número de documento
                 </label>
                 <input
                   type="text"

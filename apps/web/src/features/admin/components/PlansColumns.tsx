@@ -123,10 +123,7 @@ export function getPlansColumns({
                   <Power className="mr-2 h-4 w-4" />
                   {plan.isActive ? 'Desactivar' : 'Activar'}
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onDelete(plan.id)}
-                  className="text-destructive focus:text-destructive"
-                >
+                <DropdownMenuItem onClick={() => onDelete(plan.id)} variant="destructive">
                   <Trash2 className="mr-2 h-4 w-4" />
                   Eliminar
                 </DropdownMenuItem>

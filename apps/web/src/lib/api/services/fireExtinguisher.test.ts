@@ -5,6 +5,8 @@ import {
   updateFireExtinguisher,
   deleteFireExtinguisher,
 } from './fireExtinguisher';
+import { ExtinguisherType, ExtinguisherCapacity } from '../../../types';
+import type { Tables } from '../../../types/database.types';
 
 vi.mock('../../supabase/client', () => ({
   supabase: {
@@ -26,35 +28,74 @@ import { supabase } from '../../supabase/client';
 
 const COMPANY_ID = 'company-123';
 
-const mockDbRow = {
+type CreateFireExtinguisherInput = Parameters<typeof createFireExtinguisher>[0];
+type UpdateFireExtinguisherInput = Parameters<typeof updateFireExtinguisher>[0];
+
+const createInput: CreateFireExtinguisherInput = {
+  controlDate: '2026-03-01',
+  extinguisherNumber: 'EXT-001',
+  type: ExtinguisherType.DRY_CHEMICAL,
+  capacity: ExtinguisherCapacity.MEDIUM,
+  class: 'ABC',
+  positionNumber: '1',
+  chargeExpirationDate: '2027-03-01',
+  hydraulicPressureExpirationDate: '2031-03-01',
+  manufacturingYear: '2020',
+  tagColor: 'Rojo',
+  labelsLegible: true,
+  pressureWithinRange: true,
+  hasSealAndSafety: true,
+  instructionsLegible: true,
+  containerCondition: 'Bueno',
+  nozzleCondition: 'Bueno',
+  visibilityObstructed: 'No',
+  accessObstructed: 'No',
+  signageCondition: 'Bueno',
+  signageFloor: 'N/A',
+  signageWall: 'Sí',
+  signageHeight: 'Sí',
+  glassCondition: 'N/A',
+  doorOpensEasily: 'N/A',
+  cabinetClean: 'N/A',
+  observations: 'Sin observaciones',
+};
+
+const updateInput: UpdateFireExtinguisherInput = {
+  id: 'fe-1',
+  companyId: COMPANY_ID,
+  ...createInput,
+  observations: 'Updated',
+};
+
+const mockDbRow: Tables<'fire_extinguishers'> = {
   id: 'fe-1',
   company_id: COMPANY_ID,
-  control_date: '2026-03-01',
-  extinguisher_number: 'EXT-001',
-  type: 'ABC',
-  capacity: '5kg',
-  class: 'ABC',
-  position_number: '1',
-  charge_expiration_date: '2027-03-01',
-  hydraulic_pressure_expiration_date: '2031-03-01',
-  manufacturing_year: '2020',
-  tag_color: 'Rojo',
-  labels_legible: 'Sí',
-  pressure_within_range: 'Sí',
-  has_seal_and_safety: 'Sí',
-  instructions_legible: 'Sí',
-  container_condition: 'Bueno',
-  nozzle_condition: 'Bueno',
-  visibility_obstructed: 'No',
-  access_obstructed: 'No',
-  signage_condition: 'Bueno',
-  signage_floor: 'N/A',
-  signage_wall: 'Sí',
-  signage_height: 'Sí',
-  glass_condition: 'N/A',
-  door_opens_easily: 'N/A',
-  cabinet_clean: 'N/A',
-  observations: 'Sin observaciones',
+  control_date: createInput.controlDate,
+  extinguisher_number: createInput.extinguisherNumber,
+  type: createInput.type,
+  capacity: createInput.capacity,
+  class: createInput.class,
+  position_number: createInput.positionNumber,
+  charge_expiration_date: createInput.chargeExpirationDate,
+  hydraulic_pressure_expiration_date: createInput.hydraulicPressureExpirationDate,
+  manufacturing_year: createInput.manufacturingYear,
+  tag_color: createInput.tagColor,
+  labels_legible: createInput.labelsLegible,
+  pressure_within_range: createInput.pressureWithinRange,
+  has_seal_and_safety: createInput.hasSealAndSafety,
+  instructions_legible: createInput.instructionsLegible,
+  container_condition: createInput.containerCondition,
+  nozzle_condition: createInput.nozzleCondition,
+  visibility_obstructed: createInput.visibilityObstructed,
+  access_obstructed: createInput.accessObstructed,
+  signage_condition: createInput.signageCondition,
+  signage_floor: createInput.signageFloor,
+  signage_wall: createInput.signageWall,
+  signage_height: createInput.signageHeight,
+  glass_condition: createInput.glassCondition,
+  door_opens_easily: createInput.doorOpensEasily,
+  cabinet_clean: createInput.cabinetClean,
+  observations: createInput.observations,
   created_at: '2026-03-01T00:00:00Z',
   updated_at: '2026-03-01T00:00:00Z',
 };
@@ -120,40 +161,7 @@ describe('fireExtinguisher service', () => {
       };
       fromMock.mockReturnValue(chainMock);
 
-      const { id, companyId, createdAt, updatedAt, ...input } = {
-        id: 'ignored',
-        companyId: 'ignored',
-        createdAt: 'ignored',
-        updatedAt: 'ignored',
-        controlDate: '2026-03-01',
-        extinguisherNumber: 'EXT-001',
-        type: 'ABC' as const,
-        capacity: '5kg' as const,
-        class: 'ABC',
-        positionNumber: '1',
-        chargeExpirationDate: '2027-03-01',
-        hydraulicPressureExpirationDate: '2031-03-01',
-        manufacturingYear: '2020',
-        tagColor: 'Rojo',
-        labelsLegible: 'Sí',
-        pressureWithinRange: 'Sí',
-        hasSealAndSafety: 'Sí',
-        instructionsLegible: 'Sí',
-        containerCondition: 'Bueno',
-        nozzleCondition: 'Bueno',
-        visibilityObstructed: 'No' as const,
-        accessObstructed: 'No' as const,
-        signageCondition: 'Bueno',
-        signageFloor: 'N/A' as const,
-        signageWall: 'Sí' as const,
-        signageHeight: 'Sí' as const,
-        glassCondition: 'N/A' as const,
-        doorOpensEasily: 'N/A' as const,
-        cabinetClean: 'N/A' as const,
-        observations: 'Sin observaciones',
-      };
-
-      const result = await createFireExtinguisher(input);
+      const result = await createFireExtinguisher(createInput);
 
       expect(result.id).toBe('fe-1');
       expect(result.extinguisherNumber).toBe('EXT-001');
@@ -169,7 +177,7 @@ describe('fireExtinguisher service', () => {
       };
       fromMock.mockReturnValue(chainMock);
 
-      await expect(createFireExtinguisher({} as any)).rejects.toThrow();
+      await expect(createFireExtinguisher({} as CreateFireExtinguisherInput)).rejects.toThrow();
     });
   });
 
@@ -184,36 +192,7 @@ describe('fireExtinguisher service', () => {
       };
       fromMock.mockReturnValue(chainMock);
 
-      const result = await updateFireExtinguisher({
-        id: 'fe-1',
-        companyId: COMPANY_ID,
-        controlDate: '2026-03-01',
-        extinguisherNumber: 'EXT-001',
-        type: 'ABC' as any,
-        capacity: '5kg' as any,
-        class: 'ABC',
-        positionNumber: '1',
-        chargeExpirationDate: '2027-03-01',
-        hydraulicPressureExpirationDate: '2031-03-01',
-        manufacturingYear: '2020',
-        tagColor: 'Rojo',
-        labelsLegible: 'Sí',
-        pressureWithinRange: 'Sí',
-        hasSealAndSafety: 'Sí',
-        instructionsLegible: 'Sí',
-        containerCondition: 'Bueno',
-        nozzleCondition: 'Bueno',
-        visibilityObstructed: 'No' as any,
-        accessObstructed: 'No' as any,
-        signageCondition: 'Bueno',
-        signageFloor: 'N/A' as any,
-        signageWall: 'Sí' as any,
-        signageHeight: 'Sí' as any,
-        glassCondition: 'N/A' as any,
-        doorOpensEasily: 'N/A' as any,
-        cabinetClean: 'N/A' as any,
-        observations: 'Updated',
-      });
+      const result = await updateFireExtinguisher(updateInput);
 
       expect(result.id).toBe('fe-1');
       expect(fromMock).toHaveBeenCalledWith('fire_extinguishers');

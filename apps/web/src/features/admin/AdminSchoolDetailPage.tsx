@@ -20,6 +20,7 @@ const paymentColumns: ColumnDef<AdminPaymentRow, unknown>[] = [
     accessorKey: 'amount',
     header: 'Monto',
     cell: ({ row }) => formatCurrency(row.original.amount),
+    meta: { hideOnMobile: true },
   },
   {
     accessorKey: 'periodStart',
@@ -28,6 +29,7 @@ const paymentColumns: ColumnDef<AdminPaymentRow, unknown>[] = [
       row.original.periodEnd
         ? `${formatDateLocal(row.original.periodStart)} – ${formatDateLocal(row.original.periodEnd)}`
         : formatDateLocal(row.original.periodStart),
+    meta: { hideOnMobile: true },
   },
   {
     accessorKey: 'status',
@@ -38,10 +40,14 @@ const paymentColumns: ColumnDef<AdminPaymentRow, unknown>[] = [
     accessorKey: 'createdAt',
     header: 'Fecha',
     cell: ({ row }) => formatDateLocal(row.original.createdAt),
+    meta: { hideOnMobile: true },
   },
 ];
 
-const paymentStatusConfig: Record<string, { variant: 'emerald' | 'amber' | 'red' | 'muted'; label: string }> = {
+const paymentStatusConfig: Record<
+  string,
+  { variant: 'emerald' | 'amber' | 'red' | 'muted'; label: string }
+> = {
   pending: { variant: 'amber', label: 'Pendiente' },
   approved: { variant: 'emerald', label: 'Aprobado' },
   rejected: { variant: 'red', label: 'Rechazado' },
@@ -51,6 +57,25 @@ const PaymentStatusBadge = ({ status }: { status: string }) => {
   const config = paymentStatusConfig[status] || { variant: 'muted' as const, label: status };
   return <ColorBadge variant={config.variant} label={config.label} />;
 };
+
+const CARD_METHOD_LABELS: Record<string, string> = {
+  credit_card: 'Tarjeta de crédito',
+  debit_card: 'Tarjeta de débito',
+  card: 'Tarjeta de crédito',
+  mercadopago: 'Tarjeta de crédito',
+};
+
+function formatPaymentMethodLabel(
+  method: string,
+  cardBrand?: string | null,
+  cardLastFour?: string | null
+): string {
+  if (method === 'bank_transfer') return 'Transferencia bancaria';
+  const base = CARD_METHOD_LABELS[method] || method;
+  if (!cardBrand) return base;
+  const brand = cardBrand.charAt(0).toUpperCase() + cardBrand.slice(1);
+  return cardLastFour ? `${base} · ${brand} •••• ${cardLastFour}` : `${base} · ${brand}`;
+}
 
 const InfoItem = ({ label, value }: { label: string; value: string | null | undefined }) => (
   <div>
@@ -92,7 +117,7 @@ const AdminSchoolDetailPage = () => {
 
   if (loading) {
     return (
-      <PageLayout title="Cargando...">
+      <PageLayout title="Cargando..." showNotifications={false}>
         <SkeletonForm />
       </PageLayout>
     );
@@ -100,10 +125,8 @@ const AdminSchoolDetailPage = () => {
 
   if (!school) {
     return (
-      <PageLayout title="Escuela no encontrada">
-        <div className="text-sm text-muted-foreground">
-          No se encontró la escuela solicitada.
-        </div>
+      <PageLayout title="Escuela no encontrada" showNotifications={false}>
+        <div className="text-sm text-muted-foreground">No se encontró la escuela solicitada.</div>
       </PageLayout>
     );
   }
@@ -111,11 +134,9 @@ const AdminSchoolDetailPage = () => {
   return (
     <PageLayout
       title={school.name}
+      showNotifications={false}
       headerActions={
-        <Button
-          variant="ghost"
-          onClick={() => navigate(ROUTE_PATHS.ADMIN_SCHOOLS)}
-        >
+        <Button variant="ghost" onClick={() => navigate(ROUTE_PATHS.ADMIN_SCHOOLS)}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Volver
         </Button>
@@ -149,16 +170,20 @@ const AdminSchoolDetailPage = () => {
                 <SubscriptionStatusBadge status={school.subscriptionStatus} />
               </div>
             </div>
-            <InfoItem
-              label="Método de pago"
-              value={
-                {
-                  bank_transfer: 'Transferencia bancaria',
-                  credit_card: 'Tarjeta de crédito',
-                  debit_card: 'Tarjeta de débito',
-                }[school.paymentMethod] || school.paymentMethod
-              }
-            />
+            {(() => {
+              const latestPayment = payments[0];
+              const effectiveMethod = latestPayment?.paymentMethod ?? school.paymentMethod;
+              const cardBrand =
+                effectiveMethod !== 'bank_transfer' ? latestPayment?.cardBrand : null;
+              const cardLastFour =
+                effectiveMethod !== 'bank_transfer' ? latestPayment?.cardLastFour : null;
+              return (
+                <InfoItem
+                  label="Método de pago"
+                  value={formatPaymentMethodLabel(effectiveMethod, cardBrand, cardLastFour)}
+                />
+              );
+            })()}
             <InfoItem
               label="Fecha de renovación"
               value={formatDateLocal(school.subscriptionRenewalDate)}
@@ -176,7 +201,7 @@ const AdminSchoolDetailPage = () => {
           {school.employees.length === 0 ? (
             <p className="text-sm text-muted-foreground">No hay empleados registrados</p>
           ) : (
-            <div className="border border-border rounded-md overflow-hidden">
+            <div className="border border-border rounded-lg overflow-hidden">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
@@ -226,7 +251,27 @@ const AdminSchoolDetailPage = () => {
           {payments.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sin historial de pagos</p>
           ) : (
-            <DataTable columns={paymentColumns} data={payments} pageSize={5} />
+            <DataTable
+              columns={paymentColumns}
+              data={payments}
+              pageSize={5}
+              cardRenderer={(row) => (
+                <div className="border rounded-lg p-4 bg-card">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">{formatCurrency(row.amount)}</span>
+                    <PaymentStatusBadge status={row.status} />
+                  </div>
+                  <div className="mt-1 text-sm text-muted-foreground">
+                    {row.periodEnd
+                      ? `${formatDateLocal(row.periodStart)} – ${formatDateLocal(row.periodEnd)}`
+                      : formatDateLocal(row.periodStart)}
+                  </div>
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    {formatDateLocal(row.createdAt)}
+                  </div>
+                </div>
+              )}
+            />
           )}
         </section>
       </div>

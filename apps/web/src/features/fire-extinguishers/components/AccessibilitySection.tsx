@@ -14,7 +14,7 @@ export const AccessibilitySection = ({ form }: SectionProps) => {
             <FormItem>
               <FormControl>
                 <Select
-                  label="Esta obstruida su visibilidad?"
+                  label="¿Está obstruida su visibilidad?"
                   id="visibilityObstructed"
                   value={field.value}
                   onChange={(e) => field.onChange(e.target.value)}
@@ -24,7 +24,7 @@ export const AccessibilitySection = ({ form }: SectionProps) => {
                   required
                 >
                   <option value="">Seleccione...</option>
-                  <option value="Si">Si</option>
+                  <option value="Sí">Sí</option>
                   <option value="No">No</option>
                 </Select>
               </FormControl>
@@ -39,7 +39,7 @@ export const AccessibilitySection = ({ form }: SectionProps) => {
             <FormItem>
               <FormControl>
                 <Select
-                  label="Esta obstruido su acceso?"
+                  label="¿Está obstruido su acceso?"
                   id="accessObstructed"
                   value={field.value}
                   onChange={(e) => field.onChange(e.target.value)}
@@ -49,7 +49,7 @@ export const AccessibilitySection = ({ form }: SectionProps) => {
                   required
                 >
                   <option value="">Seleccione...</option>
-                  <option value="Si">Si</option>
+                  <option value="Sí">Sí</option>
                   <option value="No">No</option>
                 </Select>
               </FormControl>

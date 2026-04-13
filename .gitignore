@@ -66,9 +66,14 @@ next-env.d.ts
 # Agent/test tooling
 .agent/
 .agents/
+.atl/
+.claude/worktrees/
 .playwright-mcp/
 testsprite_tests/
 nul
 
 # MCP config (contains API keys)
 .mcp.json
+
+# Screenshots (dev artifacts)
+*.png

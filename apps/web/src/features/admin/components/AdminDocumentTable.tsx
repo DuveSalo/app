@@ -25,10 +25,7 @@ import { AdminPdfViewerModal } from './AdminPdfViewerModal';
 import * as api from '@/lib/api/services';
 import { toast } from 'sonner';
 import type { AdminDocumentModule } from '../types';
-import type {
-  EventInformation,
-  QRDocument,
-} from '@/types/index';
+import type { EventInformation, QRDocument } from '@/types/index';
 
 interface AdminDocumentTableProps {
   module: AdminDocumentModule;
@@ -41,7 +38,9 @@ interface AdminDocumentTableProps {
 const ExpirationBadge = ({ date }: { date: string | undefined }) => {
   if (!date) return <span className="text-sm text-muted-foreground">-</span>;
   const isExpired = new Date(date) < new Date();
-  return <ColorBadge variant={isExpired ? 'red' : 'emerald'} label={isExpired ? 'Vencido' : 'Vigente'} />;
+  return (
+    <ColorBadge variant={isExpired ? 'red' : 'emerald'} label={isExpired ? 'Vencido' : 'Vigente'} />
+  );
 };
 
 export const AdminDocumentTable = ({
@@ -70,7 +69,7 @@ export const AdminDocumentTable = ({
     if (!deleteId) return;
     setDeleting(true);
     try {
-      await api.adminDeleteDocument(module, deleteId);
+      await api.adminDeleteDocument(module, deleteId, companyId);
       toast.success('Documento eliminado');
       onRefresh();
     } catch {
@@ -99,8 +98,14 @@ export const AdminDocumentTable = ({
   }) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          aria-label="Abrir acciones del documento"
+        >
           <MoreHorizontal className="h-4 w-4" />
+          <span className="sr-only">Abrir acciones del documento</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -125,10 +130,7 @@ export const AdminDocumentTable = ({
             {item.label}
           </DropdownMenuItem>
         ))}
-        <DropdownMenuItem
-          variant="destructive"
-          onClick={() => setDeleteId(id)}
-        >
+        <DropdownMenuItem variant="destructive" onClick={() => setDeleteId(id)}>
           <Trash2 className="mr-2 h-4 w-4" />
           Eliminar
         </DropdownMenuItem>
@@ -142,19 +144,18 @@ export const AdminDocumentTable = ({
       case 'fire_extinguishers':
         return [
           { accessorKey: 'extinguisherNumber', header: 'N°' },
-          { accessorKey: 'positionNumber', header: 'Ubicación' },
-          { accessorKey: 'type', header: 'Tipo' },
+          { accessorKey: 'positionNumber', header: 'Ubicación', meta: { hideOnMobile: true } },
+          { accessorKey: 'type', header: 'Tipo', meta: { hideOnMobile: true } },
           {
             accessorKey: 'chargeExpirationDate',
             header: 'Venc. Carga',
             cell: ({ row }) => formatDateLocal(row.original.chargeExpirationDate),
+            meta: { hideOnMobile: true },
           },
           {
             id: 'status',
             header: 'Estado',
-            cell: ({ row }) => (
-              <ExpirationBadge date={row.original.chargeExpirationDate} />
-            ),
+            cell: ({ row }) => <ExpirationBadge date={row.original.chargeExpirationDate} />,
           },
           {
             id: 'actions',
@@ -166,18 +167,21 @@ export const AdminDocumentTable = ({
       case 'conservation_certificates':
         return [
           { accessorKey: 'intervener', header: 'Interviniente' },
-          { accessorKey: 'registrationNumber', header: 'N° Matrícula' },
+          {
+            accessorKey: 'registrationNumber',
+            header: 'N° Matrícula',
+            meta: { hideOnMobile: true },
+          },
           {
             accessorKey: 'expirationDate',
             header: 'Vencimiento',
             cell: ({ row }) => formatDateLocal(row.original.expirationDate),
+            meta: { hideOnMobile: true },
           },
           {
             id: 'status',
             header: 'Estado',
-            cell: ({ row }) => (
-              <ExpirationBadge date={row.original.expirationDate} />
-            ),
+            cell: ({ row }) => <ExpirationBadge date={row.original.expirationDate} />,
           },
           {
             id: 'actions',
@@ -197,20 +201,19 @@ export const AdminDocumentTable = ({
           {
             accessorKey: 'probatoryDispositionDate',
             header: 'Fecha disposición',
-            cell: ({ row }) =>
-              formatDateLocal(row.original.probatoryDispositionDate),
+            cell: ({ row }) => formatDateLocal(row.original.probatoryDispositionDate),
+            meta: { hideOnMobile: true },
           },
           {
             accessorKey: 'expirationDate',
             header: 'Vencimiento',
             cell: ({ row }) => formatDateLocal(row.original.expirationDate),
+            meta: { hideOnMobile: true },
           },
           {
             id: 'status',
             header: 'Estado',
-            cell: ({ row }) => (
-              <ExpirationBadge date={row.original.expirationDate} />
-            ),
+            cell: ({ row }) => <ExpirationBadge date={row.original.expirationDate} />,
           },
           {
             id: 'actions',
@@ -261,10 +264,7 @@ export const AdminDocumentTable = ({
                 }
               }
               return (
-                <ActionsCell
-                  id={row.original.id}
-                  pdfItems={items.length > 0 ? items : undefined}
-                />
+                <ActionsCell id={row.original.id} pdfItems={items.length > 0 ? items : undefined} />
               );
             },
           },
@@ -280,11 +280,13 @@ export const AdminDocumentTable = ({
               const qr = row.original as QRDocument;
               return [qr.floor, qr.unit].filter(Boolean).join(' / ') || '-';
             },
+            meta: { hideOnMobile: true },
           },
           {
             accessorKey: 'uploadDate',
             header: 'Fecha',
             cell: ({ row }) => formatDateLocal(row.original.uploadDate),
+            meta: { hideOnMobile: true },
           },
           {
             id: 'actions',
@@ -313,8 +315,9 @@ export const AdminDocumentTable = ({
             accessorKey: 'date',
             header: 'Fecha',
             cell: ({ row }) => formatDateLocal(row.original.date),
+            meta: { hideOnMobile: true },
           },
-          { accessorKey: 'time', header: 'Hora' },
+          { accessorKey: 'time', header: 'Hora', meta: { hideOnMobile: true } },
           {
             id: 'actions',
             header: '',
@@ -328,11 +331,7 @@ export const AdminDocumentTable = ({
     <>
       <DataTable columns={columns} data={data as any[]} pageSize={5} />
 
-      <AdminPdfViewerModal
-        open={pdfModalOpen}
-        onOpenChange={setPdfModalOpen}
-        url={pdfUrl}
-      />
+      <AdminPdfViewerModal open={pdfModalOpen} onOpenChange={setPdfModalOpen} url={pdfUrl} />
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
@@ -344,11 +343,7 @@ export const AdminDocumentTable = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
+            <AlertDialogAction onClick={handleDelete} disabled={deleting} variant="destructive">
               {deleting ? 'Eliminando...' : 'Eliminar'}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -13,6 +13,7 @@ import type {
   QRDocument,
   EventInformation,
 } from '../../../../types';
+import { ExtinguisherType, ExtinguisherCapacity, YesNo, YesNoNA } from '../../../../types';
 import type { AdminDocumentModule } from '../../../../features/admin/types';
 import type { Tables } from '../../../../types/database.types';
 
@@ -24,8 +25,8 @@ const mapFireExtinguisher = (item: Tables<'fire_extinguishers'>): FireExtinguish
   companyId: item.company_id,
   controlDate: item.control_date,
   extinguisherNumber: item.extinguisher_number,
-  type: item.type,
-  capacity: item.capacity,
+  type: item.type as ExtinguisherType,
+  capacity: item.capacity as ExtinguisherCapacity,
   class: item.class,
   positionNumber: item.position_number,
   chargeExpirationDate: item.charge_expiration_date,
@@ -38,15 +39,15 @@ const mapFireExtinguisher = (item: Tables<'fire_extinguishers'>): FireExtinguish
   instructionsLegible: item.instructions_legible,
   containerCondition: item.container_condition,
   nozzleCondition: item.nozzle_condition,
-  visibilityObstructed: item.visibility_obstructed,
-  accessObstructed: item.access_obstructed,
+  visibilityObstructed: item.visibility_obstructed as YesNo,
+  accessObstructed: item.access_obstructed as YesNo,
   signageCondition: item.signage_condition,
-  signageFloor: item.signage_floor,
-  signageWall: item.signage_wall,
-  signageHeight: item.signage_height,
-  glassCondition: item.glass_condition,
-  doorOpensEasily: item.door_opens_easily,
-  cabinetClean: item.cabinet_clean,
+  signageFloor: item.signage_floor as YesNoNA,
+  signageWall: item.signage_wall as YesNoNA,
+  signageHeight: item.signage_height as YesNoNA,
+  glassCondition: item.glass_condition as YesNoNA,
+  doorOpensEasily: item.door_opens_easily as YesNoNA,
+  cabinetClean: item.cabinet_clean as YesNoNA,
   observations: item.observations,
   createdAt: item.created_at,
   updatedAt: item.updated_at,
@@ -74,7 +75,7 @@ export const getSchoolCertificates = async (
   const { data, error } = await supabase
     .from('conservation_certificates')
     .select(
-      'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path'
+      'id, company_id, presentation_date, expiration_date, intervener, registration_number, pdf_file_url, pdf_file_name, pdf_file_path, created_at, updated_at'
     )
     .eq('company_id', companyId)
     .order('expiration_date', { ascending: false });
@@ -97,7 +98,7 @@ export const getSchoolSystems = async (
   const { data, error } = await supabase
     .from('self_protection_systems')
     .select(
-      'id, company_id, probatory_disposition_date, probatory_disposition_pdf_name, probatory_disposition_pdf_url, probatory_disposition_pdf_path, extension_date, extension_pdf_name, extension_pdf_url, extension_pdf_path, expiration_date, drills, intervener, registration_number'
+      'id, company_id, probatory_disposition_date, probatory_disposition_pdf_name, probatory_disposition_pdf_url, probatory_disposition_pdf_path, extension_date, extension_pdf_name, extension_pdf_url, extension_pdf_path, expiration_date, drills, intervener, registration_number, created_at, updated_at'
     )
     .eq('company_id', companyId)
     .order('expiration_date', { ascending: false });
@@ -123,7 +124,7 @@ export const getSchoolQRDocuments = async (
   let query = supabase
     .from('qr_documents')
     .select(
-      'id, company_id, type, document_name, floor, unit, pdf_file_url, pdf_file_path, upload_date, qr_code_data, extracted_date'
+      'id, company_id, type, document_name, floor, unit, pdf_file_url, pdf_file_path, upload_date, qr_code_data, extracted_date, created_at, updated_at'
     )
     .eq('company_id', companyId)
     .order('upload_date', { ascending: false });
@@ -140,7 +141,7 @@ export const getSchoolEvents = async (companyId: string): Promise<EventInformati
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, company_id, date, time, description, corrective_actions, testimonials, observations, final_checks'
+      'id, company_id, date, time, description, corrective_actions, testimonials, observations, final_checks, created_at, updated_at'
     )
     .eq('company_id', companyId)
     .order('date', { ascending: false });

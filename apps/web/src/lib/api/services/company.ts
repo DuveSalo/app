@@ -34,7 +34,7 @@ export const createCompany = async (
       payment_methods: [],
     })
     .select(
-      'id, user_id, name, cuit, address, postal_code, city, locality, province, country, rama_key, owner_entity, phone, is_subscribed, selected_plan, trial_ends_at, subscription_status, subscription_renewal_date, payment_method, bank_transfer_status, services, payment_methods'
+      'id, user_id, name, cuit, address, postal_code, city, locality, province, country, rama_key, owner_entity, phone, is_subscribed, selected_plan, trial_ends_at, subscription_status, subscription_renewal_date, payment_method, bank_transfer_status, services, payment_methods, email, created_at, updated_at'
     )
     .single();
 
@@ -52,7 +52,7 @@ export const createCompany = async (
       email: currentUser.email,
       role: 'Administrador',
     })
-    .select('id, name, email, role')
+    .select('id, name, email, role, company_id, created_at, updated_at')
     .single();
 
   // Return with the created employee (no extra query needed)
@@ -88,7 +88,7 @@ export const getCompanyByUserId = async (userId: string): Promise<Company> => {
   const { data, error } = await supabase
     .from('companies')
     .select(
-      'id, user_id, name, cuit, address, postal_code, city, locality, province, country, rama_key, owner_entity, phone, is_subscribed, selected_plan, trial_ends_at, subscription_status, subscription_renewal_date, payment_method, bank_transfer_status, services, payment_methods, employees(id, name, email, role)'
+      'id, user_id, name, cuit, address, postal_code, city, locality, province, country, rama_key, owner_entity, phone, is_subscribed, selected_plan, trial_ends_at, subscription_status, subscription_renewal_date, payment_method, bank_transfer_status, services, payment_methods, email, created_at, updated_at, employees(id, name, email, role, company_id, created_at, updated_at)'
     )
     .eq('user_id', userId)
     .single();
@@ -143,7 +143,7 @@ export const updateCompany = async (companyData: Partial<Company>): Promise<Comp
     .update(updateData)
     .eq('id', companyData.id)
     .select(
-      'id, user_id, name, cuit, address, postal_code, city, locality, province, country, rama_key, owner_entity, phone, is_subscribed, selected_plan, trial_ends_at, subscription_status, subscription_renewal_date, payment_method, bank_transfer_status, services, payment_methods, employees(id, name, email, role)'
+      'id, user_id, name, cuit, address, postal_code, city, locality, province, country, rama_key, owner_entity, phone, is_subscribed, selected_plan, trial_ends_at, subscription_status, subscription_renewal_date, payment_method, bank_transfer_status, services, payment_methods, email, created_at, updated_at, employees(id, name, email, role, company_id, created_at, updated_at)'
     )
     .single();
 
@@ -166,7 +166,7 @@ export const activateTrial = async (companyId: string): Promise<Company> => {
     .update({ trial_ends_at: trialEndsAt })
     .eq('id', companyId)
     .select(
-      'id, user_id, name, cuit, address, postal_code, city, locality, province, country, rama_key, owner_entity, phone, is_subscribed, selected_plan, trial_ends_at, subscription_status, subscription_renewal_date, payment_method, bank_transfer_status, services, payment_methods, employees(id, name, email, role)'
+      'id, user_id, name, cuit, address, postal_code, city, locality, province, country, rama_key, owner_entity, phone, is_subscribed, selected_plan, trial_ends_at, subscription_status, subscription_renewal_date, payment_method, bank_transfer_status, services, payment_methods, email, created_at, updated_at, employees(id, name, email, role, company_id, created_at, updated_at)'
     )
     .single();
 

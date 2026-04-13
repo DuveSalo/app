@@ -3,6 +3,7 @@ import {
     calculateDaysUntilExpiration,
     calculateExpirationStatus,
     formatDateLocal,
+    formatRelativeTimeLocal,
     isWithinNotificationWindow,
     normalizeDate
 } from './dateUtils';
@@ -102,6 +103,32 @@ describe('formatDateLocal', () => {
     it('should handle ISO format with time', () => {
         const result = formatDateLocal('2026-12-25T10:30:00');
         expect(result).toMatch(/25\/12\/2026|25\/12\/26/);
+    });
+});
+
+describe('formatRelativeTimeLocal', () => {
+    beforeEach(() => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date('2026-01-20T12:00:00'));
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it('should return a relative value for recent minutes', () => {
+        const result = formatRelativeTimeLocal('2026-01-20T11:45:00');
+        expect(result).toBe('Hace 15 min');
+    });
+
+    it('should return "Ayer" for one day difference', () => {
+        const result = formatRelativeTimeLocal('2026-01-19T12:00:00');
+        expect(result).toBe('Ayer');
+    });
+
+    it('should fall back to a formatted date for older notifications', () => {
+        const result = formatRelativeTimeLocal('2026-01-10T12:00:00');
+        expect(result).toMatch(/10 ene|10 de ene|10 ene\./i);
     });
 });
 

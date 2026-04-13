@@ -9,7 +9,11 @@ interface ActivePlanCardProps {
   onChangePlan: () => void;
 }
 
-export const ActivePlanCard = ({ subscription, canChangePlan, onChangePlan }: ActivePlanCardProps) => {
+export const ActivePlanCard = ({
+  subscription,
+  canChangePlan,
+  onChangePlan,
+}: ActivePlanCardProps) => {
   const statusConfig = STATUS_CONFIG[subscription.status] || STATUS_CONFIG.pending;
   const isBankTransfer = subscription.paymentProvider === 'bank_transfer';
 
@@ -25,7 +29,12 @@ export const ActivePlanCard = ({ subscription, canChangePlan, onChangePlan }: Ac
           </span>
         </div>
         {canChangePlan && !isBankTransfer && (
-          <Button type="button" variant="ghost" onClick={onChangePlan}>
+          <Button
+            type="button"
+            variant="ghost"
+            className="border border-border"
+            onClick={onChangePlan}
+          >
             Cambiar plan
           </Button>
         )}
@@ -50,7 +59,7 @@ export const ActivePlanCard = ({ subscription, canChangePlan, onChangePlan }: Ac
             </>
           ) : (
             <>
-              <p className="text-xs text-muted-foreground mb-1">Proximo cobro</p>
+              <p className="text-xs text-muted-foreground mb-1">Próximo cobro</p>
               <p className="text-sm font-medium text-foreground">
                 {formatBillingDate(subscription.nextBillingTime)}
               </p>
@@ -62,7 +71,7 @@ export const ActivePlanCard = ({ subscription, canChangePlan, onChangePlan }: Ac
       {subscription.activatedAt && (
         <div className="mt-4 pt-4 border-t border-border">
           <p className="text-xs text-muted-foreground">
-            Suscripcion activa desde {formatBillingDate(subscription.activatedAt)}
+            Suscripción activa desde {formatBillingDate(subscription.activatedAt)}
           </p>
         </div>
       )}

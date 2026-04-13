@@ -10,23 +10,15 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { Input } from '../../components/common/Input';
 import { DatePicker } from '../../components/common/DatePicker';
 import { Button } from '@/components/ui/button';
+import { Info } from 'lucide-react';
 import { Textarea } from '../../components/common/Textarea';
 import { Checkbox } from '../../components/common/Checkbox';
 import { DynamicListInput } from './components/DynamicListInput';
 import { SkeletonForm } from '../../components/common/SkeletonLoader';
 import PageLayout from '../../components/layout/PageLayout';
 import { createLogger } from '../../lib/utils/logger';
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormControl,
-  FormMessage,
-} from '@/components/ui/form';
-import {
-  eventInformationSchema,
-  type EventInformationFormData,
-} from './schemas';
+import { Form, FormField, FormItem, FormControl, FormMessage } from '@/components/ui/form';
+import { eventInformationSchema, type EventInformationFormData } from './schemas';
 
 const logger = createLogger('CreateEditEventInformationPage');
 
@@ -43,7 +35,11 @@ const CreateEditEventInformationPage = () => {
     mode: 'onBlur',
     defaultValues: {
       date: new Date().toISOString().split('T')[0],
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+      time: new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }),
       description: '',
       correctiveActions: '',
       physicalEvidenceDescription: '',
@@ -200,159 +196,148 @@ const CreateEditEventInformationPage = () => {
 
   return (
     <PageLayout title={pageTitle} footer={footerActions}>
-      <div className="h-full overflow-y-auto custom-scrollbar">
-        <div className="w-full max-w-4xl mx-auto space-y-6">
-          <div className="p-4 bg-info/10 border-l-4 border-info rounded-md">
-            <p className="text-sm text-foreground">
-              Por favor, asegúrese de que el informe sea objetivo y no tenga la intención de señalar
-              responsables. Este documento será presentado a la autoridad competente (UERESGP) para
-              la implementación de medidas de seguridad en todas las escuelas.
-            </p>
-          </div>
-          <Form {...form}>
-            <form
-              id="event-form"
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-5"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <DatePicker
-                          label="Fecha"
-                          id="date"
-                          value={field.value}
-                          onChange={field.onChange}
-                          required
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="time"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          label="Horario"
-                          id="time"
-                          type="time"
-                          required
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="border-t border-border pt-5 space-y-4">
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Textarea
-                          label="Descripción Detallada"
-                          id="description"
-                          placeholder="Detalles completos del evento, incluyendo cualquier información relevante"
-                          required
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="correctiveActions"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Textarea
-                          label="Acciones Correctivas Propuestas"
-                          id="correctiveActions"
-                          placeholder="Acciones que se debe tomar para evitar futuros eventos similares"
-                          required
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="physicalEvidenceDescription"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Textarea
-                          label="Evidencias Físicas Disponibles"
-                          id="physicalEvidenceDescription"
-                          placeholder="Evidencias físicas relevantes que se puedan haber obtenido en el evento"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="border-t border-border pt-5 space-y-4">
-                <DynamicListInput
-                  label="Testimonios"
-                  control={form.control}
-                  name="testimonials"
-                  placeholder="Testimonio"
-                  addButtonLabel="Añadir testimonio"
-                  description="Testimonios de las personas que estuvieron presentes en el evento"
-                />
-                <DynamicListInput
-                  label="Observaciones"
-                  control={form.control}
-                  name="observations"
-                  placeholder="Observación"
-                  addButtonLabel="Añadir observación"
-                />
-              </div>
-
-              <div className="border-t border-border pt-5 space-y-4">
-                <h4 className="text-sm font-medium text-foreground">Verificaciones Finales</h4>
-                {finalCheckItems.map((check) => (
-                  <FormField
-                    key={check.key}
-                    control={form.control}
-                    name={`finalChecks.${check.key}`}
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            id={`finalChecks.${check.key}`}
-                            label={check.label}
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                ))}
-              </div>
-            </form>
-          </Form>
+      <div className="w-full max-w-4xl mx-auto space-y-6">
+        <div className="flex gap-3 border-l-4 border-primary pl-4 py-1">
+          <Info className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-foreground font-medium leading-relaxed">
+            Por favor, asegúrese de que el informe sea objetivo y no tenga la intención de señalar
+            responsables. Este documento será presentado a la autoridad competente (UERESGP) para la
+            implementación de medidas de seguridad en todas las escuelas.
+          </p>
         </div>
+        <Form {...form}>
+          <form id="event-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <DatePicker
+                        label="Fecha"
+                        id="date"
+                        value={field.value}
+                        onChange={field.onChange}
+                        required
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="time"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input label="Horario" id="time" type="time" required {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="border-t border-border pt-5 space-y-4">
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Textarea
+                        label="Descripción Detallada"
+                        id="description"
+                        placeholder="Detalles completos del evento, incluyendo cualquier información relevante"
+                        required
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="correctiveActions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Textarea
+                        label="Acciones Correctivas Propuestas"
+                        id="correctiveActions"
+                        placeholder="Acciones que se debe tomar para evitar futuros eventos similares"
+                        required
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="physicalEvidenceDescription"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Textarea
+                        label="Evidencias Físicas Disponibles"
+                        id="physicalEvidenceDescription"
+                        placeholder="Evidencias físicas relevantes que se puedan haber obtenido en el evento"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="border-t border-border pt-5 space-y-4">
+              <DynamicListInput
+                label="Testimonios"
+                control={form.control}
+                name="testimonials"
+                placeholder="Testimonio"
+                addButtonLabel="Añadir testimonio"
+                description="Testimonios de las personas que estuvieron presentes en el evento"
+              />
+              <DynamicListInput
+                label="Observaciones"
+                control={form.control}
+                name="observations"
+                placeholder="Observación"
+                addButtonLabel="Añadir observación"
+              />
+            </div>
+
+            <div className="border-t border-border pt-5 space-y-4">
+              <h4 className="text-sm font-medium text-foreground">Verificaciones Finales</h4>
+              {finalCheckItems.map((check) => (
+                <FormField
+                  key={check.key}
+                  control={form.control}
+                  name={`finalChecks.${check.key}`}
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          id={`finalChecks.${check.key}`}
+                          label={check.label}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              ))}
+            </div>
+          </form>
+        </Form>
       </div>
     </PageLayout>
   );

@@ -12,10 +12,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ConfirmDialog } from '../common/ConfirmDialog';
+import { TrialSidebarCard } from '../common/TrialBanner';
 import { useNavigationItems } from './useNavigationItems';
 
 const Sidebar = () => {
-  const { currentUser, isAdmin, logout } = useAuth();
+  const { currentUser, currentCompany, isAdmin, logout } = useAuth();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const { userInitials, navItems } = useNavigationItems();
 
@@ -26,7 +27,7 @@ const Sidebar = () => {
 
   return (
     <>
-      <aside className="hidden md:flex flex-col justify-between flex-shrink-0 border-r border-sidebar-border bg-sidebar w-[256px]">
+      <aside className="hidden md:flex flex-col justify-between flex-shrink-0 border-r border-sidebar-border bg-sidebar w-[280px]">
         <div className="flex items-center shrink-0 h-16 px-5">
           <div className="bg-primary rounded-lg flex-shrink-0 w-8 h-8 flex items-center justify-center">
             <span className="text-primary-foreground text-xs font-bold">ES</span>
@@ -76,23 +77,25 @@ const Sidebar = () => {
           )}
         </nav>
 
-        <div className="border-t border-sidebar-border p-4">
+        <TrialSidebarCard />
+
+        <div className="border-t border-sidebar-border px-3 py-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="w-full flex items-center rounded-lg transition-colors duration-150 hover:bg-sidebar-accent outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1 gap-2.5 h-11 px-3">
-                <div className="flex items-center justify-center bg-primary text-primary-foreground rounded-lg flex-shrink-0 w-7 h-7 text-[10px] font-medium">
+              <button className="w-full flex items-center rounded-lg transition-colors duration-150 hover:bg-sidebar-accent outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-1 gap-2.5 h-9 px-2">
+                <div className="flex items-center justify-center bg-primary text-primary-foreground rounded-lg flex-shrink-0 w-6 h-6 text-[9px] font-medium">
                   {userInitials}
                 </div>
                 <div className="flex-1 min-w-0 flex items-center justify-between">
                   <span className="text-sm font-medium text-sidebar-foreground truncate">
-                    {currentUser?.name}
+                    {currentCompany?.name ?? currentUser?.name}
                   </span>
                 </div>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="top" align="start" className="w-56">
               <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
-                {currentUser?.email}
+                {isAdmin ? 'Administrador' : currentUser?.email}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
@@ -125,7 +128,7 @@ const Sidebar = () => {
                 onClick={() => setIsLogoutModalOpen(true)}
               >
                 <LogOut className="h-4 w-4 text-destructive" />
-                Cerrar sesion
+                Cerrar sesión
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -136,9 +139,9 @@ const Sidebar = () => {
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
         onConfirm={handleLogout}
-        title="Deseas cerrar sesion?"
-        message="Se cerrara tu sesion actual y tendras que volver a iniciar sesion para acceder."
-        confirmText="Cerrar sesion"
+        title="¿Deseas cerrar sesión?"
+        message="Se cerrará tu sesión actual y tendrás que volver a iniciar sesión para acceder."
+        confirmText="Cerrar sesión"
         cancelText="Cancelar"
         variant="destructive"
       />

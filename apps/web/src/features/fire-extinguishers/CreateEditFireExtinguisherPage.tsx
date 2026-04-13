@@ -304,6 +304,7 @@ const CreateEditFireExtinguisherPage = () => {
       )}
       {activeTab < 6 ? (
         <Button
+          key="next"
           type="button"
           onClick={handleNext}
           disabled={!canAdvanceFromTab(activeTab) || saving}
@@ -312,6 +313,7 @@ const CreateEditFireExtinguisherPage = () => {
         </Button>
       ) : (
         <Button
+          key="submit"
           type="submit"
           form="fire-extinguisher-form"
           loading={saving}

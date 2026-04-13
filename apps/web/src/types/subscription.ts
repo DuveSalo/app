@@ -1,4 +1,10 @@
-export type SubscriptionStatus = 'active' | 'pending' | 'approval_pending' | 'cancelled' | 'suspended' | 'expired';
+export type SubscriptionStatus =
+  | 'active'
+  | 'pending'
+  | 'approval_pending'
+  | 'cancelled'
+  | 'suspended'
+  | 'expired';
 
 export type CompanySubscriptionStatus = 'active' | 'pending' | 'cancelled' | 'paused';
 
@@ -51,6 +57,9 @@ export interface MpCreateSubscriptionRequest {
   companyId: string;
   cardTokenId: string;
   payerEmail: string;
+  cardBrand?: string | null;
+  cardLastFour?: string | null;
+  paymentTypeId?: string | null;
 }
 
 export interface MpCreateSubscriptionResponse {

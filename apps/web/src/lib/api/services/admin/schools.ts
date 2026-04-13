@@ -140,7 +140,7 @@ export const getAllSchools = async (): Promise<AdminSchoolRow[]> => {
       city: row.city,
       province: row.province,
       plan: formatPlanName(row.selected_plan),
-      subscriptionStatus: row.subscription_status || 'Sin suscripcion',
+      subscriptionStatus: row.subscription_status || 'Sin suscripción',
       paymentMethod: 'mercadopago',
       createdAt: row.created_at ?? '',
     };

@@ -26,12 +26,20 @@ function CopyButton({ value, label }: { value: string; label: string }) {
   };
 
   return (
-    <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopy}>
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className="h-7 w-7"
+      onClick={handleCopy}
+      aria-label={`Copiar ${label}`}
+    >
       {copied ? (
         <Check className="h-3.5 w-3.5 text-emerald-600" />
       ) : (
         <Copy className="h-3.5 w-3.5 text-muted-foreground" />
       )}
+      <span className="sr-only">Copiar {label}</span>
     </Button>
   );
 }

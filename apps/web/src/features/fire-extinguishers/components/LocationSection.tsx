@@ -14,7 +14,7 @@ export const LocationSection = ({ form }: SectionProps) => {
             <FormItem>
               <FormControl>
                 <Input
-                  label="Numero de Puesto"
+                  label="Número de Puesto"
                   id="positionNumber"
                   type="text"
                   placeholder="Ej: P-01"

@@ -11,6 +11,9 @@ interface PlanSelectorProps {
     planKey: string;
     cardTokenId: string;
     payerEmail: string;
+    cardBrand?: string | null;
+    cardLastFour?: string | null;
+    paymentTypeId?: string | null;
   }) => Promise<void>;
 }
 
@@ -32,7 +35,7 @@ export const PlanSelector = ({ plans, userEmail, onCreateSubscription }: PlanSel
               setSelectedPlanId(plan.id);
               setPlanError('');
             }}
-            className={`flex items-center gap-3 p-3 rounded-md border cursor-pointer transition-all ${
+            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
               selectedPlanId === plan.id
                 ? 'border-primary ring-1 ring-primary bg-background'
                 : 'border-border hover:border-border bg-background'
@@ -54,17 +57,14 @@ export const PlanSelector = ({ plans, userEmail, onCreateSubscription }: PlanSel
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-foreground">{plan.name}</span>
                 {plan.tag && (
-                  <span className="text-xs font-medium bg-primary text-primary-foreground px-2 py-0.5 rounded-md">
+                  <span className="text-xs font-medium bg-primary text-primary-foreground px-2 py-0.5 rounded-lg">
                     {plan.tag}
                   </span>
                 )}
               </div>
               <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5">
                 {plan.features.map((f, i) => (
-                  <span
-                    key={i}
-                    className="text-xs text-muted-foreground flex items-center gap-0.5"
-                  >
+                  <span key={i} className="text-xs text-muted-foreground flex items-center gap-0.5">
                     <CheckIcon className="w-3 h-3 text-emerald-500 flex-shrink-0" />
                     {f}
                   </span>
@@ -86,8 +86,8 @@ export const PlanSelector = ({ plans, userEmail, onCreateSubscription }: PlanSel
         {isProcessing && (
           <div className="absolute inset-0 bg-background/90 flex items-center justify-center z-10">
             <div className="text-center">
-              <div className="w-6 h-6 border-2 border-border border-t-neutral-900 rounded-full animate-spin mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Procesando suscripcion...</p>
+              <div className="w-6 h-6 border-2 border-border border-t-foreground rounded-full animate-spin mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">Procesando suscripción...</p>
             </div>
           </div>
         )}
@@ -103,10 +103,13 @@ export const PlanSelector = ({ plans, userEmail, onCreateSubscription }: PlanSel
                 planKey: selectedPlanId,
                 cardTokenId: data.token,
                 payerEmail: data.email || userEmail || '',
+                cardBrand: data.paymentMethodId || null,
+                cardLastFour: data.lastFourDigits,
+                paymentTypeId: data.paymentTypeId,
               });
             } catch (err) {
               console.error('[MP] PlanSelector: Create subscription error:', err);
-              const msg = 'Error al crear la suscripcion. Intente nuevamente.';
+              const msg = 'Error al crear la suscripción. Intente nuevamente.';
               setPlanError(msg);
               toast.error(msg);
             } finally {

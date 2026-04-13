@@ -52,7 +52,7 @@ export function StatusFilter<TData>({ column }: StatusFilterProps<TData>) {
             variant="ghost"
             size="default"
             className={cn(
-              'h-9 border-border bg-background',
+              'h-9 border border-border bg-background',
               hasActiveFilters && activeFilterButtonClasses
             )}
           >

@@ -42,9 +42,7 @@ function companyToFormValues(company: Company): CompanyInfoFormValues {
     phone: company.phone || '',
     country: company.country,
     services: company.services
-      ? (Object.keys(company.services) as QRDocumentType[]).filter(
-          (key) => company.services?.[key]
-        )
+      ? (Object.keys(company.services) as QRDocumentType[]).filter((key) => company.services?.[key])
       : [],
   };
 }
@@ -102,7 +100,7 @@ export const CompanyInfoSection = ({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="flex justify-between items-center mb-2">
-            <h2 className="text-base font-medium text-foreground">Informacion de la empresa</h2>
+            <h2 className="text-base font-medium text-foreground">Información de la empresa</h2>
           </div>
           <div className="space-y-4">
             <FormField
@@ -171,7 +169,7 @@ export const CompanyInfoSection = ({
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Direccion</FormLabel>
+                  <FormLabel>Dirección</FormLabel>
                   <FormControl>
                     <Input id="companyAddress" {...field} />
                   </FormControl>
@@ -260,10 +258,10 @@ export const CompanyInfoSection = ({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-base font-medium text-foreground">Informacion de la empresa</h2>
+        <h2 className="text-base font-medium text-foreground">Información de la empresa</h2>
         <Button type="button" onClick={handleEdit}>
           <EditIcon className="w-4 h-4 mr-2" />
-          Editar informacion
+          Editar información
         </Button>
       </div>
       <div className="space-y-4">
@@ -288,7 +286,7 @@ export const CompanyInfoSection = ({
           </div>
         </div>
         <div className="border-t border-border pt-4">
-          <p className="text-sm font-medium text-foreground mb-1">Direccion</p>
+          <p className="text-sm font-medium text-foreground mb-1">Dirección</p>
           <p className="text-sm text-foreground">{currentCompany.address}</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-border pt-4">
@@ -314,7 +312,7 @@ export const CompanyInfoSection = ({
                 .map(([service]) => (
                   <span
                     key={service}
-                    className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-muted text-foreground border border-border"
+                    className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-muted text-foreground border border-border"
                   >
                     {serviceValueToLabelMap.get(service as QRDocumentType)}
                   </span>

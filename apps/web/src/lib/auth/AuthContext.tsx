@@ -15,7 +15,11 @@ import { toast } from 'sonner';
 import { createLogger } from '@/lib/utils/logger';
 import { NotFoundError } from '@/lib/utils/errors';
 import { getTrialStatus } from '@/lib/utils/trial';
-import { supabase } from '@/lib/supabase/client';
+import {
+  recoverSupabaseAuthSession,
+  startManagedSupabaseAutoRefresh,
+  supabase,
+} from '@/lib/supabase/client';
 import { setServiceContext, clearServiceContext } from '@/lib/api/services/context';
 
 const logger = createLogger('AuthContext');
@@ -59,6 +63,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const fetchInitialData = useCallback(async () => {
     setIsLoading(true);
     try {
+      await recoverSupabaseAuthSession();
+      startManagedSupabaseAutoRefresh();
+
       const user = await api.getCurrentUser();
       setCurrentUser(user);
       if (user) {

@@ -222,7 +222,7 @@ const SelfProtectionSystemListPage = () => {
                   variant="ghost"
                   size="default"
                   className={cn(
-                    'h-9 border-border bg-background',
+                    'h-9 border border-border bg-background',
                     hasActiveFilters && activeFilterButtonClasses
                   )}
                 >
@@ -439,7 +439,7 @@ const SelfProtectionSystemListPage = () => {
         isOpen={deleteId !== null}
         onClose={() => setDeleteId(null)}
         onConfirm={handleDeleteConfirm}
-        title="Eliminar sistema?"
+        title="¿Eliminar sistema?"
         message="Esta accion no se puede deshacer. El sistema de autoproteccion sera eliminado permanentemente."
         confirmText="Eliminar"
         cancelText="Cancelar"

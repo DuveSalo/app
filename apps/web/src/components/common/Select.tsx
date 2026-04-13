@@ -1,22 +1,6 @@
-import { forwardRef, type SelectHTMLAttributes, type ReactNode } from 'react';
-import { cva } from 'class-variance-authority';
+import { forwardRef, useId, type SelectHTMLAttributes, type ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const selectVariants = cva(
-  'flex w-full h-10 rounded-md border bg-background px-3 text-sm appearance-none cursor-pointer transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed',
-  {
-    variants: {
-      hasError: {
-        true: 'border-destructive text-foreground focus-visible:ring-destructive/10 focus-visible:border-destructive',
-        false: 'border-border text-foreground focus-visible:ring-neutral-900/10 focus-visible:border-neutral-400 hover:border-neutral-300',
-      },
-    },
-    defaultVariants: {
-      hasError: false,
-    },
-  }
-);
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
@@ -28,30 +12,48 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, id, error, helperText, options, children, className, disabled, placeholder = 'Seleccione...', ...props }, ref) => {
-    const hasError = !!error;
+  (
+    {
+      label,
+      id,
+      error,
+      helperText,
+      options,
+      children,
+      className,
+      placeholder = 'Seleccione...',
+      ...props
+    },
+    ref
+  ) => {
+    const generatedId = useId();
+    const selectId = id ?? generatedId;
+    const hasError = Boolean(error);
 
     return (
       <div className="w-full">
         {label && (
-          <label
-            htmlFor={id}
-            className="block text-sm font-medium text-foreground mb-1.5"
-          >
+          <label htmlFor={selectId} className="block text-sm font-medium text-foreground mb-1.5">
             {label}
           </label>
         )}
         <div className="relative">
           <select
-            id={id}
+            id={selectId}
             ref={ref}
-            disabled={disabled}
-            className={cn(selectVariants({ hasError }), 'pr-9', className)}
+            aria-invalid={hasError || undefined}
+            className={cn(
+              'flex h-8 w-full appearance-none items-center rounded-lg border border-input bg-transparent px-3 pr-9 text-sm transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50',
+              hasError && 'border-destructive focus-visible:ring-destructive/20',
+              className
+            )}
             {...props}
           >
             {options ? (
               <>
-                <option value="" disabled className="text-neutral-400">{placeholder}</option>
+                <option value="" disabled className="text-muted-foreground">
+                  {placeholder}
+                </option>
                 {options.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
@@ -62,14 +64,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               children
             )}
           </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
         </div>
-        {error && (
-          <p className="mt-1.5 text-xs text-destructive">{error}</p>
-        )}
-        {helperText && !error && (
-          <p className="mt-1.5 text-xs text-muted-foreground">{helperText}</p>
-        )}
+        {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
+        {helperText && !error && <p className="mt-1 text-xs text-muted-foreground">{helperText}</p>}
       </div>
     );
   }

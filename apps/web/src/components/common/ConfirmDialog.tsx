@@ -17,7 +17,7 @@ interface ConfirmDialogProps {
   message?: string;
   confirmText?: string;
   cancelText?: string;
-  variant?: 'danger' | 'warning' | 'info';
+  variant?: 'danger' | 'destructive' | 'warning' | 'info';
   isLoading?: boolean;
 }
 
@@ -44,7 +44,7 @@ export const ConfirmDialog = ({
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isLoading}
-            variant={variant === 'danger' ? 'destructive' : 'default'}
+            variant={variant === 'danger' || variant === 'destructive' ? 'destructive' : 'default'}
           >
             {confirmText}
           </AlertDialogAction>

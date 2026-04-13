@@ -41,7 +41,10 @@ export class ValidationError extends AppError {
  * Not found errors
  */
 export class NotFoundError extends AppError {
-  constructor(message: string, public readonly resource?: string) {
+  constructor(
+    message: string,
+    public readonly resource?: string
+  ) {
     super(message, 'NOT_FOUND', 404);
     this.name = 'NotFoundError';
   }
@@ -84,9 +87,7 @@ export class EmailConfirmationRequiredError extends AuthError {
  * This is useful for errors originating from external sources that don't
  * provide structured error objects or custom error classes.
  */
-const mapGenericErrorMessage = (
-  message: string
-): { message: string; code: string } | null => {
+const mapGenericErrorMessage = (message: string): { message: string; code: string } | null => {
   if (message.includes('EMAIL_CONFIRMATION_REQUIRED')) {
     return {
       message: 'Por favor confirma tu email antes de continuar.',
@@ -181,10 +182,16 @@ export const handleError = (error: unknown): { message: string; code?: string } 
 /**
  * Throws appropriate error based on Supabase error
  */
-export const handleSupabaseError = (error: { message: string; code?: string }, context?: string): never => {
+export const handleSupabaseError = (
+  error: { message: string; code?: string },
+  context?: string
+): never => {
   const message = context ? `${context}: ${error.message}` : error.message;
 
-  if (error.message === 'Failed to fetch' || error.message === 'NetworkError when attempting to fetch resource.') {
+  if (
+    error.message.includes('Failed to fetch') ||
+    error.message.includes('NetworkError when attempting to fetch resource')
+  ) {
     throw new NetworkError('No se pudo conectar con el servidor. Verifica tu conexión a internet.');
   }
 
@@ -193,7 +200,10 @@ export const handleSupabaseError = (error: { message: string; code?: string }, c
   }
 
   if (error.code === '23503') {
-    throw new DatabaseError('No se puede realizar esta operación debido a restricciones de integridad.', 'FOREIGN_KEY_VIOLATION');
+    throw new DatabaseError(
+      'No se puede realizar esta operación debido a restricciones de integridad.',
+      'FOREIGN_KEY_VIOLATION'
+    );
   }
 
   if (error.code === '42P01') {

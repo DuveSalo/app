@@ -38,7 +38,7 @@ export const StatusBadge = ({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md border text-xs font-medium',
+        'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-xs font-medium',
         config.classes,
         className
       )}
@@ -73,7 +73,7 @@ export const ColorBadge = ({ variant, label, className }: ColorBadgeProps) => {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md border text-xs font-medium',
+        'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-xs font-medium',
         config.classes,
         className
       )}

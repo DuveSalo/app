@@ -235,7 +235,7 @@ const NotificationBell = () => {
                             void markNotificationAsRead(notification);
                           }}
                           className="mt-3 mr-3 p-1 rounded-lg hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 outline-none"
-                          aria-label={`Marcar "${notification.title}" como leida`}
+                          aria-label={`Marcar "${notification.title}" como leída`}
                         >
                           <Check className="w-4 h-4 text-muted-foreground" />
                         </button>

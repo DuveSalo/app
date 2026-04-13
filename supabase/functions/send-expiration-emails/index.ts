@@ -6,7 +6,7 @@
  * expiring within 30 days, groups by company, and sends a single
  * digest email per company owner.
  *
- * Security: Requires CRON_SECRET Bearer token.
+ * Security: Accepts CRON_SECRET and the legacy scheduler service-role Bearer token.
  */
 
 import { supabaseAdmin } from '../_shared/supabase-admin.ts';
@@ -21,6 +21,17 @@ interface ExpiringItem {
   companyId: string;
 }
 
+function isAuthorizedCronRequest(req: Request): boolean {
+  const authHeader = req.headers.get('Authorization');
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const validTokens = [
+    Deno.env.get('CRON_SECRET'),
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+  ].filter((value): value is string => Boolean(value));
+
+  return Boolean(token && validTokens.includes(token));
+}
+
 function daysBetween(dateStr: string): number {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -31,10 +42,8 @@ function daysBetween(dateStr: string): number {
 
 Deno.serve(async (req) => {
   try {
-    // Verify this is called by the CRON scheduler (CRON_SECRET only)
-    const cronSecret = Deno.env.get('CRON_SECRET');
-    const authHeader = req.headers.get('Authorization');
-    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+    // Accept the dedicated CRON secret and the legacy scheduler service-role token.
+    if (!isAuthorizedCronRequest(req)) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },

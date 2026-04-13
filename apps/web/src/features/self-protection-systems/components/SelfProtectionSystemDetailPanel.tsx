@@ -1,4 +1,5 @@
-import { type ReactNode, type LucideIcon } from 'react';
+import { type ReactNode } from 'react';
+import { type LucideIcon } from 'lucide-react';
 import {
   X,
   Pencil,
@@ -86,7 +87,7 @@ const DocumentRow = ({ title, date, document, onOpen }: DocumentRowProps) => (
       <p className="text-xs text-muted-foreground">{formatOptionalDate(date)}</p>
     </div>
     {document?.path || document?.url ? (
-      <Button variant="ghost" size="icon" onClick={() => onOpen(document)}>
+      <Button variant="ghost" onClick={() => onOpen(document)}>
         <Eye className="h-3.5 w-3.5" />
         Ver PDF
       </Button>
@@ -110,7 +111,7 @@ const DrillRow = ({ index, date, document, onOpen }: DrillRowProps) => (
       <p className="text-xs text-muted-foreground">{formatOptionalDate(date)}</p>
     </div>
     {document?.path || document?.url ? (
-      <Button variant="ghost" size="icon" onClick={() => onOpen(document)}>
+      <Button variant="ghost" onClick={() => onOpen(document)}>
         <Eye className="h-3.5 w-3.5" />
         Ver PDF
       </Button>

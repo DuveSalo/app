@@ -1,19 +1,9 @@
-import { type ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Eye, FileText } from 'lucide-react';
+import { Eye, FileText, CreditCard, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { DataTable } from '@/components/common/DataTable';
 import { ColorBadge } from '@/components/common/StatusBadge';
 import { formatDateLocal, formatCurrency } from '@/lib/utils/dateUtils';
 import type { AdminPaymentRow } from '../types';
 import { PaymentMethodBadge } from './PaymentMethodBadge';
-
-// --- Payment Status Badge ---
 
 const paymentStatusConfig: Record<
   string,
@@ -40,130 +30,84 @@ export function AdminRecentPaymentsTable({
   onViewDetails,
   onViewReceipt,
 }: AdminRecentPaymentsTableProps) {
-  const saleColumns: ColumnDef<AdminPaymentRow, string>[] = [
-    {
-      accessorKey: 'companyName',
-      header: 'Escuela',
-      cell: ({ row }) => <span className="font-medium">{row.original.companyName}</span>,
-    },
-    {
-      accessorKey: 'amount',
-      header: 'Monto',
-      cell: ({ row }) => formatCurrency(row.original.amount),
-      meta: { hideOnMobile: true },
-    },
-    {
-      accessorKey: 'paymentMethod',
-      header: 'Método',
-      cell: ({ row }) => (
-        <PaymentMethodBadge
-          method={row.original.paymentMethod}
-          cardBrand={row.original.cardBrand}
-          cardLastFour={row.original.cardLastFour}
-        />
-      ),
-      meta: { hideOnMobile: true },
-    },
-    {
-      accessorKey: 'status',
-      header: 'Estado',
-      cell: ({ row }) => <PaymentStatusBadge status={row.original.status} />,
-    },
-    {
-      accessorKey: 'createdAt',
-      header: 'Fecha',
-      cell: ({ row }) => formatDateLocal(row.original.createdAt),
-      meta: { hideOnMobile: true },
-    },
-    {
-      id: 'actions',
-      header: '',
-      cell: ({ row }) => {
-        const payment = row.original;
-        const isBankTransfer = payment.paymentMethod === 'bank_transfer';
-
-        return (
-          <div className="flex justify-end">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <MoreHorizontal className="h-4 w-4" />
-                  <span className="sr-only">Acciones</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onViewDetails(payment)}>
-                  <FileText className="mr-2 h-4 w-4" />
-                  Ver detalles
-                </DropdownMenuItem>
-                {isBankTransfer && payment.receiptUrl && (
-                  <DropdownMenuItem onClick={() => onViewReceipt(payment)}>
-                    <Eye className="mr-2 h-4 w-4" />
-                    Ver comprobante
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        );
-      },
-    },
-  ];
+  if (payments.length === 0) {
+    return (
+      <section>
+        <h2 className="text-base font-medium mb-3">Ventas recientes</h2>
+        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground border rounded-lg">
+          <CreditCard className="h-8 w-8 mb-2 opacity-40" />
+          <p className="text-sm">No hay ventas recientes</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section>
       <h2 className="text-base font-medium mb-3">Ventas recientes</h2>
-      <DataTable
-        columns={saleColumns}
-        data={payments}
-        searchKey="companyName"
-        searchPlaceholder="Buscar..."
-        pageSize={5}
-        cardOnly
-        cardRenderer={(row) => {
-          const isBankTransfer = row.paymentMethod === 'bank_transfer';
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        {payments.map((payment) => {
+          const isBankTransfer = payment.paymentMethod === 'bank_transfer';
           return (
-            <div className="border rounded-lg p-4 bg-card">
-              <div className="flex items-center justify-between">
-                <span className="font-medium">{row.companyName}</span>
-                <PaymentMethodBadge
-                  method={row.paymentMethod}
-                  cardBrand={row.cardBrand}
-                  cardLastFour={row.cardLastFour}
-                />
+            <div key={payment.id} className="border rounded-lg bg-card p-4 flex flex-col gap-3">
+              {/* Amount + Status */}
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">Monto</p>
+                  <p className="text-xl font-semibold tabular-nums">
+                    {formatCurrency(payment.amount)}
+                  </p>
+                </div>
+                <PaymentStatusBadge status={payment.status} />
               </div>
-              <div className="mt-1 text-sm text-muted-foreground flex items-center gap-2">
-                {formatCurrency(row.amount)} · <PaymentStatusBadge status={row.status} />
+
+              {/* School name */}
+              <div className="flex items-center gap-1.5 text-sm">
+                <Building2 className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                <span className="font-medium truncate">{payment.companyName}</span>
               </div>
-              <div className="mt-2 flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  {formatDateLocal(row.createdAt)}
-                </span>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal className="h-4 w-4" />
-                      <span className="sr-only">Acciones</span>
+
+              {/* Footer: method + date + actions */}
+              <div className="flex items-center justify-between pt-2 border-t">
+                <div className="flex items-center gap-2 min-w-0">
+                  <PaymentMethodBadge
+                    method={payment.paymentMethod}
+                    cardBrand={payment.cardBrand}
+                    cardLastFour={payment.cardLastFour}
+                  />
+                  <span className="text-xs text-muted-foreground flex-shrink-0">
+                    {formatDateLocal(payment.createdAt)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-0.5 flex-shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => onViewDetails(payment)}
+                    title="Ver detalles"
+                    aria-label={`Ver detalles de ${payment.companyName}`}
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                  </Button>
+                  {isBankTransfer && payment.receiptUrl && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => onViewReceipt(payment)}
+                      title="Ver comprobante"
+                      aria-label={`Ver comprobante de ${payment.companyName}`}
+                    >
+                      <Eye className="h-3.5 w-3.5" />
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onViewDetails(row)}>
-                      <FileText className="mr-2 h-4 w-4" />
-                      Ver detalles
-                    </DropdownMenuItem>
-                    {isBankTransfer && row.receiptUrl && (
-                      <DropdownMenuItem onClick={() => onViewReceipt(row)}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        Ver comprobante
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  )}
+                </div>
               </div>
             </div>
           );
-        }}
-      />
+        })}
+      </div>
     </section>
   );
 }

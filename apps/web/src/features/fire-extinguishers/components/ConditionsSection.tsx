@@ -8,7 +8,7 @@ export const ConditionsSection = ({ form }: SectionProps) => {
     <div className="space-y-6">
       <div>
         <h4 className="text-sm font-medium text-foreground mb-3">Verificaciones</h4>
-        <div className="space-y-3 bg-info/10 p-4 border border-info/30 rounded-md">
+        <div className="space-y-3">
           <FormField
             control={form.control}
             name="labelsLegible"
@@ -16,7 +16,7 @@ export const ConditionsSection = ({ form }: SectionProps) => {
               <FormItem>
                 <FormControl>
                   <Checkbox
-                    label="Estan legibles las etiquetas identificatorias?"
+                    label="¿Están legibles las etiquetas identificatorias?"
                     id="labelsLegible"
                     name="labelsLegible"
                     checked={field.value}
@@ -33,7 +33,7 @@ export const ConditionsSection = ({ form }: SectionProps) => {
               <FormItem>
                 <FormControl>
                   <Checkbox
-                    label="La presion esta dentro del intervalo de funcionamiento?"
+                    label="¿La presión está dentro del intervalo de funcionamiento?"
                     id="pressureWithinRange"
                     name="pressureWithinRange"
                     checked={field.value}
@@ -50,7 +50,7 @@ export const ConditionsSection = ({ form }: SectionProps) => {
               <FormItem>
                 <FormControl>
                   <Checkbox
-                    label="Posee precinto y trabas de seguridad?"
+                    label="¿Posee precinto y trabas de seguridad?"
                     id="hasSealAndSafety"
                     name="hasSealAndSafety"
                     checked={field.value}
@@ -67,7 +67,7 @@ export const ConditionsSection = ({ form }: SectionProps) => {
               <FormItem>
                 <FormControl>
                   <Checkbox
-                    label="Las instrucciones de funcionamiento estan legibles?"
+                    label="¿Las instrucciones de funcionamiento están legibles?"
                     id="instructionsLegible"
                     name="instructionsLegible"
                     checked={field.value}

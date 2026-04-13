@@ -134,7 +134,6 @@ const DashboardPage = () => {
 
       return allItems.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
     },
-    enabled: !!currentCompany,
   });
 
   const stats = useMemo(() => {

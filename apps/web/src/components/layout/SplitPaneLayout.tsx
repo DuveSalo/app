@@ -34,7 +34,7 @@ export function SplitPaneLayout<T extends SplitPaneItem>({
     const count = totalCount ?? items.length;
 
     return (
-        <div className="flex flex-1 bg-background rounded-md border border-border overflow-hidden min-h-0 h-full">
+        <div className="flex flex-1 bg-background rounded-lg border border-border overflow-hidden min-h-0 h-full">
             {/* ── Left Panel (Master List) ── */}
             <aside className="w-1/3 min-w-[240px] max-w-[360px] border-r border-border flex flex-col bg-muted/50">
                 {/* Header */}
