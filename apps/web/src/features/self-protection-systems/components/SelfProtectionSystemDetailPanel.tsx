@@ -172,7 +172,7 @@ export const SelfProtectionSystemDetailPanel = ({
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <StatusBadge status={expirationStatus} className="rounded-full px-3 py-1" />
+                  <StatusBadge status={expirationStatus} />
                   <Button
                     variant="ghost"
                     size="icon"

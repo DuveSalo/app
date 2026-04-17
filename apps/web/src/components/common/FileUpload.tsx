@@ -146,8 +146,8 @@ export const FileUpload = ({
         </div>
       ) : (
         <div className="rounded-lg border border-border px-3.5 py-2.5 bg-background">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 overflow-hidden">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <FileIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" strokeWidth={2} />
               <span
                 className="text-sm font-medium text-foreground truncate"
@@ -159,7 +159,7 @@ export const FileUpload = ({
                 <span className="text-xs text-muted-foreground flex-shrink-0">{fileSize}</span>
               )}
             </div>
-            <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+            <div className="flex items-center gap-1 flex-shrink-0">
               {selectedFile && (
                 <button
                   type="button"

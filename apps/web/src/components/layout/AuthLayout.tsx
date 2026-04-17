@@ -30,7 +30,9 @@ const OnboardingStepper = ({ steps, currentStep }: { steps: string[]; currentSte
       return (
         <div key={label} className="contents">
           {index > 0 && (
-            <div className={`hidden h-px w-8 sm:block ${isDone ? 'bg-primary' : 'bg-border'}`} />
+            <div
+              className={`hidden h-px w-8 sm:block ${index < currentStep ? 'bg-primary' : 'bg-border'}`}
+            />
           )}
           <div className="flex items-center gap-2.5">
             <div
@@ -108,13 +110,13 @@ const AuthLayout = ({ children, variant, wizardSteps = [], currentStep = 1 }: Au
   }
 
   return (
-    <div className="custom-scrollbar min-h-screen overflow-y-auto bg-muted">
-      <div className="flex min-h-screen flex-col">
+    <div className="h-dvh overflow-y-auto bg-muted">
+      <div className="flex min-h-full flex-col">
         <div className="flex h-12 w-full flex-shrink-0 items-center gap-3 px-6 sm:px-10">
           <BrandMark />
         </div>
 
-        <div className="mx-auto flex w-full max-w-[1120px] flex-1 flex-col items-center gap-2 px-4 pb-1 pt-1 sm:gap-3 sm:px-6 sm:pb-1 sm:pt-2">
+        <div className="mx-auto flex w-full max-w-[1120px] flex-1 flex-col items-center gap-2 px-4 pb-6 pt-1 sm:gap-3 sm:px-6 sm:pb-6 sm:pt-2">
           {wizardSteps.length > 0 && (
             <OnboardingStepper steps={wizardSteps} currentStep={currentStep} />
           )}
