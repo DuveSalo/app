@@ -1,7 +1,6 @@
-
 // Type guards and safe type converters for database JSON types
 import type { Json } from '../../types/database.types';
-import type { CompanyServices, PaymentMethod } from '../../types/company';
+import type { CompanyServices } from '../../types/company';
 
 /**
  * Safely converts Json to CompanyServices
@@ -11,21 +10,6 @@ export const toCompanyServices = (json: Json | null | undefined): CompanyService
     return {};
   }
   return json as CompanyServices;
-};
-
-/**
- * Safely converts Json to PaymentMethod array
- */
-export const toPaymentMethods = (json: Json | null | undefined): PaymentMethod[] => {
-  if (!json || !Array.isArray(json)) {
-    return [];
-  }
-  return json.map((item): PaymentMethod => {
-    if (typeof item !== 'object' || !item) {
-      throw new Error('Invalid payment method data');
-    }
-    return item as unknown as PaymentMethod;
-  });
 };
 
 /**
@@ -56,4 +40,3 @@ export const toBooleanRecord = (json: Json | null | undefined): Record<string, b
   }
   return result;
 };
-

@@ -16,8 +16,6 @@ export function assertNever(x: never): never {
 export interface Subscription {
   readonly id: string;
   companyId: string;
-  mpPreapprovalId: string | null;
-  mpPlanId: string | null;
   planKey: string;
   planName: string;
   amount: number;
@@ -45,55 +43,7 @@ export interface PaymentTransaction {
   feeAmount: number | null;
   netAmount: number | null;
   currency: string;
-  status: 'completed' | 'pending' | 'refunded' | 'failed';
+  status: 'approved' | 'pending' | 'rejected';
   paidAt: string | null;
   createdAt: string;
-}
-
-// --- MercadoPago types ---
-
-export interface MpCreateSubscriptionRequest {
-  planKey: string;
-  companyId: string;
-  cardTokenId: string;
-  payerEmail: string;
-  cardBrand?: string | null;
-  cardLastFour?: string | null;
-  paymentTypeId?: string | null;
-}
-
-export interface MpCreateSubscriptionResponse {
-  success: boolean;
-  subscriptionId: string;
-  status: string;
-}
-
-export type MpManageAction = 'change_plan' | 'change_card' | 'cancel' | 'pause' | 'reactivate';
-
-export interface MpManageSubscriptionRequest {
-  action: MpManageAction;
-  mpPreapprovalId: string;
-  newPlanKey?: string;
-  cardTokenId?: string;
-  cardLastFour?: string | null;
-  reason?: string;
-}
-
-export interface MpManageSubscriptionResponse {
-  success: boolean;
-  action: string;
-  status: string;
-}
-
-export interface MpSubscriptionStatusResponse {
-  nextPaymentDate: string | null;
-  paymentMethodId: string | null;
-  cardLastFour: string | null;
-}
-
-export interface ChangeCardData {
-  cardTokenId: string;
-  cardLastFour?: string | null;
-  cardBrand?: string | null;
-  paymentTypeId?: string | null;
 }

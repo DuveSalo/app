@@ -165,7 +165,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setCurrentCompany(company);
         setServiceContext(user.id, company.id);
         const trialStatus = getTrialStatus(company);
-        if (company.isSubscribed || trialStatus === 'active') {
+        const isRejected =
+          company.subscriptionStatus === 'rejected' || company.bankTransferStatus === 'rejected';
+        if (isRejected) {
+          navigate(ROUTE_PATHS.BANK_TRANSFER_STATUS);
+        } else if (company.isSubscribed || trialStatus === 'active') {
           navigate(ROUTE_PATHS.DASHBOARD);
         } else if (trialStatus === 'expired') {
           navigate(ROUTE_PATHS.TRIAL_EXPIRED);

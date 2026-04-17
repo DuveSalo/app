@@ -4,15 +4,13 @@
  *
  * Flow:
  * 1. Validate JWT and load the authenticated user
- * 2. Cancel active MercadoPago subscription (if any)
- * 3. Send farewell email
- * 4. Delete user via admin API (DB cascades handle the rest)
+ * 2. Send farewell email
+ * 3. Delete user via admin API (DB cascades handle the rest)
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { getSupabasePublishableKey } from '../_shared/supabase-keys.ts';
-import { getMpConfig, getMpHeaders } from '../_shared/mp-auth.ts';
 import { supabaseAdmin } from '../_shared/supabase-admin.ts';
 import { sendEmailSafe } from '../_shared/resend.ts';
 import { accountDeletedEmail } from '../_shared/email-templates.ts';
@@ -24,7 +22,10 @@ async function cleanupUserReferences(userId: string): Promise<void> {
     .eq('reviewed_by', userId);
 
   if (reviewedPaymentsError) {
-    console.error('[delete-account] Failed to detach manual_payments.reviewed_by:', reviewedPaymentsError.message);
+    console.error(
+      '[delete-account] Failed to detach manual_payments.reviewed_by:',
+      reviewedPaymentsError.message
+    );
   }
 
   const { error: activityLogsError } = await supabaseAdmin
@@ -33,7 +34,10 @@ async function cleanupUserReferences(userId: string): Promise<void> {
     .eq('admin_id', userId);
 
   if (activityLogsError) {
-    console.error('[delete-account] Failed to detach activity_logs.admin_id:', activityLogsError.message);
+    console.error(
+      '[delete-account] Failed to detach activity_logs.admin_id:',
+      activityLogsError.message
+    );
 
     if (
       activityLogsError.message.includes('null value in column') ||
@@ -45,7 +49,10 @@ async function cleanupUserReferences(userId: string): Promise<void> {
         .eq('admin_id', userId);
 
       if (deleteActivityLogsError) {
-        console.error('[delete-account] Failed to delete fallback activity_logs rows:', deleteActivityLogsError.message);
+        console.error(
+          '[delete-account] Failed to delete fallback activity_logs rows:',
+          deleteActivityLogsError.message
+        );
       }
     }
   }
@@ -61,17 +68,15 @@ Deno.serve(async (req) => {
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...cors, 'Content-Type': 'application/json' } },
-      );
+      return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
+        status: 401,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
     }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      getSupabasePublishableKey(),
-      { global: { headers: { Authorization: authHeader } } },
-    );
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, getSupabasePublishableKey(), {
+      global: { headers: { Authorization: authHeader } },
+    });
 
     const {
       data: { user },
@@ -80,54 +85,13 @@ Deno.serve(async (req) => {
 
     if (userError || !user) {
       console.error('[delete-account] JWT validation failed:', userError?.message);
-      return new Response(
-        JSON.stringify({ error: userError?.message || 'Unauthorized' }),
-        { status: 401, headers: { ...cors, 'Content-Type': 'application/json' } },
-      );
+      return new Response(JSON.stringify({ error: userError?.message || 'Unauthorized' }), {
+        status: 401,
+        headers: { ...cors, 'Content-Type': 'application/json' },
+      });
     }
 
     console.log(`[delete-account] Starting deletion for user ${user.id}`);
-
-    // Find company and active MP subscription
-    const { data: company } = await supabaseAdmin
-      .from('companies')
-      .select('id')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (company) {
-      const { data: activeSub } = await supabaseAdmin
-        .from('subscriptions')
-        .select('mp_preapproval_id, status')
-        .eq('company_id', company.id)
-        .eq('payment_provider', 'mercadopago')
-        .in('status', ['active', 'pending'])
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (activeSub?.mp_preapproval_id && ['active', 'pending'].includes(activeSub.status)) {
-        console.log(`[delete-account] Cancelling MP subscription ${activeSub.mp_preapproval_id}`);
-        try {
-          const config = getMpConfig();
-          const mpRes = await fetch(
-            `${config.baseUrl}/preapproval/${activeSub.mp_preapproval_id}`,
-            {
-              method: 'PUT',
-              headers: getMpHeaders(),
-              body: JSON.stringify({ status: 'cancelled', reason: 'Account deleted by user' }),
-            },
-          );
-          if (!mpRes.ok) {
-            console.error(`[delete-account] MP cancel returned HTTP ${mpRes.status}`);
-          } else {
-            console.log(`[delete-account] MP subscription cancelled`);
-          }
-        } catch (mpErr) {
-          console.error('[delete-account] Failed to cancel MP subscription:', mpErr);
-        }
-      }
-    }
 
     // Send farewell email (non-blocking)
     if (user.email) {
@@ -168,20 +132,20 @@ Deno.serve(async (req) => {
       console.error('[delete-account] Failed to delete user:', deleteError.message);
       return new Response(
         JSON.stringify({ error: deleteError.message || 'Error al eliminar la cuenta' }),
-        { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } },
+        { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } }
       );
     }
 
     console.log(`[delete-account] User ${user.id} deleted successfully`);
-    return new Response(
-      JSON.stringify({ success: true }),
-      { status: 200, headers: { ...cors, 'Content-Type': 'application/json' } },
-    );
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     console.error('[delete-account] Unexpected error:', error);
-    return new Response(
-      JSON.stringify({ error: 'Error al procesar la solicitud' }),
-      { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } },
-    );
+    return new Response(JSON.stringify({ error: 'Error al procesar la solicitud' }), {
+      status: 500,
+      headers: { ...cors, 'Content-Type': 'application/json' },
+    });
   }
 });

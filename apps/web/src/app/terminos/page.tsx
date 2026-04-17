@@ -54,7 +54,7 @@ export default function TerminosPage() {
             <p>
               Al crear una cuenta, usted es responsable de mantener la seguridad
               de su cuenta y de toda la actividad que ocurra bajo ella. Las
-              suscripciones se facturan mensualmente a través de MercadoPago.
+              suscripciones se facturan mensualmente mediante transferencia bancaria.
             </p>
           </section>
 

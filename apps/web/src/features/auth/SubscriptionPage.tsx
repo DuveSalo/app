@@ -1,28 +1,24 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { Check, CreditCard, Building2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import AuthLayout from '../../components/layout/AuthLayout';
 import { ROUTE_PATHS } from '../../constants/index';
-import { CardForm } from './components/CardForm';
 import { BankDetailsCard } from './components/BankDetailsCard';
 import { usePlans } from '../../lib/hooks/usePlans';
 import * as api from '../../lib/api/services';
-
-type PaymentMethodOption = 'card' | 'bank_transfer';
 
 const wizardSteps = ['Crear Cuenta', 'Registrar Escuela', 'Suscripción'];
 
 const SubscriptionPage = () => {
   const [selectedPlanId, setSelectedPlanId] = useState<string>('standard');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodOption>('card');
   const [error, setError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const { currentCompany, currentUser, pendingCompanyData, setCompany, refreshCompany } = useAuth();
+  const { currentCompany, pendingCompanyData, setCompany, refreshCompany } = useAuth();
   const navigate = useNavigate();
   const { plans: plansData, isLoading: plansLoading } = usePlans({ includeTrial: true });
 
@@ -56,39 +52,6 @@ const SubscriptionPage = () => {
       navigate(ROUTE_PATHS.DASHBOARD);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al activar la prueba.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleTokenReady = async (data: {
-    token: string;
-    paymentMethodId: string;
-    lastFourDigits: string | null;
-    paymentTypeId: string | null;
-    email: string;
-  }) => {
-    setIsProcessing(true);
-    setError('');
-
-    try {
-      const company = await ensureCompany();
-      const result = await api.mpCreateSubscription({
-        planKey: selectedPlanId,
-        companyId: company.id,
-        cardTokenId: data.token,
-        payerEmail: data.email || currentUser?.email || '',
-        cardBrand: data.paymentMethodId || null,
-        cardLastFour: data.lastFourDigits,
-        paymentTypeId: data.paymentTypeId,
-      });
-
-      if (result.success) {
-        await refreshCompany(true);
-        navigate(ROUTE_PATHS.DASHBOARD);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al crear la suscripción.');
     } finally {
       setIsProcessing(false);
     }
@@ -188,62 +151,10 @@ const SubscriptionPage = () => {
 
           {selectedPlanId !== 'trial' && (currentCompany || pendingCompanyData) && (
             <div className="flex flex-col gap-3">
-              <h3 className="text-sm font-medium text-foreground">Metodo de pago</h3>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('card')}
-                  aria-pressed={paymentMethod === 'card'}
-                  className={`flex items-center gap-3 rounded-lg p-3.5 text-left transition-colors focus:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 ${
-                    paymentMethod === 'card'
-                      ? 'border-2 border-primary'
-                      : 'border border-border hover:border-muted-foreground/50'
-                  }`}
-                >
-                  <CreditCard className="h-5 w-5 shrink-0 text-muted-foreground" />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-foreground">
-                      Tarjeta de credito/debito
-                    </span>
-                    <span className="text-xs text-muted-foreground">Pago automatico mensual</span>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod('bank_transfer')}
-                  aria-pressed={paymentMethod === 'bank_transfer'}
-                  className={`flex items-center gap-3 rounded-lg p-3.5 text-left transition-colors focus:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 ${
-                    paymentMethod === 'bank_transfer'
-                      ? 'border-2 border-primary'
-                      : 'border border-border hover:border-muted-foreground/50'
-                  }`}
-                >
-                  <Building2 className="h-5 w-5 shrink-0 text-muted-foreground" />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-foreground">
-                      Transferencia bancaria
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      Transferi y subi el comprobante
-                    </span>
-                  </div>
-                </button>
-              </div>
+              <h3 className="text-sm font-medium text-foreground">Datos para transferencia</h3>
 
               <div className="rounded-lg border border-border p-3.5">
-                {paymentMethod === 'card' ? (
-                  <CardForm
-                    key={selectedPlanId}
-                    amount={selectedPlan?.priceNumber || 0}
-                    onTokenReady={handleTokenReady}
-                    onError={(message) => setError(message)}
-                    isProcessing={isProcessing}
-                  />
-                ) : (
-                  <BankDetailsCard />
-                )}
+                <BankDetailsCard />
               </div>
             </div>
           )}
@@ -273,7 +184,7 @@ const SubscriptionPage = () => {
                 </Button>
               )}
 
-              {selectedPlanId !== 'trial' && paymentMethod === 'bank_transfer' && (
+              {selectedPlanId !== 'trial' && (
                 <Button onClick={handleBankTransferConfirm} loading={isProcessing}>
                   {isProcessing ? 'Procesando...' : 'Confirmar'}
                 </Button>

@@ -50,7 +50,7 @@ export const FAQ_DATA: FAQItem[] = [
   {
     question: '¿Qué métodos de pago aceptan?',
     answer:
-      'Procesamos todos los pagos de forma segura a través de MercadoPago. Puede pagar con tarjeta de crédito, débito o transferencia bancaria.',
+      'Aceptamos pagos mediante transferencia bancaria. Una vez realizada la transferencia, suba el comprobante y su pago será verificado en menos de 24 horas.',
   },
   {
     question: '¿Puedo cambiar de plan en cualquier momento?',

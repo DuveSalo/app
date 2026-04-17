@@ -44,7 +44,7 @@ const mockCompanyRow = {
   trial_ends_at: null,
   subscription_status: null,
   subscription_renewal_date: null,
-  payment_method: 'mercadopago',
+  payment_method: 'bank_transfer',
   bank_transfer_status: null,
   services: {},
   payment_methods: [],
@@ -70,8 +70,8 @@ describe('company service', () => {
       ramaKey: 'educacion',
       ownerEntity: 'Privada',
       phone: '1122334455',
+      paymentMethod: null as 'bank_transfer' | null,
       services: {},
-      paymentMethods: [],
     };
 
     it('sends the welcome email after creating the company workspace', async () => {

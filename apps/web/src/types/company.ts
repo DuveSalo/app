@@ -10,24 +10,6 @@ export type CompanyServices = {
   [QRDocumentType.ElectricalInstallations]?: boolean;
 };
 
-export interface PaymentMethod {
-  readonly id: string;
-  cardType: 'visa' | 'mastercard';
-  last4: string;
-  expiryMonth: string;
-  expiryYear: string;
-  isPrimary: boolean;
-}
-
-export interface PaymentDetails {
-  cardNumber: string;
-  cardType: 'visa' | 'mastercard';
-  expiryMonth: string;
-  expiryYear: string;
-  cvv: string;
-  cardholderName: string;
-}
-
 export interface Employee {
   readonly id: string;
   name: string;
@@ -55,10 +37,9 @@ export interface Company {
   trialEndsAt?: string;
   services?: CompanyServices;
   subscriptionRenewalDate?: string;
-  subscriptionStatus?: 'active' | 'pending' | 'cancelled' | 'paused';
-  paymentMethod?: 'mercadopago' | 'bank_transfer';
-  bankTransferStatus?: 'pending' | 'active' | 'approved' | 'suspended' | null;
-  paymentMethods?: PaymentMethod[];
+  subscriptionStatus?: 'active' | 'pending' | 'cancelled' | 'paused' | 'rejected';
+  paymentMethod: 'bank_transfer' | null;
+  bankTransferStatus?: 'pending' | 'active' | 'approved' | 'suspended' | 'rejected' | null;
 }
 
 export interface Plan {
@@ -70,4 +51,3 @@ export interface Plan {
   features: string[];
   tag?: string;
 }
-

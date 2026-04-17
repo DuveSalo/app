@@ -9,7 +9,6 @@ const mockNavigate = vi.fn();
 
 const mockCreateCompany = vi.fn();
 const mockActivateTrial = vi.fn();
-const mockMpCreateSubscription = vi.fn();
 const mockSubmitBankTransferPayment = vi.fn();
 
 vi.mock('@/lib/auth/AuthContext', () => ({
@@ -31,14 +30,7 @@ vi.mock('../../lib/hooks/usePlans', () => ({
 vi.mock('../../lib/api/services', () => ({
   createCompany: (...args: unknown[]) => mockCreateCompany(...args),
   activateTrial: (...args: unknown[]) => mockActivateTrial(...args),
-  mpCreateSubscription: (...args: unknown[]) => mockMpCreateSubscription(...args),
   submitBankTransferPayment: (...args: unknown[]) => mockSubmitBankTransferPayment(...args),
-}));
-
-vi.mock('./components/CardForm', () => ({
-  CardForm: ({ amount }: { amount: number }) => (
-    <div data-testid="card-form">Card form {amount}</div>
-  ),
 }));
 
 vi.mock('./components/BankDetailsCard', () => ({
@@ -105,7 +97,6 @@ describe('SubscriptionPage', () => {
 
     mockCreateCompany.mockResolvedValue({ id: 'company-1' });
     mockActivateTrial.mockResolvedValue(undefined);
-    mockMpCreateSubscription.mockResolvedValue({ success: true });
     mockSubmitBankTransferPayment.mockResolvedValue(undefined);
   });
 
@@ -128,17 +119,21 @@ describe('SubscriptionPage', () => {
     });
   });
 
-  it('shows the correct actions for card, bank transfer, and trial flows', async () => {
+  it('shows bank transfer details and Confirmar button for non-trial plans', async () => {
     renderSubscriptionPage();
 
-    expect(screen.getByTestId('card-form')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Confirmar' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Activar prueba' })).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /Transferencia bancaria/ }));
-
+    // Bank details always visible for non-trial plan
     expect(screen.getByText('Datos bancarios mock')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Confirmar' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Activar prueba' })).not.toBeInTheDocument();
+
+    // No payment method selector
+    expect(screen.queryByText(/tarjeta de credito/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/transferencia bancaria/i)).not.toBeInTheDocument();
+  });
+
+  it('shows Activar prueba and hides bank details when trial plan is selected', async () => {
+    renderSubscriptionPage();
 
     fireEvent.click(screen.getByRole('button', { name: /Prueba Gratis/ }));
 
@@ -146,7 +141,8 @@ describe('SubscriptionPage', () => {
       expect(screen.getByRole('button', { name: 'Activar prueba' })).toBeInTheDocument();
     });
 
-    expect(screen.queryByText('Método de pago')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Confirmar' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Datos bancarios mock')).not.toBeInTheDocument();
   });
 
   it('navigates back to the company step', () => {

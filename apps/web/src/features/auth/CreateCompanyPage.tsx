@@ -109,6 +109,7 @@ const CreateCompanyPage = () => {
       ramaKey: 'N/A',
       ownerEntity: 'N/A',
       phone: values.phone,
+      paymentMethod: null,
       services: (values.services as QRDocumentType[]).reduce(
         (acc, s) => {
           acc[s] = true;

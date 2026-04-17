@@ -1,22 +1,33 @@
 // Database to domain type mappers
 import { z } from 'zod';
-import type { Company, Employee, ConservationCertificate, SelfProtectionSystem, QRDocument, QRDocumentType, EventInformation, Drill } from '../../types';
+import type {
+  Company,
+  Employee,
+  ConservationCertificate,
+  SelfProtectionSystem,
+  QRDocument,
+  QRDocumentType,
+  EventInformation,
+  Drill,
+} from '../../types';
 import type { Plan } from '../../types/company';
 import type { PlanData } from '../../constants/landing';
 import type { Tables } from '../../types/database.types';
 import type { SubscriptionPlanRow } from '../../features/admin/types';
-import { toCompanyServices, toPaymentMethods, toStringArray, toBooleanRecord } from '../utils/typeGuards';
+import { toCompanyServices, toStringArray, toBooleanRecord } from '../utils/typeGuards';
 
-const DrillSchema = z.object({
-  date: z.string(),
-  pdfUrl: z.string().optional(),
-  pdfPath: z.string().optional(),
-  pdfFileName: z.string().optional(),
-  pdfName: z.string().optional(),
-}).transform(({ pdfName, pdfFileName, ...drill }) => ({
-  ...drill,
-  pdfFileName: pdfFileName ?? pdfName,
-}));
+const DrillSchema = z
+  .object({
+    date: z.string(),
+    pdfUrl: z.string().optional(),
+    pdfPath: z.string().optional(),
+    pdfFileName: z.string().optional(),
+    pdfName: z.string().optional(),
+  })
+  .transform(({ pdfName, pdfFileName, ...drill }) => ({
+    ...drill,
+    pdfFileName: pdfFileName ?? pdfName,
+  }));
 const DrillsSchema = z.array(DrillSchema).catch([]);
 
 /**
@@ -45,10 +56,9 @@ export const mapCompanyFromDb = (
     trialEndsAt: data.trial_ends_at || undefined,
     subscriptionStatus: data.subscription_status as Company['subscriptionStatus'],
     subscriptionRenewalDate: data.subscription_renewal_date || undefined,
-    paymentMethod: (data.payment_method as Company['paymentMethod']) || 'mercadopago',
+    paymentMethod: data.payment_method === 'bank_transfer' ? 'bank_transfer' : null,
     bankTransferStatus: (data.bank_transfer_status as Company['bankTransferStatus']) || null,
     services: toCompanyServices(data.services),
-    paymentMethods: toPaymentMethods(data.payment_methods),
     employees: (employees || []).map(mapEmployeeFromDb),
   };
 };
@@ -68,7 +78,9 @@ export const mapEmployeeFromDb = (data: Tables<'employees'>): Employee => {
 /**
  * Maps database certificate row to domain ConservationCertificate type
  */
-export const mapCertificateFromDb = (data: Tables<'conservation_certificates'>): ConservationCertificate => {
+export const mapCertificateFromDb = (
+  data: Tables<'conservation_certificates'>
+): ConservationCertificate => {
   return {
     id: data.id,
     companyId: data.company_id,

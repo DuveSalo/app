@@ -150,9 +150,6 @@ export const updateCompany = async (companyData: Partial<Company>): Promise<Comp
   if (companyData.services !== undefined) {
     updateData.services = companyData.services;
   }
-  if (companyData.paymentMethods)
-    updateData.payment_methods = JSON.parse(JSON.stringify(companyData.paymentMethods));
-
   // Use relational query to fetch updated company with employees in a single query (N+1 fix)
   const { data, error } = await supabase
     .from('companies')

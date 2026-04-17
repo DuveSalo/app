@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getActiveSubscription, mpManageSubscription } from './subscription';
-import { DatabaseError, AuthError } from '../../utils/errors';
+import { getActiveSubscription, getPaymentHistory } from './subscription';
+import { DatabaseError } from '../../utils/errors';
 
 vi.mock('../../supabase/client', () => ({
   supabase: {
@@ -23,10 +23,6 @@ vi.mock('../../supabase/client', () => ({
   },
 }));
 
-vi.mock('./context', () => ({
-  getAuthenticatedCompanyId: vi.fn().mockResolvedValue('company-123'),
-}));
-
 // Import supabase after mocking so we get the mocked version
 import { supabase } from '../../supabase/client';
 
@@ -35,8 +31,6 @@ const COMPANY_ID = 'company-123';
 const mockDbRow = {
   id: 'sub-1',
   company_id: COMPANY_ID,
-  mp_preapproval_id: 'mp-pre-1',
-  mp_plan_id: 'mp-plan-1',
   plan_key: 'basic',
   plan_name: 'Básico',
   amount: 5000,
@@ -52,9 +46,7 @@ const mockDbRow = {
   failed_payments_count: 0,
   created_at: '2026-02-01T00:00:00Z',
   updated_at: '2026-03-01T00:00:00Z',
-  payment_provider: 'mercadopago',
-  paypal_plan_id: null,
-  paypal_subscription_id: null,
+  payment_provider: 'bank_transfer',
 };
 
 describe('subscription service', () => {
@@ -80,8 +72,6 @@ describe('subscription service', () => {
       expect(result).not.toBeNull();
       expect(result?.id).toBe('sub-1');
       expect(result?.companyId).toBe(COMPANY_ID);
-      expect(result?.mpPreapprovalId).toBe('mp-pre-1');
-      expect(result?.mpPlanId).toBe('mp-plan-1');
       expect(result?.planKey).toBe('basic');
       expect(result?.planName).toBe('Básico');
       expect(result?.amount).toBe(5000);
@@ -128,28 +118,8 @@ describe('subscription service', () => {
       };
       fromMock.mockReturnValue(chainMock);
 
-      // Must throw a DatabaseError (not a plain Error) — this verifies task 3.6
       await expect(getActiveSubscription(COMPANY_ID)).rejects.toThrow('Database error');
       await expect(getActiveSubscription(COMPANY_ID)).rejects.toBeInstanceOf(DatabaseError);
-    });
-
-    it('throws an AuthError (not plain Error) when session is expired', async () => {
-      const authMock = supabase.auth.getUser as ReturnType<typeof vi.fn>;
-      authMock.mockResolvedValueOnce({
-        data: { user: null },
-        error: { message: 'Token expired' },
-      });
-
-      // getActiveSubscription calls ensureValidSession indirectly via mpManageSubscription
-      // but getActiveSubscription itself doesn't call ensureValidSession.
-      // This triangulates the AuthError path directly from the ensureValidSession guard
-      // called by mpManageSubscription.
-      const invokeMock = supabase.functions.invoke as ReturnType<typeof vi.fn>;
-      invokeMock.mockResolvedValue({ data: null, error: null });
-
-      await expect(
-        mpManageSubscription({ action: 'cancel', mpPreapprovalId: 'mp-pre-1' })
-      ).rejects.toBeInstanceOf(AuthError);
     });
 
     it('uses ARS as default currency when currency is null', async () => {
@@ -189,88 +159,88 @@ describe('subscription service', () => {
     });
   });
 
-  describe('mpManageSubscription (cancel action)', () => {
-    it('calls the mp-manage-subscription edge function with cancel action', async () => {
-      const invokeMock = supabase.functions.invoke as ReturnType<typeof vi.fn>;
-      invokeMock.mockResolvedValue({
-        data: { success: true, action: 'cancel', status: 'cancelled' },
-        error: null,
-      });
+  describe('getPaymentHistory', () => {
+    it('returns manual bank-transfer payment history for the company', async () => {
+      const fromMock = supabase.from as ReturnType<typeof vi.fn>;
+      const chainMock = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockResolvedValue({
+          data: [
+            {
+              id: 'manual-pay-1',
+              company_id: COMPANY_ID,
+              amount: 5000,
+              period_start: '2026-03-01',
+              period_end: '2026-04-01',
+              status: 'approved',
+              reviewed_at: '2026-03-02T12:00:00Z',
+              created_at: '2026-03-01T10:00:00Z',
+            },
+            {
+              id: 'manual-pay-2',
+              company_id: COMPANY_ID,
+              amount: 7000,
+              period_start: '2026-04-01',
+              period_end: '2026-05-01',
+              status: 'rejected',
+              reviewed_at: null,
+              created_at: '2026-04-02T10:00:00Z',
+            },
+          ],
+          error: null,
+        }),
+      };
+      fromMock.mockReturnValue(chainMock);
 
-      const result = await mpManageSubscription({
-        action: 'cancel',
-        mpPreapprovalId: 'mp-pre-1',
-        reason: 'User requested cancellation',
-        idempotencyKey: 'cancel-request-1',
-      });
+      const result = await getPaymentHistory(COMPANY_ID, 5);
 
-      expect(invokeMock).toHaveBeenCalledWith('mp-manage-subscription', {
-        body: {
-          action: 'cancel',
-          mpPreapprovalId: 'mp-pre-1',
-          reason: 'User requested cancellation',
+      expect(fromMock).toHaveBeenCalledWith('manual_payments');
+      expect(chainMock.eq).toHaveBeenCalledWith('company_id', COMPANY_ID);
+      expect(result).toEqual([
+        {
+          id: 'manual-pay-1',
+          subscriptionId: null,
+          companyId: COMPANY_ID,
+          transactionId: 'manual-pay-1',
+          grossAmount: 5000,
+          feeAmount: null,
+          netAmount: 5000,
+          currency: 'ARS',
+          status: 'approved',
+          paidAt: '2026-03-02T12:00:00Z',
+          createdAt: '2026-03-01T10:00:00Z',
         },
-        headers: {
-          'X-Idempotency-Key': 'cancel-request-1',
+        {
+          id: 'manual-pay-2',
+          subscriptionId: null,
+          companyId: COMPANY_ID,
+          transactionId: 'manual-pay-2',
+          grossAmount: 7000,
+          feeAmount: null,
+          netAmount: 7000,
+          currency: 'ARS',
+          status: 'rejected',
+          paidAt: '2026-04-02T10:00:00Z',
+          createdAt: '2026-04-02T10:00:00Z',
         },
-      });
-      expect(result.success).toBe(true);
-      expect(result.action).toBe('cancel');
-      expect(result.status).toBe('cancelled');
+      ]);
     });
 
-    it('throws when no active session exists', async () => {
-      const { supabase: supabaseMock } = await import('../../supabase/client');
-      (supabaseMock.auth.getUser as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        data: { user: null },
-        error: null,
-      });
+    it('does not query legacy payment_transactions for payment history', async () => {
+      const fromMock = supabase.from as ReturnType<typeof vi.fn>;
+      const chainMock = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+      };
+      fromMock.mockReturnValue(chainMock);
 
-      await expect(
-        mpManageSubscription({ action: 'cancel', mpPreapprovalId: 'mp-pre-1' })
-      ).rejects.toThrow('No hay sesión activa');
-    });
+      await getPaymentHistory(COMPANY_ID, 5);
 
-    it('throws when the edge function returns an error', async () => {
-      const invokeMock = supabase.functions.invoke as ReturnType<typeof vi.fn>;
-      invokeMock.mockResolvedValue({
-        data: null,
-        error: { message: 'Edge function error' },
-      });
-
-      await expect(
-        mpManageSubscription({ action: 'cancel', mpPreapprovalId: 'mp-pre-1' })
-      ).rejects.toThrow('Edge function error');
-    });
-  });
-
-  describe('mpManageSubscription (change card action)', () => {
-    it('passes non-sensitive card metadata to the edge function for the email receipt', async () => {
-      const invokeMock = supabase.functions.invoke as ReturnType<typeof vi.fn>;
-      invokeMock.mockResolvedValue({
-        data: { success: true, action: 'change_card', status: 'active' },
-        error: null,
-      });
-
-      await mpManageSubscription({
-        action: 'change_card',
-        mpPreapprovalId: 'mp-pre-1',
-        cardTokenId: 'card-token-1',
-        cardLastFour: '1234',
-        idempotencyKey: 'change-card-request-1',
-      });
-
-      expect(invokeMock).toHaveBeenCalledWith('mp-manage-subscription', {
-        body: {
-          action: 'change_card',
-          mpPreapprovalId: 'mp-pre-1',
-          cardTokenId: 'card-token-1',
-          cardLastFour: '1234',
-        },
-        headers: {
-          'X-Idempotency-Key': 'change-card-request-1',
-        },
-      });
+      expect(fromMock).not.toHaveBeenCalledWith('payment_transactions');
     });
   });
 });
