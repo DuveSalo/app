@@ -15,7 +15,7 @@ export interface AdminSchoolRow {
   province: string;
   plan: string;
   subscriptionStatus: string;
-  paymentMethod: string;
+  paymentMethod: 'bank_transfer' | null;
   createdAt: string;
 }
 
@@ -30,9 +30,7 @@ export interface AdminPaymentRow {
   createdAt: string;
   rejectionReason: string | null;
   receiptUrl: string | null;
-  paymentMethod: 'bank_transfer' | 'card' | 'credit_card' | 'debit_card';
-  cardBrand: string | null;
-  cardLastFour: string | null;
+  paymentMethod: 'bank_transfer';
 }
 
 export interface AdminSchoolDetail {
@@ -48,7 +46,7 @@ export interface AdminSchoolDetail {
   email: string;
   plan: string;
   subscriptionStatus: string;
-  paymentMethod: string;
+  paymentMethod: 'bank_transfer' | null;
   bankTransferStatus: string | null;
   isSubscribed: boolean;
   trialEndsAt: string | null;

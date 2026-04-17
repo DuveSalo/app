@@ -42,18 +42,8 @@ export const getMetricsSummary = async (): Promise<MetricsSummary> => {
     .gte('reviewed_at', startOfMonth.toISOString());
   if (e4) handleSupabaseError(e4);
 
-  const { data: transactions } = await supabase
-    .from('payment_transactions')
-    .select('gross_amount')
-    .in('status', ['approved', 'completed'])
-    .gte('created_at', startOfMonth.toISOString());
-
   const manualRevenue = (approvedPayments || []).reduce(
     (sum, p) => sum + (p.amount || 0),
-    0
-  );
-  const txRevenue = (transactions || []).reduce(
-    (sum, t) => sum + (t.gross_amount || 0),
     0
   );
 
@@ -61,7 +51,7 @@ export const getMetricsSummary = async (): Promise<MetricsSummary> => {
     totalActive: active,
     newRegistrations: newCount ?? 0,
     retentionRate,
-    monthlyRevenue: manualRevenue + txRevenue,
+    monthlyRevenue: manualRevenue,
   };
 };
 
@@ -83,7 +73,7 @@ export const getMonthlyMetrics = async (): Promise<MonthlyMetric[]> => {
     const end = new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString();
     const label = monthNames[d.getMonth()];
 
-    const [regResult, activeResult, cancelledResult, paymentsResult, txsResult] =
+    const [regResult, activeResult, cancelledResult, paymentsResult] =
       await Promise.all([
         supabase
           .from('companies')
@@ -106,23 +96,9 @@ export const getMonthlyMetrics = async (): Promise<MonthlyMetric[]> => {
           .eq('status', 'approved')
           .gte('reviewed_at', start)
           .lt('reviewed_at', end),
-        supabase
-          .from('payment_transactions')
-          .select('gross_amount')
-          .in('status', ['approved', 'completed'])
-          .gte('created_at', start)
-          .lt('created_at', end),
       ]);
 
-    const revenue =
-      (paymentsResult.data || []).reduce(
-        (s, p) => s + (p.amount || 0),
-        0,
-      ) +
-      (txsResult.data || []).reduce(
-        (s, t) => s + (t.gross_amount || 0),
-        0,
-      );
+    const revenue = (paymentsResult.data || []).reduce((s, p) => s + (p.amount || 0), 0);
 
     return {
       month: label,

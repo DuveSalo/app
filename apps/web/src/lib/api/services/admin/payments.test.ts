@@ -50,72 +50,7 @@ describe('getRecentSales', () => {
     vi.clearAllMocks();
   });
 
-  it('returns only payment_transactions with status completed', async () => {
-    // The function makes two separate .from() calls:
-    // 1. manual_payments (approved)
-    // 2. companies (for name lookup if any manual payments)
-    // 3. payment_transactions (completed)
-    // Since we return no manual payments, only the completed transaction should appear.
-
-    const txChain = makeChain({
-      limit: vi.fn().mockResolvedValue({
-        data: [
-          { id: 'tx-1', gross_amount: 7000, created_at: '2026-03-10T10:00:00Z', status: 'completed' },
-        ],
-        error: null,
-      }),
-    });
-
-    const manualChain = makeChain({
-      limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-    });
-
-    let callCount = 0;
-    mockFrom.mockImplementation((table: string) => {
-      if (table === 'manual_payments') {
-        callCount++;
-        // First call: manual_payments fetch — no rows
-        return manualChain;
-      }
-      if (table === 'payment_transactions') {
-        return txChain;
-      }
-      return makeChain();
-    });
-
-    const result = await getRecentSales(10);
-
-    expect(result).toHaveLength(1);
-    expect(result[0].id).toBe('tx-1');
-    expect(result[0].amount).toBe(7000);
-    expect(result[0].status).toBe('approved');
-    expect(result[0].paymentMethod).toBe('card');
-  });
-
-  it('excludes payment_transactions that are not completed', async () => {
-    // payment_transactions query already filters by status='completed' at the DB level,
-    // so if no rows match, nothing is returned.
-    const txChain = makeChain({
-      limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-    });
-
-    const manualChain = makeChain({
-      limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-    });
-
-    mockFrom.mockImplementation((table: string) => {
-      if (table === 'manual_payments') return manualChain;
-      if (table === 'payment_transactions') return txChain;
-      return makeChain();
-    });
-
-    const result = await getRecentSales(10);
-
-    expect(result).toHaveLength(0);
-    expect(txChain.in).toHaveBeenCalledWith('status', ['approved', 'completed']);
-  });
-
-  it('includes approved manual payments alongside completed transactions', async () => {
+  it('returns approved manual bank-transfer payments only', async () => {
     const manualRows = [
       {
         id: 'pay-1',
@@ -141,77 +76,76 @@ describe('getRecentSales', () => {
       }),
     });
 
-    const txChain = makeChain({
-      limit: vi.fn().mockResolvedValue({
-        data: [
-          { id: 'tx-2', gross_amount: 3000, created_at: '2026-03-01T08:00:00Z', status: 'completed' },
-        ],
-        error: null,
-      }),
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'manual_payments') return manualChain;
+      if (table === 'companies') return companiesChain;
+      throw new Error(`Unexpected table query: ${table}`);
+    });
+
+    const result = await getRecentSales(10);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      id: 'pay-1',
+      companyName: 'Escuela N°42',
+      amount: 5000,
+      status: 'approved',
+      createdAt: '2026-03-05T09:00:00Z',
+      paymentMethod: 'bank_transfer',
+    });
+    expect(manualChain.eq).toHaveBeenCalledWith('status', 'approved');
+    expect(manualChain.order).toHaveBeenCalledWith('reviewed_at', { ascending: false });
+    expect(mockFrom).not.toHaveBeenCalledWith('payment_transactions');
+  });
+
+  it('uses created_at as fallback date when approved payment has no reviewed_at', async () => {
+    const manualRows = [
+      {
+        id: 'pay-no-review',
+        company_id: 'comp-1',
+        amount: 5000,
+        period_start: '2026-03-01',
+        period_end: '2026-04-01',
+        status: 'approved',
+        created_at: '2026-03-04T09:00:00Z',
+        reviewed_at: null,
+        rejection_reason: null,
+        receipt_url: null,
+      },
+    ];
+    const manualChain = makeChain({
+      limit: vi.fn().mockResolvedValue({ data: manualRows, error: null }),
+    });
+
+    const companiesChain = makeChain({
+      in: vi.fn().mockResolvedValue({ data: [{ id: 'comp-1', name: 'Escuela N°42' }], error: null }),
     });
 
     mockFrom.mockImplementation((table: string) => {
       if (table === 'manual_payments') return manualChain;
       if (table === 'companies') return companiesChain;
-      if (table === 'payment_transactions') return txChain;
-      return makeChain();
+      throw new Error(`Unexpected table query: ${table}`);
     });
 
     const result = await getRecentSales(10);
 
-    expect(result).toHaveLength(2);
-
-    const manualSale = result.find((r) => r.id === 'pay-1');
-    expect(manualSale).toBeDefined();
-    expect(manualSale?.companyName).toBe('Escuela N°42');
-    expect(manualSale?.status).toBe('approved');
-    expect(manualSale?.paymentMethod).toBe('bank_transfer');
-
-    const txSale = result.find((r) => r.id === 'tx-2');
-    expect(txSale).toBeDefined();
-    expect(txSale?.amount).toBe(3000);
-    expect(txSale?.status).toBe('approved');
-    expect(txSale?.paymentMethod).toBe('card');
+    expect(result[0].createdAt).toBe('2026-03-04T09:00:00Z');
   });
 
-  it('sorts results by date descending', async () => {
-    const manualChain = makeChain({
-      limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-    });
-
-    const txChain = makeChain({
-      limit: vi.fn().mockResolvedValue({
-        data: [
-          { id: 'tx-old', gross_amount: 1000, created_at: '2026-01-01T00:00:00Z', status: 'completed' },
-          { id: 'tx-new', gross_amount: 2000, created_at: '2026-03-15T00:00:00Z', status: 'completed' },
-        ],
-        error: null,
-      }),
-    });
-
-    mockFrom.mockImplementation((table: string) => {
-      if (table === 'manual_payments') return manualChain;
-      if (table === 'payment_transactions') return txChain;
-      return makeChain();
-    });
-
-    const result = await getRecentSales(10);
-
-    expect(result[0].id).toBe('tx-new');
-    expect(result[1].id).toBe('tx-old');
-  });
-
-  it('returns empty array when there are no sales at all', async () => {
+  it('returns empty array when there are no approved manual payments', async () => {
     const emptyChain = makeChain({
       limit: vi.fn().mockResolvedValue({ data: [], error: null }),
     });
 
-    mockFrom.mockReturnValue(emptyChain);
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'manual_payments') return emptyChain;
+      throw new Error(`Unexpected table query: ${table}`);
+    });
 
     const result = await getRecentSales(10);
 
-    expect(result).toHaveLength(0);
-    expect(Array.isArray(result)).toBe(true);
+    expect(result).toEqual([]);
+    expect(mockFrom).not.toHaveBeenCalledWith('payment_transactions');
   });
 });
 

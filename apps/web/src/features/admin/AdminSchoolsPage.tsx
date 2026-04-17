@@ -238,9 +238,8 @@ const AdminSchoolsPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Eliminar escuela</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta accion eliminara permanentemente a{' '}
-              <span className="font-medium">{deleteDialog.school?.name}</span> y todos sus datos
-              asociados. Esta accion no se puede deshacer.
+              Se eliminará <span className="font-medium">{deleteDialog.school?.name}</span> y el
+              usuario asociado. Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,7 +1,6 @@
 import { supabase } from '../../../../supabase/client';
 import { handleSupabaseError } from '../../../../utils/errors';
 import type { AdminPaymentRow } from '../../../../../features/admin/types';
-import { mapTxRow, queryTransactions } from './shared';
 
 /**
  * Fetch pending bank transfer payments.
@@ -38,9 +37,7 @@ export const getPendingPayments = async (): Promise<AdminPaymentRow[]> => {
     createdAt: row.created_at,
     rejectionReason: row.rejection_reason,
     receiptUrl: row.receipt_url || null,
-    paymentMethod: 'bank_transfer',
-    cardBrand: null,
-    cardLastFour: null,
+    paymentMethod: 'bank_transfer' as const,
   }));
 };
 
@@ -48,8 +45,7 @@ export const getPendingPayments = async (): Promise<AdminPaymentRow[]> => {
  * Fetch ALL bank transfer payments (all statuses).
  */
 export const getAllPayments = async (): Promise<AdminPaymentRow[]> => {
-  // Fetch manual (bank transfer) payments
-  const { data: manualData, error } = await supabase
+  const { data, error } = await supabase
     .from('manual_payments')
     .select(
       'id, company_id, amount, period_start, period_end, status, created_at, rejection_reason, receipt_url'
@@ -57,28 +53,17 @@ export const getAllPayments = async (): Promise<AdminPaymentRow[]> => {
     .order('created_at', { ascending: false });
 
   if (error) handleSupabaseError(error);
+  if (!data || data.length === 0) return [];
 
-  // Fetch MercadoPago card payments (join subscriptions for period end)
-  const { data: txData } = await queryTransactions();
+  const companyIds: string[] = Array.from(new Set<string>(data.map((r) => String(r.company_id))));
+  const { data: companies } = await supabase
+    .from('companies')
+    .select('id, name')
+    .in('id', companyIds);
 
-  // Collect all company IDs from both sources
-  const allCompanyIds: string[] = Array.from(
-    new Set<string>([
-      ...(manualData || []).map((r) => String(r.company_id)),
-      ...(txData || []).map((r) => String(r.company_id)),
-    ])
-  );
+  const companyMap = new Map((companies || []).map((c) => [c.id, c.name]));
 
-  let companyMap = new Map<string, string>();
-  if (allCompanyIds.length > 0) {
-    const { data: companies } = await supabase
-      .from('companies')
-      .select('id, name')
-      .in('id', allCompanyIds);
-    companyMap = new Map((companies || []).map((c) => [c.id, c.name]));
-  }
-
-  const manualRows: AdminPaymentRow[] = (manualData || []).map((row) => ({
+  return data.map((row) => ({
     id: row.id,
     companyId: row.company_id,
     companyName: companyMap.get(row.company_id) || 'Desconocido',
@@ -89,19 +74,8 @@ export const getAllPayments = async (): Promise<AdminPaymentRow[]> => {
     createdAt: row.created_at,
     rejectionReason: row.rejection_reason,
     receiptUrl: row.receipt_url || null,
-    paymentMethod: 'bank_transfer',
-    cardBrand: null,
-    cardLastFour: null,
+    paymentMethod: 'bank_transfer' as const,
   }));
-
-  const txRows: AdminPaymentRow[] = (txData || []).map((row) =>
-    mapTxRow(row, companyMap.get(row.company_id as string) || 'Desconocido')
-  );
-
-  // Merge and sort by date descending
-  return [...manualRows, ...txRows].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
 };
 
 /**
@@ -119,11 +93,10 @@ export const getReceiptSignedUrl = async (path: string): Promise<string> => {
 };
 
 /**
- * Fetch recent sales/transactions (approved payments + MercadoPago transactions).
+ * Fetch recent sales/transactions (approved bank transfer payments).
  */
 export const getRecentSales = async (limit = 10): Promise<AdminPaymentRow[]> => {
-  // Approved manual payments
-  const { data: manualData, error: e1 } = await supabase
+  const { data, error } = await supabase
     .from('manual_payments')
     .select(
       'id, company_id, amount, period_start, period_end, status, created_at, rejection_reason, receipt_url, reviewed_at'
@@ -132,32 +105,18 @@ export const getRecentSales = async (limit = 10): Promise<AdminPaymentRow[]> => 
     .order('reviewed_at', { ascending: false })
     .limit(limit);
 
-  if (e1) handleSupabaseError(e1);
+  if (error) handleSupabaseError(error);
+  if (!data || data.length === 0) return [];
 
-  // Also fetch from payment_transactions (MercadoPago card payments)
-  const { data: txData } = await queryTransactions({
-    status: ['approved', 'completed'],
-    limit,
-  });
+  const companyIds: string[] = Array.from(new Set<string>(data.map((r) => String(r.company_id))));
+  const { data: companies } = await supabase
+    .from('companies')
+    .select('id, name')
+    .in('id', companyIds);
 
-  // Collect all company IDs from both sources
-  const allCompanyIds: string[] = Array.from(
-    new Set<string>([
-      ...(manualData || []).map((r) => String(r.company_id)),
-      ...(txData || []).map((r) => String(r.company_id)),
-    ])
-  );
+  const companyMap = new Map((companies || []).map((c) => [c.id, c.name]));
 
-  let companyMap = new Map<string, string>();
-  if (allCompanyIds.length > 0) {
-    const { data: companies } = await supabase
-      .from('companies')
-      .select('id, name')
-      .in('id', allCompanyIds);
-    companyMap = new Map((companies || []).map((c) => [c.id, c.name]));
-  }
-
-  const manualRows: AdminPaymentRow[] = (manualData || []).map((row) => ({
+  return data.map((row) => ({
     id: row.id,
     companyId: row.company_id,
     companyName: companyMap.get(row.company_id) || 'Desconocido',
@@ -165,32 +124,18 @@ export const getRecentSales = async (limit = 10): Promise<AdminPaymentRow[]> => 
     periodStart: row.period_start,
     periodEnd: row.period_end,
     status: row.status as AdminPaymentRow['status'],
-    createdAt: row.reviewed_at || row.created_at,
+    createdAt: (row as { reviewed_at?: string | null }).reviewed_at || row.created_at,
     rejectionReason: row.rejection_reason,
     receiptUrl: row.receipt_url || null,
-    paymentMethod: 'bank_transfer',
-    cardBrand: null,
-    cardLastFour: null,
+    paymentMethod: 'bank_transfer' as const,
   }));
-
-  const txRows: AdminPaymentRow[] = (txData || []).map((row) => {
-    const mapped = mapTxRow(row, companyMap.get(row.company_id as string) || 'Desconocido');
-    mapped.status = 'approved';
-    return mapped;
-  });
-
-  // Merge, sort by date descending, and take limit
-  return [...manualRows, ...txRows]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, limit);
 };
 
 /**
- * Fetch payment history for a school (manual payments + MercadoPago transactions).
+ * Fetch payment history for a school (bank transfer payments only).
  */
 export const getSchoolPaymentHistory = async (companyId: string): Promise<AdminPaymentRow[]> => {
-  // Fetch manual (bank transfer) payments
-  const { data: manualData } = await supabase
+  const { data } = await supabase
     .from('manual_payments')
     .select(
       'id, company_id, amount, period_start, period_end, status, created_at, rejection_reason, receipt_url'
@@ -198,7 +143,7 @@ export const getSchoolPaymentHistory = async (companyId: string): Promise<AdminP
     .eq('company_id', companyId)
     .order('created_at', { ascending: false });
 
-  const manualRows: AdminPaymentRow[] = (manualData || []).map((row) => ({
+  return (data || []).map((row) => ({
     id: row.id,
     companyId: row.company_id,
     companyName: '',
@@ -209,28 +154,6 @@ export const getSchoolPaymentHistory = async (companyId: string): Promise<AdminP
     createdAt: row.created_at,
     rejectionReason: row.rejection_reason,
     receiptUrl: row.receipt_url || null,
-    paymentMethod: 'bank_transfer',
-    cardBrand: null,
-    cardLastFour: null,
+    paymentMethod: 'bank_transfer' as const,
   }));
-
-  // Fetch MercadoPago transactions
-  const { data: txData } = await queryTransactions({ companyId });
-
-  const txRows: AdminPaymentRow[] = (txData || []).map((row) => {
-    const mapped = mapTxRow(row, '');
-    const st = row.status;
-    mapped.status =
-      st === 'approved' || st === 'completed'
-        ? 'approved'
-        : st === 'pending'
-          ? 'pending'
-          : 'rejected';
-    return mapped;
-  });
-
-  // Merge and sort by date descending
-  return [...manualRows, ...txRows].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
 };

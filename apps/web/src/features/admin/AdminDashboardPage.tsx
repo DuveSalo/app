@@ -1,19 +1,15 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Building2, Clock, XCircle, DollarSign, Check, X } from 'lucide-react';
-import { type ColumnDef } from '@tanstack/react-table';
-import { Button } from '@/components/ui/button';
+import { Building2, Clock, XCircle, DollarSign } from 'lucide-react';
 import PageLayout from '@/components/layout/PageLayout';
 import { SkeletonCards, SkeletonTable } from '@/components/common/SkeletonLoader';
-import { DataTable } from '@/components/common/DataTable';
 import { StatCard } from '../dashboard/components';
-import { formatDateLocal, formatCurrency } from '@/lib/utils/dateUtils';
+import { formatCurrency } from '@/lib/utils/dateUtils';
 import { queryKeys } from '@/lib/queryKeys';
 import * as api from '@/lib/api/services';
 import { toast } from 'sonner';
 import { createLogger } from '@/lib/utils/logger';
 import type { AdminStats, AdminSchoolRow, AdminPaymentRow } from './types';
-import { RejectPaymentDialog } from './components/RejectPaymentDialog';
 import { PaymentDetailDialog } from './components/PaymentDetailDialog';
 import { AdminRecentSchoolsTable } from './components/AdminRecentSchoolsTable';
 import { AdminRecentPaymentsTable } from './components/AdminRecentPaymentsTable';
@@ -42,10 +38,6 @@ const AdminDashboardPage = () => {
   const isLoading = loadingStats || loadingSchools || loadingPending || loadingSales;
 
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [rejectDialog, setRejectDialog] = useState<{ open: boolean; paymentId: string }>({
-    open: false,
-    paymentId: '',
-  });
   const [detailDialog, setDetailDialog] = useState<{
     open: boolean;
     payment: AdminPaymentRow | null;
@@ -58,10 +50,12 @@ const AdminDashboardPage = () => {
     Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.adminPendingPayments() }),
       queryClient.invalidateQueries({ queryKey: queryKeys.adminRecentSales(10) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.adminRecentSchools(10) }),
       queryClient.invalidateQueries({ queryKey: queryKeys.adminStats() }),
     ]);
 
   const handleApprove = async (paymentId: string) => {
+    setDetailDialog({ open: false, payment: null });
     setActionLoading(paymentId);
     try {
       await api.approvePayment(paymentId);
@@ -75,9 +69,8 @@ const AdminDashboardPage = () => {
     }
   };
 
-  const handleReject = async (reason: string) => {
-    const { paymentId } = rejectDialog;
-    setRejectDialog({ open: false, paymentId: '' });
+  const handleReject = async (paymentId: string, reason: string) => {
+    setDetailDialog({ open: false, payment: null });
     setActionLoading(paymentId);
     try {
       await api.rejectPayment(paymentId, reason);
@@ -106,66 +99,6 @@ const AdminDashboardPage = () => {
       toast.error('Error al abrir el comprobante');
     }
   };
-
-  const pendingColumns: ColumnDef<AdminPaymentRow, string>[] = [
-    {
-      accessorKey: 'companyName',
-      header: 'Escuela',
-      cell: ({ row }) => <span className="font-medium">{row.original.companyName}</span>,
-    },
-    {
-      accessorKey: 'amount',
-      header: 'Monto',
-      cell: ({ row }) => formatCurrency(row.original.amount),
-      meta: { hideOnMobile: true },
-    },
-    {
-      accessorKey: 'periodStart',
-      header: 'Período',
-      cell: ({ row }) =>
-        `${formatDateLocal(row.original.periodStart)} – ${formatDateLocal(row.original.periodEnd)}`,
-      meta: { hideOnMobile: true },
-    },
-    {
-      accessorKey: 'createdAt',
-      header: 'Enviado',
-      cell: ({ row }) => formatDateLocal(row.original.createdAt),
-      meta: { hideOnMobile: true },
-    },
-    {
-      id: 'actions',
-      header: '',
-      cell: ({ row }) => {
-        const loading = actionLoading === row.original.id;
-        return (
-          <div className="flex items-center justify-end gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={loading}
-              onClick={() => handleApprove(row.original.id)}
-              title="Aprobar"
-              aria-label={`Aprobar pago de ${row.original.companyName}`}
-            >
-              <Check className="h-4 w-4 text-emerald-600" />
-              <span className="sr-only">Aprobar pago</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={loading}
-              onClick={() => setRejectDialog({ open: true, paymentId: row.original.id })}
-              title="Rechazar"
-              aria-label={`Rechazar pago de ${row.original.companyName}`}
-            >
-              <X className="h-4 w-4 text-destructive" />
-              <span className="sr-only">Rechazar pago</span>
-            </Button>
-          </div>
-        );
-      },
-    },
-  ];
 
   if (isLoading) {
     return (
@@ -214,59 +147,12 @@ const AdminDashboardPage = () => {
           />
         </div>
 
-        {/* Pending Bank Transfers */}
-        {pendingPayments.length > 0 && (
-          <section>
-            <h2 className="text-base font-medium mb-3">Pagos pendientes de aprobación</h2>
-            <DataTable
-              columns={pendingColumns}
-              data={pendingPayments}
-              searchKey="companyName"
-              searchPlaceholder="Buscar escuela..."
-              pageSize={5}
-              cardRenderer={(row) => {
-                const loading = actionLoading === row.id;
-                return (
-                  <div className="border rounded-lg p-4 bg-card">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{row.companyName}</span>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          disabled={loading}
-                          onClick={() => handleApprove(row.id)}
-                          aria-label={`Aprobar pago de ${row.companyName}`}
-                          className="inline-flex items-center justify-center rounded-lg h-8 w-8 hover:bg-accent disabled:opacity-50"
-                        >
-                          <Check className="h-4 w-4 text-emerald-600" />
-                        </button>
-                        <button
-                          type="button"
-                          disabled={loading}
-                          onClick={() => setRejectDialog({ open: true, paymentId: row.id })}
-                          aria-label={`Rechazar pago de ${row.companyName}`}
-                          className="inline-flex items-center justify-center rounded-lg h-8 w-8 hover:bg-accent disabled:opacity-50"
-                        >
-                          <X className="h-4 w-4 text-destructive" />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="mt-1 text-sm text-muted-foreground">
-                      {formatCurrency(row.amount)} · {formatDateLocal(row.periodStart)} –{' '}
-                      {formatDateLocal(row.periodEnd)}
-                    </div>
-                    <div className="mt-2 text-sm text-muted-foreground">
-                      Enviado: {formatDateLocal(row.createdAt)}
-                    </div>
-                  </div>
-                );
-              }}
-            />
-          </section>
-        )}
-
-        {/* Recent Registrations */}
-        <AdminRecentSchoolsTable schools={schools} />
+        {/* Recent Registrations — pending schools show "Revisar pago" button */}
+        <AdminRecentSchoolsTable
+          schools={schools}
+          pendingPayments={pendingPayments}
+          onViewPayment={(payment) => setDetailDialog({ open: true, payment })}
+        />
 
         {/* Recent Sales */}
         {recentPayments.length > 0 && (
@@ -278,17 +164,13 @@ const AdminDashboardPage = () => {
         )}
       </div>
 
-      <RejectPaymentDialog
-        open={rejectDialog.open}
-        onClose={() => setRejectDialog({ open: false, paymentId: '' })}
-        onConfirm={handleReject}
-      />
-
       <PaymentDetailDialog
         open={detailDialog.open}
         onClose={() => setDetailDialog({ open: false, payment: null })}
         payment={detailDialog.payment}
         onViewReceipt={handleViewReceipt}
+        onApprove={handleApprove}
+        onReject={handleReject}
       />
     </PageLayout>
   );

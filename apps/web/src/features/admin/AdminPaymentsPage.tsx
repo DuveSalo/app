@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { type ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, MoreHorizontal, Eye, Check, X, FileText } from 'lucide-react';
+import { ArrowUpDown, MoreHorizontal, Eye, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,7 +26,6 @@ import { formatDateLocal, formatCurrency } from '@/lib/utils/dateUtils';
 import { queryKeys } from '@/lib/queryKeys';
 import { PaymentMethodBadge } from './components/PaymentMethodBadge';
 import { PaymentDetailDialog } from './components/PaymentDetailDialog';
-import { RejectPaymentDialog } from './components/RejectPaymentDialog';
 import * as api from '@/lib/api/services';
 import { createLogger } from '@/lib/utils/logger';
 import type { AdminPaymentRow } from './types';
@@ -70,10 +69,6 @@ const AdminPaymentsPage = () => {
 
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [rejectDialog, setRejectDialog] = useState<{ open: boolean; paymentId: string }>({
-    open: false,
-    paymentId: '',
-  });
   const [detailDialog, setDetailDialog] = useState<{
     open: boolean;
     payment: AdminPaymentRow | null;
@@ -89,6 +84,7 @@ const AdminPaymentsPage = () => {
   }, [payments, statusFilter]);
 
   const handleApprove = async (paymentId: string) => {
+    setDetailDialog({ open: false, payment: null });
     setActionLoading(paymentId);
     try {
       await api.approvePayment(paymentId);
@@ -102,9 +98,8 @@ const AdminPaymentsPage = () => {
     }
   };
 
-  const handleReject = async (reason: string) => {
-    const { paymentId } = rejectDialog;
-    setRejectDialog({ open: false, paymentId: '' });
+  const handleReject = async (paymentId: string, reason: string) => {
+    setDetailDialog({ open: false, payment: null });
     setActionLoading(paymentId);
     try {
       await api.rejectPayment(paymentId, reason);
@@ -170,13 +165,7 @@ const AdminPaymentsPage = () => {
       {
         accessorKey: 'paymentMethod',
         header: 'Método',
-        cell: ({ row }) => (
-          <PaymentMethodBadge
-            method={row.original.paymentMethod}
-            cardBrand={row.original.cardBrand}
-            cardLastFour={row.original.cardLastFour}
-          />
-        ),
+        cell: ({ row }) => <PaymentMethodBadge method={row.original.paymentMethod} />,
         meta: { hideOnMobile: true },
       },
       {
@@ -214,7 +203,6 @@ const AdminPaymentsPage = () => {
         cell: ({ row }) => {
           const payment = row.original;
           const loading = actionLoading === payment.id;
-          const isPending = payment.status === 'pending';
           const isBankTransfer = payment.paymentMethod === 'bank_transfer';
 
           return (
@@ -236,20 +224,6 @@ const AdminPaymentsPage = () => {
                       <Eye className="mr-2 h-4 w-4" />
                       Ver comprobante
                     </DropdownMenuItem>
-                  )}
-                  {isPending && isBankTransfer && (
-                    <>
-                      <DropdownMenuItem onClick={() => handleApprove(payment.id)}>
-                        <Check className="mr-2 h-4 w-4 text-emerald-600" />
-                        Aprobar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setRejectDialog({ open: true, paymentId: payment.id })}
-                      >
-                        <X className="mr-2 h-4 w-4 text-destructive" />
-                        Rechazar
-                      </DropdownMenuItem>
-                    </>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -308,7 +282,6 @@ const AdminPaymentsPage = () => {
         pageSize={10}
         cardRenderer={(row) => {
           const loading = actionLoading === row.id;
-          const isPending = row.status === 'pending';
           const isBankTransfer = row.paymentMethod === 'bank_transfer';
           return (
             <div className="border rounded-lg p-4 bg-card">
@@ -317,12 +290,7 @@ const AdminPaymentsPage = () => {
                 <PaymentStatusBadge status={row.status} />
               </div>
               <div className="mt-1 text-sm text-muted-foreground flex items-center gap-2">
-                {formatCurrency(row.amount)} ·{' '}
-                <PaymentMethodBadge
-                  method={row.paymentMethod}
-                  cardBrand={row.cardBrand}
-                  cardLastFour={row.cardLastFour}
-                />
+                {formatCurrency(row.amount)} · <PaymentMethodBadge method={row.paymentMethod} />
               </div>
               <div className="mt-2 flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
@@ -346,20 +314,6 @@ const AdminPaymentsPage = () => {
                         Ver comprobante
                       </DropdownMenuItem>
                     )}
-                    {isPending && isBankTransfer && (
-                      <>
-                        <DropdownMenuItem onClick={() => handleApprove(row.id)}>
-                          <Check className="mr-2 h-4 w-4 text-emerald-600" />
-                          Aprobar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => setRejectDialog({ open: true, paymentId: row.id })}
-                        >
-                          <X className="mr-2 h-4 w-4 text-destructive" />
-                          Rechazar
-                        </DropdownMenuItem>
-                      </>
-                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -368,17 +322,13 @@ const AdminPaymentsPage = () => {
         }}
       />
 
-      <RejectPaymentDialog
-        open={rejectDialog.open}
-        onClose={() => setRejectDialog({ open: false, paymentId: '' })}
-        onConfirm={handleReject}
-      />
-
       <PaymentDetailDialog
         open={detailDialog.open}
         onClose={() => setDetailDialog({ open: false, payment: null })}
         payment={detailDialog.payment}
         onViewReceipt={handleViewReceipt}
+        onApprove={handleApprove}
+        onReject={handleReject}
       />
     </PageLayout>
   );

@@ -41,18 +41,6 @@ export const getAdminStats = async (): Promise<AdminStats> => {
     .gte('reviewed_at', startOfMonth.toISOString());
   if (e4) handleSupabaseError(e4);
 
-  // Also try payment_transactions (MercadoPago)
-  const { data: transactions } = await supabase
-    .from('payment_transactions')
-    .select('gross_amount')
-    .in('status', ['approved', 'completed'])
-    .gte('created_at', startOfMonth.toISOString());
-
-  const txRevenue = (transactions || []).reduce(
-    (sum, t) => sum + (t.gross_amount || 0),
-    0
-  );
-
   const manualRevenue = (approvedPayments || []).reduce(
     (sum, p) => sum + (p.amount || 0),
     0
@@ -62,6 +50,6 @@ export const getAdminStats = async (): Promise<AdminStats> => {
     activeSchools: activeCount ?? 0,
     pendingPayments: pendingCount ?? 0,
     rejectedPayments: rejectedCount ?? 0,
-    monthlyRevenue: manualRevenue + txRevenue,
+    monthlyRevenue: manualRevenue,
   };
 };

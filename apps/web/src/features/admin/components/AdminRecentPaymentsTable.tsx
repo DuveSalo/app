@@ -70,11 +70,7 @@ export function AdminRecentPaymentsTable({
               {/* Footer: method + date + actions */}
               <div className="flex items-center justify-between pt-2 border-t">
                 <div className="flex items-center gap-2 min-w-0">
-                  <PaymentMethodBadge
-                    method={payment.paymentMethod}
-                    cardBrand={payment.cardBrand}
-                    cardLastFour={payment.cardLastFour}
-                  />
+                  <PaymentMethodBadge method={payment.paymentMethod} />
                   <span className="text-xs text-muted-foreground flex-shrink-0">
                     {formatDateLocal(payment.createdAt)}
                   </span>

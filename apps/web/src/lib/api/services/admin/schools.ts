@@ -7,13 +7,28 @@ import type { AdminSchoolRow, AdminSchoolDetail } from '../../../../features/adm
 const logger = createLogger('AdminSchoolsService');
 
 /**
+ * Resolve the displayed subscription status, falling back to trial state
+ * when the company has no active subscription record yet.
+ */
+function resolveSubscriptionStatus(
+  rawStatus: string | null | undefined,
+  trialEndsAt: string | null | undefined
+): string {
+  if (rawStatus) return rawStatus;
+  if (trialEndsAt) {
+    return new Date(trialEndsAt).getTime() > Date.now() ? 'trial' : 'trial_expired';
+  }
+  return 'Sin suscripción';
+}
+
+/**
  * Fetch recent school registrations (last N).
  */
 export const getRecentRegistrations = async (limit = 10): Promise<AdminSchoolRow[]> => {
   const { data, error } = await supabase
     .from('companies')
     .select(
-      'id, name, city, province, selected_plan, subscription_status, created_at, employees(email, role)'
+      'id, name, city, province, selected_plan, subscription_status, trial_ends_at, created_at, payment_method, employees(email, role)'
     )
     .order('created_at', { ascending: false })
     .limit(limit);
@@ -32,8 +47,8 @@ export const getRecentRegistrations = async (limit = 10): Promise<AdminSchoolRow
       city: row.city,
       province: row.province,
       plan: formatPlanName(row.selected_plan),
-      subscriptionStatus: row.subscription_status || 'Sin suscripción',
-      paymentMethod: 'mercadopago',
+      subscriptionStatus: resolveSubscriptionStatus(row.subscription_status, row.trial_ends_at),
+      paymentMethod: row.payment_method === 'bank_transfer' ? 'bank_transfer' : null,
       createdAt: row.created_at ?? '',
     };
   });
@@ -69,8 +84,8 @@ export const getSchoolDetail = async (companyId: string): Promise<AdminSchoolDet
       (data.employees || [])[0]?.email ||
       '',
     plan: formatPlanName(data.selected_plan),
-    subscriptionStatus: data.subscription_status || 'Sin suscripción',
-    paymentMethod: data.payment_method || '',
+    subscriptionStatus: resolveSubscriptionStatus(data.subscription_status, data.trial_ends_at),
+    paymentMethod: data.payment_method === 'bank_transfer' ? 'bank_transfer' : null,
     bankTransferStatus: data.bank_transfer_status || null,
     isSubscribed: data.is_subscribed || false,
     trialEndsAt: data.trial_ends_at || null,
@@ -122,7 +137,7 @@ export const getAllSchools = async (): Promise<AdminSchoolRow[]> => {
   const { data, error } = await supabase
     .from('companies')
     .select(
-      'id, name, city, province, selected_plan, subscription_status, created_at, employees(email, role)'
+      'id, name, city, province, selected_plan, subscription_status, trial_ends_at, created_at, payment_method, employees(email, role)'
     )
     .order('created_at', { ascending: false });
 
@@ -140,8 +155,8 @@ export const getAllSchools = async (): Promise<AdminSchoolRow[]> => {
       city: row.city,
       province: row.province,
       plan: formatPlanName(row.selected_plan),
-      subscriptionStatus: row.subscription_status || 'Sin suscripción',
-      paymentMethod: 'mercadopago',
+      subscriptionStatus: resolveSubscriptionStatus(row.subscription_status, row.trial_ends_at),
+      paymentMethod: row.payment_method === 'bank_transfer' ? 'bank_transfer' : null,
       createdAt: row.created_at ?? '',
     };
   });
@@ -198,24 +213,29 @@ export const activateSchool = async (companyId: string): Promise<void> => {
 };
 
 /**
- * Delete a school.
+ * Delete a school and its associated auth user via Edge Function.
+ * The Edge Function handles activity logging, MP cancellation, FK cleanup, and user deletion.
  */
 export const deleteSchool = async (companyId: string): Promise<void> => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error('No autenticado');
-
-  // Log before delete (cascade will remove the company)
-  const { error: logError } = await supabase.from('activity_logs').insert({
-    admin_id: user.id,
-    action: 'delete_school',
-    target_type: 'company',
-    target_id: companyId,
+  const { data, error } = await supabase.functions.invoke('admin-delete-school', {
+    body: { companyId },
   });
-  if (logError) logger.error('Failed to log delete_school', logError);
 
-  const { error } = await supabase.from('companies').delete().eq('id', companyId);
-
-  if (error) handleSupabaseError(error);
+  if (error) {
+    // supabase-js wraps non-2xx responses in FunctionsHttpError with a generic message.
+    // The actual error body is in error.context (the Response object).
+    let detail = error.message;
+    try {
+      const ctx = (error as unknown as { context: Response }).context;
+      if (ctx?.json) {
+        const body = await ctx.json();
+        detail = body?.error ?? detail;
+      }
+    } catch {
+      // If context parsing fails, fall back to data
+      if (typeof data === 'object' && data?.error) detail = data.error;
+    }
+    console.error('[admin-delete-school]', detail);
+    throw new Error(detail);
+  }
 };

@@ -58,29 +58,16 @@ const PaymentStatusBadge = ({ status }: { status: string }) => {
   return <ColorBadge variant={config.variant} label={config.label} />;
 };
 
-const CARD_METHOD_LABELS: Record<string, string> = {
-  credit_card: 'Tarjeta de crédito',
-  debit_card: 'Tarjeta de débito',
-  card: 'Tarjeta de crédito',
-  mercadopago: 'Tarjeta de crédito',
-};
-
-function formatPaymentMethodLabel(
-  method: string,
-  cardBrand?: string | null,
-  cardLastFour?: string | null
-): string {
+function formatPaymentMethodLabel(method: string | null | undefined): string {
+  if (!method) return '';
   if (method === 'bank_transfer') return 'Transferencia bancaria';
-  const base = CARD_METHOD_LABELS[method] || method;
-  if (!cardBrand) return base;
-  const brand = cardBrand.charAt(0).toUpperCase() + cardBrand.slice(1);
-  return cardLastFour ? `${base} · ${brand} •••• ${cardLastFour}` : `${base} · ${brand}`;
+  return method;
 }
 
 const InfoItem = ({ label, value }: { label: string; value: string | null | undefined }) => (
   <div>
     <p className="text-sm text-muted-foreground">{label}</p>
-    <p className="text-sm text-foreground">{value || '-'}</p>
+    <p className="text-sm text-foreground">{value || '—'}</p>
   </div>
 );
 
@@ -170,20 +157,10 @@ const AdminSchoolDetailPage = () => {
                 <SubscriptionStatusBadge status={school.subscriptionStatus} />
               </div>
             </div>
-            {(() => {
-              const latestPayment = payments[0];
-              const effectiveMethod = latestPayment?.paymentMethod ?? school.paymentMethod;
-              const cardBrand =
-                effectiveMethod !== 'bank_transfer' ? latestPayment?.cardBrand : null;
-              const cardLastFour =
-                effectiveMethod !== 'bank_transfer' ? latestPayment?.cardLastFour : null;
-              return (
-                <InfoItem
-                  label="Método de pago"
-                  value={formatPaymentMethodLabel(effectiveMethod, cardBrand, cardLastFour)}
-                />
-              );
-            })()}
+            <InfoItem
+              label="Método de pago"
+              value={formatPaymentMethodLabel(payments[0]?.paymentMethod ?? school.paymentMethod)}
+            />
             <InfoItem
               label="Fecha de renovación"
               value={formatDateLocal(school.subscriptionRenewalDate)}

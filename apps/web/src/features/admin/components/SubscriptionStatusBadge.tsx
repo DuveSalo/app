@@ -6,9 +6,15 @@ function getStatusConfig(status: string): { variant: ColorVariant; label: string
   switch (status) {
     case 'active':
       return { variant: 'emerald', label: 'Activa' };
+    case 'trial':
+      return { variant: 'emerald', label: 'Prueba gratis' };
+    case 'trial_expired':
+      return { variant: 'red', label: 'Prueba expirada' };
     case 'pending':
     case 'approval_pending':
       return { variant: 'amber', label: 'Pendiente' };
+    case 'rejected':
+      return { variant: 'red', label: 'Rechazado' };
     case 'suspended':
       return { variant: 'amber', label: 'Suspendida' };
     case 'cancelled':
