@@ -16,16 +16,8 @@ import { StatusFilter, statusFilterFn } from '../../components/common/StatusFilt
 import { calculateExpirationStatus } from '../../lib/utils/dateUtils';
 import { formatDateLocal } from '../../lib/utils/dateUtils';
 import { StatCard } from './components';
+import type { DashboardItem } from './types';
 import type { ExpirationStatus } from '../../types/expirable';
-
-interface DashboardItem {
-  id: string;
-  name: string;
-  type: string;
-  expirationDate: string;
-  status: ExpirationStatus;
-  modulePath: string;
-}
 
 const statusOrder: Record<ExpirationStatus, number> = { expired: 1, expiring: 2, valid: 3 };
 
@@ -72,10 +64,11 @@ const DashboardPage = () => {
     queryFn: async () => {
       const allItems: DashboardItem[] = [];
 
-      const [certsData, systemsData, qrDocs] = await Promise.all([
+      const [certsData, systemsData, qrDocs, extinguishersData] = await Promise.all([
         api.getCertificates(currentCompany!.id),
         api.getSelfProtectionSystems(currentCompany!.id),
         api.getAllQRDocuments(currentCompany!.id),
+        api.getFireExtinguishers(currentCompany!.id),
       ]);
 
       const certs = certsData.map((c) => ({
@@ -97,6 +90,22 @@ const DashboardPage = () => {
         status: calculateExpirationStatus(s.expirationDate),
       }));
       allItems.push(...systems);
+
+      for (const fe of extinguishersData) {
+        const dates = [fe.chargeExpirationDate, fe.hydraulicPressureExpirationDate].filter(
+          Boolean
+        ) as string[];
+        if (dates.length === 0) continue;
+        const nearestDate = dates.sort((a, b) => a.localeCompare(b))[0];
+        allItems.push({
+          id: fe.id,
+          name: fe.extinguisherNumber || fe.positionNumber || 'Matafuego',
+          type: 'Matafuego',
+          expirationDate: nearestDate,
+          modulePath: ROUTE_PATHS.FIRE_EXTINGUISHERS,
+          status: calculateExpirationStatus(nearestDate),
+        });
+      }
 
       const qrItems = qrDocs.map((doc) => {
         const expiry = new Date(doc.uploadDate);
@@ -148,6 +157,15 @@ const DashboardPage = () => {
 
   const moduleCount = useMemo(() => new Set(items.map((item) => item.type)).size, [items]);
 
+  const itemsByStatus = useMemo(
+    () => ({
+      valid: items.filter((item) => item.status === 'valid'),
+      expiring: items.filter((item) => item.status === 'expiring'),
+      expired: items.filter((item) => item.status === 'expired'),
+    }),
+    [items]
+  );
+
   if (isLoading) {
     return (
       <PageLayout title="Inicio">
@@ -177,6 +195,10 @@ const DashboardPage = () => {
             icon={<TrendingUp className="h-3.5 w-3.5 text-emerald-600" />}
             changeText="+3 este mes"
             variant="valid"
+            hoverItems={itemsByStatus.valid.map((i) => ({
+              name: i.name,
+              expirationDate: i.expirationDate,
+            }))}
           />
           <StatCard
             label="Por vencer"
@@ -184,6 +206,10 @@ const DashboardPage = () => {
             icon={<Clock className="h-3.5 w-3.5 text-amber-600" />}
             changeText="Próximos 30d"
             variant="expiring"
+            hoverItems={itemsByStatus.expiring.map((i) => ({
+              name: i.name,
+              expirationDate: i.expirationDate,
+            }))}
           />
           <StatCard
             label="Vencidos"
@@ -191,6 +217,10 @@ const DashboardPage = () => {
             icon={<AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
             changeText="Requieren atención"
             variant="expired"
+            hoverItems={itemsByStatus.expired.map((i) => ({
+              name: i.name,
+              expirationDate: i.expirationDate,
+            }))}
           />
         </div>
 

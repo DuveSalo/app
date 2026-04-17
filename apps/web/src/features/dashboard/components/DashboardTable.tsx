@@ -1,17 +1,10 @@
 import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ExpirationStatus } from '../../../types/expirable';
 import { StatusBadge } from '../../../components/common/StatusBadge';
 import { formatDateLocal } from '../../../lib/utils/dateUtils';
+import type { DashboardItem } from '../types';
 
-export interface DashboardItem {
-  id: string;
-  name: string;
-  type: string;
-  expirationDate: string;
-  status: ExpirationStatus;
-  modulePath: string;
-}
+export type { DashboardItem };
 
 interface DashboardTableProps {
   items: DashboardItem[];
