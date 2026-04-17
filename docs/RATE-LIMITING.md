@@ -8,13 +8,11 @@ Rate limiting is not yet implemented in Escuela Segura. This document outlines t
 
 | Function | Limit | Identifier |
 |---|---|---|
-| `webhook-mercadopago` | 100 req/min | IP |
-| `mp-create-subscription` | 5 req/min | User ID |
-| `mp-manage-subscription` | 10 req/min | User ID |
-| `mp-get-subscription-status` | 20 req/min | User ID |
 | `send-welcome-email` | 3 req/hour | User ID |
 | `send-expiration-emails` | 1 req/min | CRON (service_role) |
 | `cron-check-subscriptions` | 1 req/min | CRON (service_role) |
+| Bank-transfer payment submission RPC | 5 req/min | User ID |
+| Admin payment review RPCs | 10 req/min | Admin user ID |
 | Auth (Supabase built-in) | Configured via `max_frequency` | Email |
 | Password reset | 3 req/hour | Email |
 
@@ -58,18 +56,18 @@ if (!success) {
 Each function should create its own `Ratelimit` instance with the appropriate limit from the table above. For example:
 
 ```typescript
-// mp-create-subscription: strict limit
+// bank-transfer payment submission: strict limit
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
   limiter: Ratelimit.slidingWindow(5, "1 m"),
-  prefix: "ratelimit:mp-create-subscription",
+  prefix: "ratelimit:bank-transfer-submit",
 })
 
-// webhook-mercadopago: higher limit for external webhooks
+// admin payment review: authenticated admin operation
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(100, "1 m"),
-  prefix: "ratelimit:webhook-mercadopago",
+  limiter: Ratelimit.slidingWindow(10, "1 m"),
+  prefix: "ratelimit:admin-payment-review",
 })
 ```
 
@@ -100,7 +98,7 @@ These built-in limits are separate from the Edge Function rate limiting describe
 
 ## Implementation Priority
 
-1. **High**: `webhook-mercadopago` (publicly accessible, no auth required)
-2. **High**: `mp-create-subscription` (financial operation, low expected volume)
-3. **Medium**: `mp-manage-subscription`, `mp-get-subscription-status`
+1. **High**: Bank-transfer payment submission (financial operation, low expected volume)
+2. **High**: Admin payment review RPCs (approve/reject changes access state)
+3. **Medium**: Transactional email functions
 4. **Low**: CRON functions (already protected by `service_role` key)
