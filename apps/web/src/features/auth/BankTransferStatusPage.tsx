@@ -5,6 +5,15 @@ import { supabase } from '@/lib/supabase/client';
 import { Clock, CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import AuthLayout from '../../components/layout/AuthLayout';
 import { ROUTE_PATHS } from '../../constants/index';
 import { getLatestManualPayment } from '../../lib/api/services/bankTransfer';
@@ -26,6 +35,7 @@ const BankTransferStatusPage = () => {
   const { currentCompany: company, logout, refreshCompany } = useAuth();
   const [loading, setLoading] = useState(true);
   const [payment, setPayment] = useState<PaymentState | null>(null);
+  const [showRejectionDialog, setShowRejectionDialog] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const autoRedirectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -140,6 +150,28 @@ const BankTransferStatusPage = () => {
 
   return (
     <AuthLayout variant="wizard" wizardSteps={['Cuenta', 'Empresa', 'Suscripción']} currentStep={3}>
+      {payment?.status === 'rejected' ? (
+        <AlertDialog open={showRejectionDialog} onOpenChange={setShowRejectionDialog}>
+          <AlertDialogContent size="sm">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Pago rechazado</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tu comprobante de transferencia fue rechazado.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            {payment.rejectionReason ? (
+              <div className="rounded-lg bg-muted border border-border p-3 text-left">
+                <p className="text-sm text-muted-foreground">{payment.rejectionReason}</p>
+              </div>
+            ) : null}
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={() => setShowRejectionDialog(false)}>
+                Entendido
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ) : null}
       <Card className="w-full max-w-md">
         <CardContent className="p-8 text-center">
           {payment.status === 'pending' && (

@@ -1,26 +1,21 @@
 import { useState } from 'react';
 import { CheckIcon } from '@/components/common/Icons';
-import { CardForm } from '@/features/auth/components/CardForm';
-import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import type { Plan } from '@/types/company';
 
 interface PlanSelectorProps {
   plans: Plan[];
-  userEmail?: string;
-  onCreateSubscription: (data: {
-    planKey: string;
-    cardTokenId: string;
-    payerEmail: string;
-    cardBrand?: string | null;
-    cardLastFour?: string | null;
-    paymentTypeId?: string | null;
-  }) => Promise<void>;
+  onSelectPlan: (planId: string) => void;
+  onContinue: () => void;
 }
 
-export const PlanSelector = ({ plans, userEmail, onCreateSubscription }: PlanSelectorProps) => {
+export const PlanSelector = ({ plans, onSelectPlan, onContinue }: PlanSelectorProps) => {
   const [selectedPlanId, setSelectedPlanId] = useState(plans[0]?.id || 'basic');
-  const [planError, setPlanError] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleSelectPlan = (planId: string) => {
+    setSelectedPlanId(planId);
+    onSelectPlan(planId);
+  };
 
   return (
     <div>
@@ -31,10 +26,7 @@ export const PlanSelector = ({ plans, userEmail, onCreateSubscription }: PlanSel
         {plans.map((plan) => (
           <div
             key={plan.id}
-            onClick={() => {
-              setSelectedPlanId(plan.id);
-              setPlanError('');
-            }}
+            onClick={() => handleSelectPlan(plan.id)}
             className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
               selectedPlanId === plan.id
                 ? 'border-primary ring-1 ring-primary bg-background'
@@ -81,47 +73,9 @@ export const PlanSelector = ({ plans, userEmail, onCreateSubscription }: PlanSel
         ))}
       </div>
 
-      {/* Payment Form */}
-      <div className="relative">
-        {isProcessing && (
-          <div className="absolute inset-0 bg-background/90 flex items-center justify-center z-10">
-            <div className="text-center">
-              <div className="w-6 h-6 border-2 border-border border-t-foreground rounded-full animate-spin mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Procesando suscripción...</p>
-            </div>
-          </div>
-        )}
-
-        <CardForm
-          key={selectedPlanId}
-          amount={plans.find((p) => p.id === selectedPlanId)?.priceNumber || 0}
-          onTokenReady={async (data) => {
-            setPlanError('');
-            setIsProcessing(true);
-            try {
-              await onCreateSubscription({
-                planKey: selectedPlanId,
-                cardTokenId: data.token,
-                payerEmail: data.email || userEmail || '',
-                cardBrand: data.paymentMethodId || null,
-                cardLastFour: data.lastFourDigits,
-                paymentTypeId: data.paymentTypeId,
-              });
-            } catch (err) {
-              console.error('[MP] PlanSelector: Create subscription error:', err);
-              const msg = 'Error al crear la suscripción. Intente nuevamente.';
-              setPlanError(msg);
-              toast.error(msg);
-            } finally {
-              setIsProcessing(false);
-            }
-          }}
-          onError={(msg) => setPlanError(msg)}
-          isProcessing={isProcessing}
-        />
-      </div>
-
-      {planError && <p className="text-sm text-destructive text-center mt-3">{planError}</p>}
+      <Button className="w-full" onClick={onContinue}>
+        Continuar con transferencia bancaria
+      </Button>
     </div>
   );
 };

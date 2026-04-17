@@ -28,7 +28,7 @@ export const ActivePlanCard = ({
             {statusConfig.label}
           </span>
         </div>
-        {canChangePlan && !isBankTransfer && (
+        {canChangePlan && (
           <Button
             type="button"
             variant="ghost"

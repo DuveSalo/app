@@ -1,11 +1,13 @@
 import { STATUS_CONFIG } from './billingConstants';
+import type { Subscription } from '@/types/subscription';
 
 interface BankTransferPlanCardProps {
-  planName: string;
+  subscription: Subscription;
 }
 
-export const BankTransferPlanCard = ({ planName }: BankTransferPlanCardProps) => {
-  const statusConfig = STATUS_CONFIG.active;
+export const BankTransferPlanCard = ({ subscription }: BankTransferPlanCardProps) => {
+  const statusConfig = STATUS_CONFIG[subscription.status] || STATUS_CONFIG.pending;
+  const planName = subscription.planName;
 
   return (
     <div>
@@ -31,7 +33,7 @@ export const BankTransferPlanCard = ({ planName }: BankTransferPlanCardProps) =>
         </div>
         <div>
           <p className="text-xs text-muted-foreground mb-1">Estado</p>
-          <p className="text-sm font-medium text-foreground">Activa</p>
+          <p className="text-sm font-medium text-foreground">{statusConfig.label}</p>
         </div>
       </div>
     </div>

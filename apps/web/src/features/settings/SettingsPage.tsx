@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { useCompanySettings } from './hooks/useCompanySettings';
@@ -28,13 +28,6 @@ export const SettingsPage = () => {
   const company = useCompanySettings();
   const employees = useEmployeeManagement();
   const billing = useBillingData();
-
-  // Sync fresh data from MercadoPago when viewing billing tab
-  useEffect(() => {
-    if (activeTab === 'billing') {
-      billing.syncMercadoPagoStatus();
-    }
-  }, [activeTab, billing.syncMercadoPagoStatus]);
 
   if (!currentCompany || !currentUser) {
     return <SkeletonForm />;
@@ -84,13 +77,9 @@ export const SettingsPage = () => {
             onReactivate={billing.handleReactivateSubscription}
             onSubscriptionChange={billing.handleSubscriptionChange}
             onChangePlan={billing.handleChangePlan}
-            onChangeCard={billing.handleChangeCard}
-            onCreateSubscription={billing.handleCreateSubscription}
             onBankTransferPayment={billing.handleBankTransferPayment}
             userEmail={currentUser.email}
             trialEndsAt={currentCompany.trialEndsAt}
-            cardBrand={billing.cardBrand}
-            cardLastFour={billing.cardLastFour}
           />
         </TabsContent>
 

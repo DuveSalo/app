@@ -1,25 +1,20 @@
 import { Button } from '@/components/ui/button';
-import { CheckIcon, CreditCardIcon } from '@/components/common/Icons';
-import { Building2 } from 'lucide-react';
+import { CheckIcon } from '@/components/common/Icons';
 import type { Plan } from '@/types/company';
 
 interface NewSubscriptionSectionProps {
   plans: Plan[];
   selectedPlanId: string;
-  paymentMethod: 'card' | 'bank_transfer';
   planError: string;
   onSelectPlan: (planId: string) => void;
-  onSelectPaymentMethod: (method: 'card' | 'bank_transfer') => void;
   onContinue: () => void;
 }
 
 export const NewSubscriptionSection = ({
   plans,
   selectedPlanId,
-  paymentMethod,
   planError,
   onSelectPlan,
-  onSelectPaymentMethod,
   onContinue,
 }: NewSubscriptionSectionProps) => {
   if (plans.length === 0) {
@@ -77,43 +72,9 @@ export const NewSubscriptionSection = ({
         ))}
       </div>
 
-      {/* Payment method picker */}
-      <div className="space-y-3">
-        <p className="text-xs text-muted-foreground">Método de pago</p>
-        <div className="grid grid-cols-2 gap-3">
-          <div
-            onClick={() => onSelectPaymentMethod('card')}
-            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-              paymentMethod === 'card'
-                ? 'border-primary ring-1 ring-primary bg-background'
-                : 'border-border hover:border-border bg-background'
-            }`}
-          >
-            <CreditCardIcon className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-foreground">Tarjeta</p>
-              <p className="text-xs text-muted-foreground">Crédito o débito</p>
-            </div>
-          </div>
-          <div
-            onClick={() => onSelectPaymentMethod('bank_transfer')}
-            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-              paymentMethod === 'bank_transfer'
-                ? 'border-primary ring-1 ring-primary bg-background'
-                : 'border-border hover:border-border bg-background'
-            }`}
-          >
-            <Building2 className="w-5 h-5 text-muted-foreground flex-shrink-0" strokeWidth={1.5} />
-            <div>
-              <p className="text-sm font-medium text-foreground">Transferencia</p>
-              <p className="text-xs text-muted-foreground">Bancaria</p>
-            </div>
-          </div>
-        </div>
-        <Button onClick={onContinue} className="w-full">
-          Continuar
-        </Button>
-      </div>
+      <Button onClick={onContinue} className="w-full">
+        Continuar con transferencia bancaria
+      </Button>
 
       {planError && <p className="text-sm text-destructive text-center mt-3">{planError}</p>}
     </>

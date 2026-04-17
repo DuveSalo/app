@@ -36,19 +36,29 @@ const ProtectedRoute = ({ children }: { children: ReactElement }) => {
   }
 
   const trialStatus = getTrialStatus(currentCompany);
+  const isRejected =
+    currentCompany.subscriptionStatus === 'rejected' ||
+    currentCompany.bankTransferStatus === 'rejected';
+  const limitedAccessPaths: string[] = [
+    ROUTE_PATHS.SUBSCRIPTION,
+    ROUTE_PATHS.TRIAL_EXPIRED,
+    ROUTE_PATHS.CREATE_COMPANY,
+    ROUTE_PATHS.SETTINGS,
+    ROUTE_PATHS.BANK_TRANSFER_UPLOAD,
+    ROUTE_PATHS.BANK_TRANSFER_STATUS,
+  ];
+
+  if (isRejected && !limitedAccessPaths.includes(location.pathname)) {
+    return <Navigate to={ROUTE_PATHS.BANK_TRANSFER_STATUS} replace />;
+  }
 
   // Level 3: Must have access (subscribed OR trial active)
   if (!currentCompany.isSubscribed && trialStatus !== 'active') {
-    const allowedPaths: string[] = [
-      ROUTE_PATHS.SUBSCRIPTION,
-      ROUTE_PATHS.TRIAL_EXPIRED,
-      ROUTE_PATHS.CREATE_COMPANY,
-      ROUTE_PATHS.SETTINGS,
-      ROUTE_PATHS.BANK_TRANSFER_UPLOAD,
-      ROUTE_PATHS.BANK_TRANSFER_STATUS,
-    ];
-    if (allowedPaths.includes(location.pathname)) {
+    if (limitedAccessPaths.includes(location.pathname)) {
       return children;
+    }
+    if (isRejected) {
+      return <Navigate to={ROUTE_PATHS.BANK_TRANSFER_STATUS} replace />;
     }
     if (trialStatus === 'expired') {
       return <Navigate to={ROUTE_PATHS.TRIAL_EXPIRED} replace />;

@@ -41,6 +41,16 @@ const renderWithRouter = (initialPath: string = '/dashboard') => {
                         <div data-testid="dashboard-page">Dashboard</div>
                     </ProtectedRoute>
                 } />
+                <Route path="/bank-transfer/status" element={
+                    <ProtectedRoute>
+                        <div data-testid="bank-transfer-status-page">Bank Transfer Status</div>
+                    </ProtectedRoute>
+                } />
+                <Route path="/bank-transfer/upload" element={
+                    <ProtectedRoute>
+                        <div data-testid="bank-transfer-upload-page">Bank Transfer Upload</div>
+                    </ProtectedRoute>
+                } />
             </Routes>
         </MemoryRouter>
     );
@@ -126,5 +136,86 @@ describe('ProtectedRoute', () => {
 
         renderWithRouter('/subscribe');
         expect(screen.getByTestId('subscription-page')).toBeInTheDocument();
+    });
+
+    it('should redirect to bank-transfer/status when subscription_status is rejected', () => {
+        mockUseAuth.mockReturnValue({
+            currentUser: { id: '1', email: 'test@test.com', name: 'Test' },
+            currentCompany: {
+                id: '1',
+                name: 'Test Company',
+                isSubscribed: false,
+                subscriptionStatus: 'rejected',
+            },
+            isLoading: false,
+        });
+
+        renderWithRouter('/dashboard');
+        expect(screen.getByTestId('bank-transfer-status-page')).toBeInTheDocument();
+    });
+
+    it('should redirect to bank-transfer/status when rejected status is present even if isSubscribed is stale true', () => {
+        mockUseAuth.mockReturnValue({
+            currentUser: { id: '1', email: 'test@test.com', name: 'Test' },
+            currentCompany: {
+                id: '1',
+                name: 'Test Company',
+                isSubscribed: true,
+                subscriptionStatus: 'rejected',
+                bankTransferStatus: 'rejected',
+            },
+            isLoading: false,
+        });
+
+        renderWithRouter('/dashboard');
+        expect(screen.getByTestId('bank-transfer-status-page')).toBeInTheDocument();
+    });
+
+    it('should redirect to bank-transfer/status when bank_transfer_status is rejected', () => {
+        mockUseAuth.mockReturnValue({
+            currentUser: { id: '1', email: 'test@test.com', name: 'Test' },
+            currentCompany: {
+                id: '1',
+                name: 'Test Company',
+                isSubscribed: false,
+                bankTransferStatus: 'rejected',
+            },
+            isLoading: false,
+        });
+
+        renderWithRouter('/dashboard');
+        expect(screen.getByTestId('bank-transfer-status-page')).toBeInTheDocument();
+    });
+
+    it('should allow bank-transfer/status path when status is rejected', () => {
+        mockUseAuth.mockReturnValue({
+            currentUser: { id: '1', email: 'test@test.com', name: 'Test' },
+            currentCompany: {
+                id: '1',
+                name: 'Test Company',
+                isSubscribed: false,
+                subscriptionStatus: 'rejected',
+            },
+            isLoading: false,
+        });
+
+        renderWithRouter('/bank-transfer/status');
+        expect(screen.getByTestId('bank-transfer-status-page')).toBeInTheDocument();
+    });
+
+    it('should allow bank-transfer/upload path when status is rejected', () => {
+        mockUseAuth.mockReturnValue({
+            currentUser: { id: '1', email: 'test@test.com', name: 'Test' },
+            currentCompany: {
+                id: '1',
+                name: 'Test Company',
+                isSubscribed: false,
+                subscriptionStatus: 'rejected',
+            },
+            isLoading: false,
+        });
+
+        renderWithRouter('/bank-transfer/upload');
+        expect(screen.getByTestId('bank-transfer-upload-page')).toBeInTheDocument();
     });
 });

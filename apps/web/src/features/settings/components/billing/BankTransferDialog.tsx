@@ -47,7 +47,7 @@ export const BankTransferDialog = ({
 }: BankTransferDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         {/* Step 1: Bank details */}
         {step === 'details' && (
           <>

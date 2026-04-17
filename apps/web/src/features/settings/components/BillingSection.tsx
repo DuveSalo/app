@@ -4,14 +4,13 @@ import { ChangePlanModal } from './ChangePlanModal';
 import { TrialInfoCard } from './billing/TrialInfoCard';
 import { ActivePlanCard } from './billing/ActivePlanCard';
 import { BankTransferPlanCard } from './billing/BankTransferPlanCard';
+import { BankTransferPendingCard } from './billing/BankTransferPendingCard';
 import { NewSubscriptionSection } from './billing/NewSubscriptionSection';
-import { PaymentMethodSection } from './billing/PaymentMethodSection';
 import { PaymentHistorySection } from './billing/PaymentHistorySection';
 import { CancelPlanSection } from './billing/CancelPlanSection';
-import { CardPaymentDialog } from './billing/CardPaymentDialog';
 import { BankTransferDialog } from './billing/BankTransferDialog';
 import { useBankTransferFlow } from './billing/useBankTransferFlow';
-import type { ChangeCardData, Subscription, PaymentTransaction } from '../../../types/subscription';
+import type { Subscription, PaymentTransaction } from '../../../types/subscription';
 
 interface BillingSectionProps {
   companyId: string;
@@ -22,20 +21,9 @@ interface BillingSectionProps {
   onReactivate: () => Promise<void>;
   onSubscriptionChange: () => Promise<void>;
   onChangePlan: (newPlanKey: string) => Promise<void>;
-  onChangeCard: (data: ChangeCardData) => Promise<void>;
-  onCreateSubscription: (data: {
-    planKey: string;
-    cardTokenId: string;
-    payerEmail: string;
-    cardBrand?: string | null;
-    cardLastFour?: string | null;
-    paymentTypeId?: string | null;
-  }) => Promise<void>;
   onBankTransferPayment: (data: { planKey: string; amount: number }) => Promise<void>;
   userEmail?: string;
   trialEndsAt?: string;
-  cardBrand?: string | null;
-  cardLastFour?: string | null;
 }
 
 export const BillingSection = ({
@@ -46,19 +34,13 @@ export const BillingSection = ({
   onCancel,
   onReactivate,
   onChangePlan,
-  onChangeCard,
-  onCreateSubscription,
   onBankTransferPayment,
   onSubscriptionChange,
-  userEmail,
   trialEndsAt,
-  cardBrand,
-  cardLastFour,
 }: BillingSectionProps) => {
   const { plans: plansData } = usePlans();
   const [showChangePlanModal, setShowChangePlanModal] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState('basic');
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'bank_transfer'>('card');
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   const bankTransfer = useBankTransferFlow({
@@ -68,6 +50,7 @@ export const BillingSection = ({
   });
 
   const isBankTransfer = subscription?.paymentProvider === 'bank_transfer';
+  const isPendingApproval = subscription?.status === 'approval_pending';
   const needsSubscription = !subscription || subscription.status === 'cancelled';
   const canChangePlan = subscription?.status === 'active' && !isBankTransfer;
 
@@ -86,6 +69,17 @@ export const BillingSection = ({
     if (!open) bankTransfer.reset();
   };
 
+  // When a bank transfer payment is pending admin approval, the user should see
+  // only the pending-approval notice — not the plan card, payment history, or cancel flow.
+  // Prevents showing misleading "Activa" status before the payment is verified.
+  if (isPendingApproval && isBankTransfer && subscription) {
+    return (
+      <div className="space-y-5">
+        <BankTransferPendingCard planName={subscription.planName} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
       {!subscription && trialEndsAt && <TrialInfoCard trialEndsAt={trialEndsAt} />}
@@ -95,7 +89,7 @@ export const BillingSection = ({
         {subscription &&
           !needsSubscription &&
           (isBankTransfer ? (
-            <BankTransferPlanCard planName={subscription.planName} />
+            <BankTransferPlanCard subscription={subscription} />
           ) : (
             <ActivePlanCard
               subscription={subscription}
@@ -115,32 +109,19 @@ export const BillingSection = ({
             <NewSubscriptionSection
               plans={plansData}
               selectedPlanId={selectedPlanId}
-              paymentMethod={paymentMethod}
               planError=""
               onSelectPlan={setSelectedPlanId}
-              onSelectPaymentMethod={setPaymentMethod}
               onContinue={() => setShowPaymentDialog(true)}
             />
           </div>
         )}
       </div>
 
-      {/* SECTION 2: Payment method (MercadoPago only) */}
-      {subscription && !needsSubscription && !isBankTransfer && (
-        <PaymentMethodSection
-          canChangePlan={canChangePlan}
-          cardBrand={cardBrand}
-          cardLastFour={cardLastFour}
-          mpPreapprovalId={subscription.mpPreapprovalId}
-          onChangeCard={onChangeCard}
-        />
-      )}
-
-      {/* SECTION 3: Payment history */}
+      {/* SECTION 2: Payment history */}
       <PaymentHistorySection payments={payments} />
 
-      {/* SECTION 4: Cancel plan (MercadoPago only) */}
-      {subscription && !needsSubscription && !isBankTransfer && (
+      {/* SECTION 3: Cancel plan (bank transfer only) */}
+      {subscription && !needsSubscription && isBankTransfer && (
         <CancelPlanSection
           subscription={subscription}
           isLoading={isLoading}
@@ -159,22 +140,9 @@ export const BillingSection = ({
         />
       )}
 
-      {/* Card Payment Dialog */}
-      <CardPaymentDialog
-        open={showPaymentDialog && paymentMethod === 'card'}
-        onOpenChange={(open) => {
-          if (!open) setShowPaymentDialog(false);
-          else setShowPaymentDialog(true);
-        }}
-        selectedPlan={selectedPlan}
-        selectedPlanId={selectedPlanId}
-        userEmail={userEmail}
-        onCreateSubscription={onCreateSubscription}
-      />
-
       {/* Bank Transfer Dialog */}
       <BankTransferDialog
-        open={showPaymentDialog && paymentMethod === 'bank_transfer'}
+        open={showPaymentDialog}
         onOpenChange={handleCloseBankTransferDialog}
         step={bankTransfer.step}
         selectedPlan={selectedPlan}
