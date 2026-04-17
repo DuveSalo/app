@@ -22,8 +22,8 @@ settings/
 
 - Settings page uses tab-based navigation (Profile, Company, Employees, Billing).
 - Employee management must respect company-level RLS — users can only manage employees within their company.
-- Billing section integrates with MercadoPago subscription management (cancel, suspend, reactivate, change plan).
-- Plan changes trigger Edge Function calls — never modify subscription state directly in the client.
+- Billing section integrates with bank-transfer subscription status, payment history, and admin-reviewed renewals.
+- Subscription state changes must go through RPCs/admin review flows — never modify subscription state directly in the client.
 
 ## Security
 

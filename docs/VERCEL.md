@@ -26,7 +26,6 @@ Set these in **Vercel Project Settings > Environment Variables** for Production 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<supabase-publishable-key>
-NEXT_PUBLIC_MP_PUBLIC_KEY=<mercadopago-public-key>
 NEXT_PUBLIC_APP_URL=https://<your-production-domain>
 ```
 
@@ -38,8 +37,8 @@ NEXT_PUBLIC_LOG_LEVEL=info
 
 Important: every `NEXT_PUBLIC_*` variable is exposed to the browser. Use the
 Supabase publishable key (`sb_publishable_...`) here. Do not put Supabase secret
-keys, legacy service-role keys, MercadoPago access tokens, webhook secrets,
-Resend keys, or any private credential in Vercel public variables.
+keys, legacy service-role keys, Resend keys, or any private credential in Vercel
+public variables.
 
 ## Supabase settings to update after the Vercel domain exists
 
@@ -58,8 +57,6 @@ Backend/private secrets for Supabase Edge Functions remain in Supabase, not in V
 APP_URL=https://<your-production-domain>
 SB_PUBLISHABLE_KEY=<supabase-publishable-key>
 SB_SECRET_KEY=<supabase-secret-key>
-MP_ACCESS_TOKEN
-MP_WEBHOOK_SECRET
 RESEND_API_KEY
 RESEND_FROM_EMAIL="Escuela Segura <noreply@<verified-email-domain>>"
 SUPPORT_EMAIL=soporte@<your-support-domain>
@@ -79,7 +76,7 @@ The implemented email cases are:
 
 1. Welcome after onboarding creates the company workspace.
 2. Subscription plan changes.
-3. Payment card changes.
+3. Bank-transfer payment status changes.
 4. Upcoming document expirations.
 5. Already expired documents.
 6. Account deletion confirmation.

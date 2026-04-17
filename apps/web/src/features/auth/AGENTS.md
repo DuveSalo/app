@@ -10,10 +10,10 @@ auth/
 ├── AuthPage.tsx              # Login/Register page
 ├── AuthCallbackPage.tsx      # OAuth callback handler
 ├── CreateCompanyPage.tsx     # Onboarding step 1: create company
-├── SubscriptionPage.tsx      # Onboarding step 2: MercadoPago checkout
+├── SubscriptionPage.tsx      # Onboarding step 2: bank-transfer subscription
 ├── TrialExpiredPage.tsx      # Trial expiration redirect
 └── components/
-    └── CardForm.tsx          # Payment card form component
+    └── BankDetailsCard.tsx   # Bank-transfer details component
 ```
 
 ## Critical Rules
@@ -41,7 +41,7 @@ auth/
 
 - Never store tokens in localStorage manually — Supabase handles this.
 - Always use `supabase.auth.getUser()` for server-verified user identity, not `getSession()`.
-- Payment secrets (MercadoPago access token, webhook secrets) must NEVER appear in client code.
+- Payment/admin secrets must NEVER appear in client code.
 - Redirect URLs must be validated — only allow known origins.
 
 ## Testing

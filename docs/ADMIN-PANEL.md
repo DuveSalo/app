@@ -108,8 +108,8 @@ activity_logs:
 ### Companies table changes
 
 Add to companies table:
-- `payment_method: text ('mercadopago' | 'bank_transfer')` — default 'mercadopago'
-- `bank_transfer_status: text ('pending' | 'active' | 'suspended')` — nullable, only for bank_transfer
+- `payment_method: text ('bank_transfer')` — nullable; `NULL` means no method selected yet
+- `bank_transfer_status: text ('pending' | 'active' | 'suspended' | 'rejected')` — nullable, only for bank_transfer
 
 ### Admin navigation items
 
@@ -122,7 +122,7 @@ Add to companies table:
 
 ### User flow for bank transfer payment
 
-1. During subscription selection, user chooses "Transferencia bancaria" instead of MercadoPago
+1. During subscription selection, user uses "Transferencia bancaria"
 2. App shows bank details (CBU, alias, titular, banco) and instructions
 3. User makes the transfer externally (via their bank app)
 4. User uploads comprobante (photo/PDF) in the app

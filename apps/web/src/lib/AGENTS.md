@@ -17,15 +17,12 @@ lib/
 │   │   ├── system.ts       # Self-protection systems
 │   │   ├── qr.ts           # QR document management
 │   │   ├── notifications.ts
-│   │   ├── subscription.ts # MercadoPago subscription lifecycle
+│   │   ├── subscription.ts # Bank-transfer subscription lifecycle/history
 │   │   ├── pdf.ts          # PDF generation (jsPDF)
 │   │   └── index.ts        # Barrel export
 │   └── mappers.ts          # Shared DB → domain mappers
 ├── supabase/
 │   └── client.ts           # Supabase client config (PKCE auth)
-├── mercadopago/
-│   ├── config.ts           # MercadoPago SDK config
-│   └── index.ts
 ├── hooks/
 │   ├── useForm.ts          # Generic form state management
 │   ├── useEntityForm.ts    # CRUD entity form hook
@@ -69,6 +66,5 @@ lib/
 ## Security Rules
 
 - **Supabase client** uses PKCE — never manually manage JWTs.
-- **MercadoPago Secure Fields** handle PCI compliance for card data.
 - **Never log sensitive data** (tokens, keys, PII) — logger should sanitize output.
 - **Sanitize user input** before rendering or storing — use `sanitize.ts` utilities.
