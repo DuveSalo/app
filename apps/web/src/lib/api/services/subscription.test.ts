@@ -157,6 +157,24 @@ describe('subscription service', () => {
 
       expect(result?.failedPaymentsCount).toBe(0);
     });
+
+    it('falls back to currentPeriodEnd when nextBillingTime is missing for bank transfers', async () => {
+      const fromMock = supabase.from as ReturnType<typeof vi.fn>;
+      const rowWithoutNextBillingTime = { ...mockDbRow, next_billing_time: null };
+      const chainMock = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        in: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockReturnThis(),
+        maybeSingle: vi.fn().mockResolvedValue({ data: rowWithoutNextBillingTime, error: null }),
+      };
+      fromMock.mockReturnValue(chainMock);
+
+      const result = await getActiveSubscription(COMPANY_ID);
+
+      expect(result?.nextBillingTime).toBe('2026-04-01');
+    });
   });
 
   describe('getPaymentHistory', () => {

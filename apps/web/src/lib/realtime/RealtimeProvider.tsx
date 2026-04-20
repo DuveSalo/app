@@ -47,6 +47,7 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
     });
 
     return () => {
+      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, [currentUser?.id, currentCompany?.id, isAdmin, queryClient]);

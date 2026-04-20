@@ -12,6 +12,7 @@ import { formatDateLocal, formatCurrency } from '@/lib/utils/dateUtils';
 import * as api from '@/lib/api/services';
 import { toast } from 'sonner';
 import { ROUTE_PATHS } from '@/constants/index';
+import { isCabaProvince } from '@/constants/geographic-data';
 import { AdminDocumentSection } from './components/AdminDocumentSection';
 import type { AdminSchoolDetail, AdminPaymentRow, AdminDocumentModule } from './types';
 
@@ -118,6 +119,9 @@ const AdminSchoolDetailPage = () => {
     );
   }
 
+  const shouldShowTrialEnd = !school.isSubscribed && Boolean(school.trialEndsAt);
+  const shouldShowCity = !isCabaProvince(school.province);
+
   return (
     <PageLayout
       title={school.name}
@@ -137,9 +141,9 @@ const AdminSchoolDetailPage = () => {
             <InfoItem label="Nombre" value={school.name} />
             <InfoItem label="CUIT" value={school.cuit} />
             <InfoItem label="Dirección" value={school.address} />
-            <InfoItem label="Ciudad" value={school.city} />
+            {shouldShowCity && <InfoItem label="Ciudad" value={school.city} />}
             <InfoItem label="Provincia" value={school.province} />
-            <InfoItem label="Localidad" value={school.locality} />
+            {shouldShowCity && <InfoItem label="Localidad" value={school.locality} />}
             <InfoItem label="Código postal" value={school.postalCode} />
             <InfoItem label="Teléfono" value={school.phone} />
             <InfoItem label="Email" value={school.email} />
@@ -165,10 +169,12 @@ const AdminSchoolDetailPage = () => {
               label="Fecha de renovación"
               value={formatDateLocal(school.subscriptionRenewalDate)}
             />
-            <InfoItem
-              label="Fin del período de prueba"
-              value={formatDateLocal(school.trialEndsAt)}
-            />
+            {shouldShowTrialEnd && (
+              <InfoItem
+                label="Fin del período de prueba"
+                value={formatDateLocal(school.trialEndsAt)}
+              />
+            )}
           </div>
         </section>
 

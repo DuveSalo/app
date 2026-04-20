@@ -121,4 +121,23 @@ describe('AdminSchoolDetailPage — Método de pago InfoItem', () => {
       expect(screen.getByText('Transferencia bancaria')).toBeInTheDocument();
     });
   });
+
+  it('does not render trial end for an active subscribed school', async () => {
+    mockGetSchoolDetail.mockResolvedValue(
+      makeSchool({
+        isSubscribed: true,
+        subscriptionStatus: 'active',
+        trialEndsAt: '2026-05-01T00:00:00Z',
+        subscriptionRenewalDate: '2026-06-01',
+      })
+    );
+
+    renderWithAuth(<AdminSchoolDetailPage />, mockUseAuth);
+
+    await waitFor(() => {
+      expect(screen.getByText('Fecha de renovación')).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText('Fin del período de prueba')).not.toBeInTheDocument();
+  });
 });

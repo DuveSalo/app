@@ -122,6 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Sync React state with Supabase auth events (token refresh failures, sign-outs from other tabs)
   const isHandlingAuthEvent = useRef(false);
+  const authEventRefreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     const {
       data: { subscription },
@@ -138,7 +139,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Re-fetch user data on new sign-in (e.g. OAuth callback) or successful token refresh
         // Use the ref to avoid stale closure — we need the latest value without re-subscribing
         if (event === 'SIGNED_IN' && !currentUserRef.current) {
-          fetchInitialData();
+          // Supabase runs auth-state callbacks while holding an exclusive auth
+          // session lock. Calling Supabase APIs from inside this callback can
+          // deadlock waiting for the same Navigator LockManager lock, so defer
+          // the refresh until after the callback has returned.
+          if (authEventRefreshTimeoutRef.current === null) {
+            authEventRefreshTimeoutRef.current = setTimeout(() => {
+              authEventRefreshTimeoutRef.current = null;
+              void fetchInitialData();
+            }, 0);
+          }
         }
       }
 
@@ -147,7 +157,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isHandlingAuthEvent.current = false;
       });
     });
-    return () => subscription.unsubscribe();
+    return () => {
+      if (authEventRefreshTimeoutRef.current !== null) {
+        clearTimeout(authEventRefreshTimeoutRef.current);
+        authEventRefreshTimeoutRef.current = null;
+      }
+      subscription.unsubscribe();
+    };
   }, [fetchInitialData]); // currentUser removed — accessed via ref to prevent listener churn
 
   const loginUser = async (email: string, pass: string) => {

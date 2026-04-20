@@ -6,15 +6,22 @@ export type NotificationType =
   | 'expiration_warning'   // 30-10 days before expiration
   | 'expiration_urgent'    // Less than 10 days
   | 'expired'              // Already expired
+  | 'success'              // Successful system/admin action
+  | 'warning'              // Legacy warning notification
+  | 'error'                // Legacy error notification
   | 'system'               // System notifications
   | 'info';                // General info
 
 export type NotificationCategory =
   | 'certificate'          // Conservation certificates
+  | 'certificate_expiring' // Legacy certificate expiration category
   | 'inspection'           // Self-protection systems
+  | 'system_inspection_due' // Legacy inspection expiration category
   | 'fire_extinguisher'    // Fire extinguishers
+  | 'security'             // Legacy fire/security category
   | 'event'                // Events
   | 'qr'                   // QR documents
+  | 'payment'              // Bank-transfer payment notifications
   | 'system';              // System notifications
 
 export interface Notification {

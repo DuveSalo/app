@@ -4,6 +4,7 @@ import * as api from '@/lib/api/services';
 import { QRDocumentType, CompanyServices, Company } from '../../../types/index';
 import { toast } from 'sonner';
 import type { CompanyInfoFormValues } from '../schemas';
+import { isCabaProvince } from '@/constants/geographic-data';
 
 export const useCompanySettings = () => {
   const { currentCompany, refreshCompany } = useAuth();
@@ -27,7 +28,7 @@ export const useCompanySettings = () => {
         cuit: values.cuit,
         address: values.address,
         postalCode: values.postalCode,
-        city: values.city,
+        city: isCabaProvince(values.province) ? '' : values.city,
         province: values.province,
         country: values.country,
         phone: values.phone,

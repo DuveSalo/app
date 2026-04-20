@@ -46,9 +46,9 @@ function daysBetween(dateStr: string): number {
 }
 
 function getNotificationType(daysLeft: number): string {
-  if (daysLeft < 0) return 'error';
-  if (daysLeft <= 10) return 'warning';
-  return 'info';
+  if (daysLeft < 0) return 'expired';
+  if (daysLeft <= 10) return 'expiration_urgent';
+  return 'expiration_warning';
 }
 
 function getTitle(daysLeft: number, name: string): string {
@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
           companyId: cert.company_id,
           relatedTable: 'conservation_certificates',
           relatedId: cert.id,
-          category: 'certificate_expiring',
+          category: 'certificate',
           name: `Certificado Nro. ${cert.registration_number}`,
           daysLeft: daysBetween(cert.expiration_date),
           link: '/conservation-certificates',
@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
           companyId: ext.company_id,
           relatedTable: 'fire_extinguishers',
           relatedId: `${ext.id}:charge`,
-          category: 'security',
+          category: 'fire_extinguisher',
           name: `Extintor #${ext.extinguisher_number} (carga)`,
           daysLeft: daysBetween(ext.charge_expiration_date),
           link: '/fire-extinguishers',
@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
           companyId: ext.company_id,
           relatedTable: 'fire_extinguishers',
           relatedId: `${ext.id}:hydraulic`,
-          category: 'security',
+          category: 'fire_extinguisher',
           name: `Extintor #${ext.extinguisher_number} (presión hidráulica)`,
           daysLeft: daysBetween(ext.hydraulic_pressure_expiration_date),
           link: '/fire-extinguishers',
@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
           companyId: sys.company_id,
           relatedTable: 'self_protection_systems',
           relatedId: sys.id,
-          category: 'system_inspection_due',
+          category: 'inspection',
           name: 'Sistema de autoprotección',
           daysLeft: daysBetween(sys.expiration_date!),
           link: '/self-protection-systems',

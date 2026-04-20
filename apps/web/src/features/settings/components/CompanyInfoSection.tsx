@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { QRDocumentType } from '../../../types/index';
 import { MODULE_TITLES } from '../../../constants/index';
+import { isCabaProvince } from '@/constants/geographic-data';
 import { Button } from '@/components/ui/button';
 import { Input } from '../../../components/common/Input';
 import { ChipGroup } from '../../../components/common/ChipGroup';
@@ -37,7 +38,7 @@ function companyToFormValues(company: Company): CompanyInfoFormValues {
     cuit: company.cuit,
     address: company.address,
     postalCode: company.postalCode,
-    city: company.city,
+    city: isCabaProvince(company.province) ? '' : company.city,
     province: company.province,
     phone: company.phone || '',
     country: company.country,
@@ -71,11 +72,19 @@ export const CompanyInfoSection = ({
     mode: 'onBlur',
     defaultValues: companyToFormValues(currentCompany),
   });
+  const province = form.watch('province');
+  const isCabaSelected = isCabaProvince(province);
 
   // Reset form when entering edit mode or when company data changes
   useEffect(() => {
     form.reset(companyToFormValues(currentCompany));
   }, [currentCompany, form]);
+
+  useEffect(() => {
+    if (isCabaSelected && form.getValues('city') !== '') {
+      form.setValue('city', '', { shouldValidate: false });
+    }
+  }, [form, isCabaSelected]);
 
   const handleEdit = () => {
     form.reset(companyToFormValues(currentCompany));
@@ -178,19 +187,21 @@ export const CompanyInfoSection = ({
               )}
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ciudad</FormLabel>
-                    <FormControl>
-                      <Input id="companyCity" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {!isCabaSelected && (
+                <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ciudad</FormLabel>
+                      <FormControl>
+                        <Input id="companyCity" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormField
                 control={form.control}
                 name="province"
@@ -290,10 +301,12 @@ export const CompanyInfoSection = ({
           <p className="text-sm text-foreground">{currentCompany.address}</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-border pt-4">
-          <div>
-            <p className="text-sm font-medium text-foreground mb-1">Ciudad</p>
-            <p className="text-sm text-foreground">{currentCompany.city}</p>
-          </div>
+          {!isCabaProvince(currentCompany.province) && (
+            <div>
+              <p className="text-sm font-medium text-foreground mb-1">Ciudad</p>
+              <p className="text-sm text-foreground">{currentCompany.city}</p>
+            </div>
+          )}
           <div>
             <p className="text-sm font-medium text-foreground mb-1">Provincia</p>
             <p className="text-sm text-foreground">{currentCompany.province}</p>

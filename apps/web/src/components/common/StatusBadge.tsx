@@ -58,15 +58,17 @@ const VARIANT_CONFIG: Record<string, { icon: LucideIcon; classes: string }> = {
   amber: { icon: Clock4, classes: 'bg-amber-50 text-amber-700 border-amber-200' },
   red: { icon: CircleX, classes: 'bg-red-50 text-red-700 border-red-200' },
   muted: { icon: CircleCheck, classes: 'bg-muted text-muted-foreground border-border' },
+  blue: { icon: CircleCheck, classes: 'bg-blue-50 text-blue-700 border-blue-200' },
 };
 
 interface ColorBadgeProps {
-  variant: 'emerald' | 'amber' | 'red' | 'muted';
+  variant: 'emerald' | 'amber' | 'red' | 'muted' | 'blue';
   label: string;
   className?: string;
+  showIcon?: boolean;
 }
 
-export const ColorBadge = ({ variant, label, className }: ColorBadgeProps) => {
+export const ColorBadge = ({ variant, label, className, showIcon = true }: ColorBadgeProps) => {
   const config = VARIANT_CONFIG[variant];
   const Icon = config.icon;
 
@@ -78,7 +80,7 @@ export const ColorBadge = ({ variant, label, className }: ColorBadgeProps) => {
         className
       )}
     >
-      <Icon className="w-3.5 h-3.5" />
+      {showIcon && <Icon className="w-3.5 h-3.5" />}
       <span>{label}</span>
     </span>
   );

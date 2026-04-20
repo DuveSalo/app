@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/auth/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import { Notification } from '../../types/notification';
 import * as notificationService from '../../lib/api/services/notifications';
-import { NetworkError } from '../../lib/utils/errors';
+import { isNetworkError } from '../../lib/utils/errors';
 import { ROUTE_PATHS } from '../../constants/index';
 import { formatRelativeTimeLocal } from '../../lib/utils/dateUtils';
 
@@ -43,7 +43,7 @@ const NotificationBell = () => {
       setNotifications(notifs.items ?? []);
       setUnreadCount(count);
     } catch (error) {
-      if (!(error instanceof NetworkError)) {
+      if (!isNetworkError(error)) {
         console.error('Error fetching notifications:', error);
       }
     }
@@ -58,7 +58,9 @@ const NotificationBell = () => {
       try {
         await notificationService.markAsRead(notification.id);
       } catch (error) {
-        console.error('Error marking notification as read:', error);
+        if (!isNetworkError(error)) {
+          console.error('Error marking notification as read:', error);
+        }
         void fetchData();
       }
     },
@@ -120,7 +122,9 @@ const NotificationBell = () => {
     try {
       await notificationService.markAllAsRead(currentCompany.id);
     } catch (error) {
-      console.error('Error marking all as read:', error);
+      if (!isNetworkError(error)) {
+        console.error('Error marking all as read:', error);
+      }
       setNotifications(previousNotifications);
       setUnreadCount(previousUnreadCount);
     } finally {
@@ -134,9 +138,13 @@ const NotificationBell = () => {
     switch (type) {
       case 'expiration_urgent':
       case 'expired':
+      case 'error':
         return `${baseStyles} border-l-4 border-l-destructive`;
       case 'expiration_warning':
+      case 'warning':
         return `${baseStyles} border-l-4 border-l-amber-400`;
+      case 'success':
+        return `${baseStyles} border-l-4 border-l-emerald-400`;
       default:
         return `${baseStyles} border-l-4 border-l-border`;
     }

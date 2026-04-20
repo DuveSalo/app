@@ -45,7 +45,7 @@ function mapSubscriptionFromDb(data: SubscriptionRow): Subscription {
     subscriberEmail: data.subscriber_email || null,
     currentPeriodStart: data.current_period_start || null,
     currentPeriodEnd: data.current_period_end || null,
-    nextBillingTime: data.next_billing_time || null,
+    nextBillingTime: data.next_billing_time || data.current_period_end || null,
     activatedAt: data.activated_at || null,
     cancelledAt: data.cancelled_at || null,
     suspendedAt: data.suspended_at || null,

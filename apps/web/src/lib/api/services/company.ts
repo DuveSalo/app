@@ -133,7 +133,7 @@ export const updateCompany = async (companyData: Partial<Company>): Promise<Comp
   if (companyData.cuit) updateData.cuit = companyData.cuit;
   if (companyData.address) updateData.address = companyData.address;
   if (companyData.postalCode) updateData.postal_code = companyData.postalCode;
-  if (companyData.city) updateData.city = companyData.city;
+  if (companyData.city !== undefined) updateData.city = companyData.city;
   if (companyData.locality) updateData.locality = companyData.locality;
   if (companyData.province) updateData.province = companyData.province;
   if (companyData.country) updateData.country = companyData.country;

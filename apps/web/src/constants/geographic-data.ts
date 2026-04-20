@@ -2,10 +2,15 @@ export const COUNTRIES = [
   { value: 'Argentina', label: 'Argentina' },
 ];
 
+export const CABA_PROVINCE_VALUE = 'CABA';
+
+export const isCabaProvince = (province: string | null | undefined): boolean =>
+  province === CABA_PROVINCE_VALUE;
+
 export const PROVINCES_BY_COUNTRY: Record<string, { value: string; label: string }[]> = {
   Argentina: [
     { value: 'Buenos Aires', label: 'Buenos Aires' },
-    { value: 'CABA', label: 'Ciudad Autónoma de Buenos Aires' },
+    { value: CABA_PROVINCE_VALUE, label: 'Ciudad Autónoma de Buenos Aires' },
     { value: 'Catamarca', label: 'Catamarca' },
     { value: 'Chaco', label: 'Chaco' },
     { value: 'Chubut', label: 'Chubut' },
@@ -54,23 +59,7 @@ export const CITIES_BY_PROVINCE: Record<string, { value: string; label: string }
     { value: 'Olavarría', label: 'Olavarría' },
     { value: 'Necochea', label: 'Necochea' },
   ],
-  CABA: [
-    { value: 'Palermo', label: 'Palermo' },
-    { value: 'Recoleta', label: 'Recoleta' },
-    { value: 'Belgrano', label: 'Belgrano' },
-    { value: 'Caballito', label: 'Caballito' },
-    { value: 'Villa Urquiza', label: 'Villa Urquiza' },
-    { value: 'Flores', label: 'Flores' },
-    { value: 'Almagro', label: 'Almagro' },
-    { value: 'Villa Crespo', label: 'Villa Crespo' },
-    { value: 'Núñez', label: 'Núñez' },
-    { value: 'Colegiales', label: 'Colegiales' },
-    { value: 'San Telmo', label: 'San Telmo' },
-    { value: 'La Boca', label: 'La Boca' },
-    { value: 'Puerto Madero', label: 'Puerto Madero' },
-    { value: 'Monserrat', label: 'Monserrat' },
-    { value: 'San Nicolás', label: 'San Nicolás' },
-  ],
+  [CABA_PROVINCE_VALUE]: [],
   Córdoba: [
     { value: 'Córdoba Capital', label: 'Córdoba Capital' },
     { value: 'Villa Carlos Paz', label: 'Villa Carlos Paz' },

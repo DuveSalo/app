@@ -69,6 +69,8 @@ export const getSchoolDetail = async (companyId: string): Promise<AdminSchoolDet
   if (error) handleSupabaseError(error);
   if (!data) throw new Error('Escuela no encontrada');
 
+  const hasActiveSubscription = Boolean(data.is_subscribed) || data.subscription_status === 'active';
+
   return {
     id: data.id,
     name: data.name,
@@ -88,7 +90,7 @@ export const getSchoolDetail = async (companyId: string): Promise<AdminSchoolDet
     paymentMethod: data.payment_method === 'bank_transfer' ? 'bank_transfer' : null,
     bankTransferStatus: data.bank_transfer_status || null,
     isSubscribed: data.is_subscribed || false,
-    trialEndsAt: data.trial_ends_at || null,
+    trialEndsAt: hasActiveSubscription ? null : data.trial_ends_at || null,
     subscriptionRenewalDate: data.subscription_renewal_date || null,
     createdAt: data.created_at ?? '',
     employees: (data.employees || []).map((e) => ({

@@ -28,6 +28,7 @@ import {
   COUNTRIES,
   PROVINCES_BY_COUNTRY,
   CITIES_BY_PROVINCE,
+  isCabaProvince,
 } from '../../constants/geographic-data';
 import { createCompanySchema, type CreateCompanyFormValues } from './schemas';
 
@@ -67,6 +68,7 @@ const CreateCompanyPage = () => {
 
   const availableProvinces = useMemo(() => PROVINCES_BY_COUNTRY[country] || [], [country]);
   const availableCities = useMemo(() => CITIES_BY_PROVINCE[province] || [], [province]);
+  const isCabaSelected = isCabaProvince(province);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -102,7 +104,7 @@ const CreateCompanyPage = () => {
       cuit: values.cuit,
       address: values.address,
       postalCode: values.postalCode,
-      city: values.city,
+      city: isCabaProvince(values.province) ? '' : values.city,
       province: values.province,
       country: values.country,
       locality: '',
@@ -219,7 +221,7 @@ const CreateCompanyPage = () => {
                           onValueChange={(value) => {
                             field.onChange(value);
                             form.setValue('province', '');
-                            form.setValue('city', '');
+                            form.setValue('city', '', { shouldValidate: true });
                           }}
                           value={field.value}
                         >
@@ -250,7 +252,7 @@ const CreateCompanyPage = () => {
                         <Select
                           onValueChange={(value) => {
                             field.onChange(value);
-                            form.setValue('city', '');
+                            form.setValue('city', '', { shouldValidate: true });
                           }}
                           value={field.value}
                           disabled={!country}
@@ -275,35 +277,37 @@ const CreateCompanyPage = () => {
                 </div>
 
                 {/* City + Phone row */}
-                <div className="flex flex-col gap-3.5 md:flex-row">
-                  <FormField
-                    control={form.control}
-                    name="city"
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormLabel>Ciudad</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                          disabled={!province}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Seleccione" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {availableCities.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <div className={`flex flex-col gap-3.5 ${isCabaSelected ? '' : 'md:flex-row'}`}>
+                  {!isCabaSelected && (
+                    <FormField
+                      control={form.control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel>Ciudad</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            disabled={!province}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Seleccione" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {availableCities.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
 
                   <FormField
                     control={form.control}

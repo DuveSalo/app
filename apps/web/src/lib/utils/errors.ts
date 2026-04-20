@@ -142,6 +142,32 @@ export const getErrorMessage = (error: unknown): string => {
   return 'Error desconocido';
 };
 
+const NETWORK_ERROR_MESSAGE_PATTERNS = [
+  'Failed to fetch',
+  'NetworkError when attempting to fetch resource',
+  'Navigator LockManager lock',
+  'Load failed',
+  'The Internet connection appears to be offline',
+] as const;
+
+/**
+ * Detects transient client/network failures regardless of where they come from.
+ * Supabase can surface the same fetch failure either as a structured error
+ * object, a raw TypeError, or an application NetworkError depending on which
+ * client package raised it.
+ */
+export const isNetworkError = (error: unknown): error is NetworkError => {
+  if (error instanceof NetworkError) {
+    return true;
+  }
+
+  const message = getErrorMessage(error);
+  return (
+    NETWORK_ERROR_MESSAGE_PATTERNS.some((pattern) => message.includes(pattern)) ||
+    (message.includes('lock:sb-') && message.includes('timed out waiting'))
+  );
+};
+
 /**
  * Handles unknown errors and converts them to user-friendly messages
  */
@@ -188,10 +214,7 @@ export const handleSupabaseError = (
 ): never => {
   const message = context ? `${context}: ${error.message}` : error.message;
 
-  if (
-    error.message.includes('Failed to fetch') ||
-    error.message.includes('NetworkError when attempting to fetch resource')
-  ) {
+  if (isNetworkError(error)) {
     throw new NetworkError('No se pudo conectar con el servidor. Verifica tu conexión a internet.');
   }
 

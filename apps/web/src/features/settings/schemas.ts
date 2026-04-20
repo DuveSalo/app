@@ -1,4 +1,15 @@
 import { z } from 'zod';
+import { isCabaProvince } from '@/constants/geographic-data';
+
+const ARGENTINE_LOCATION_NAME_REGEX = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$/;
+
+const citySchema = z
+  .string()
+  .max(100)
+  .refine(
+    (value) => value.trim() === '' || ARGENTINE_LOCATION_NAME_REGEX.test(value),
+    'Solo se permiten letras y espacios.'
+  );
 
 export const companyInfoSchema = z.object({
   name: z
@@ -17,11 +28,7 @@ export const companyInfoSchema = z.object({
     .max(50)
     .regex(/^[a-zA-Z0-9]{4,8}$/, 'El código postal debe tener entre 4 y 8 caracteres.'),
   address: z.string().min(1, 'La dirección es obligatoria.').max(500),
-  city: z
-    .string()
-    .min(1, 'La ciudad es obligatoria.')
-    .max(100)
-    .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$/, 'Solo se permiten letras y espacios.'),
+  city: citySchema,
   province: z
     .string()
     .min(1, 'La provincia es obligatoria.')
@@ -38,6 +45,14 @@ export const companyInfoSchema = z.object({
     .regex(/^[\d\s\-+()]*$/, 'Formato de teléfono inválido.')
     .or(z.literal('')),
   services: z.array(z.string().max(100)).max(50),
+}).superRefine((data, ctx) => {
+  if (!isCabaProvince(data.province) && data.city.trim().length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'La ciudad es obligatoria.',
+      path: ['city'],
+    });
+  }
 });
 
 export type CompanyInfoFormValues = z.infer<typeof companyInfoSchema>;

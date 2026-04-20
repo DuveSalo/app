@@ -1,4 +1,4 @@
-import { STATUS_CONFIG } from './billingConstants';
+import { STATUS_CONFIG, formatBillingDate } from './billingConstants';
 import type { Subscription } from '@/types/subscription';
 
 interface BankTransferPlanCardProps {
@@ -8,6 +8,7 @@ interface BankTransferPlanCardProps {
 export const BankTransferPlanCard = ({ subscription }: BankTransferPlanCardProps) => {
   const statusConfig = STATUS_CONFIG[subscription.status] || STATUS_CONFIG.pending;
   const planName = subscription.planName;
+  const nextPaymentDate = subscription.nextBillingTime ?? subscription.currentPeriodEnd;
 
   return (
     <div>
@@ -35,6 +36,14 @@ export const BankTransferPlanCard = ({ subscription }: BankTransferPlanCardProps
           <p className="text-xs text-muted-foreground mb-1">Estado</p>
           <p className="text-sm font-medium text-foreground">{statusConfig.label}</p>
         </div>
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-border">
+        <p className="text-xs text-muted-foreground mb-1">Próximo pago</p>
+        <p className="text-sm font-medium text-foreground">{formatBillingDate(nextPaymentDate)}</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Corresponde al vencimiento del período abonado.
+        </p>
       </div>
     </div>
   );

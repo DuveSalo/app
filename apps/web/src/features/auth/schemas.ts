@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isCabaProvince } from '@/constants/geographic-data';
 
 // ─── Login ──────────────────────────────────────────────
 export const loginSchema = z.object({
@@ -30,6 +31,16 @@ export const otpSchema = z.object({
 
 export type OtpFormValues = z.infer<typeof otpSchema>;
 
+const ARGENTINE_LOCATION_NAME_REGEX = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$/;
+
+const citySchema = z
+  .string()
+  .max(100)
+  .refine(
+    (value) => value.trim() === '' || ARGENTINE_LOCATION_NAME_REGEX.test(value),
+    'Ciudad inválida.'
+  );
+
 // ─── Create Company ─────────────────────────────────────
 export const createCompanySchema = z.object({
   name: z
@@ -48,7 +59,7 @@ export const createCompanySchema = z.object({
     .min(1, 'El código postal es obligatorio.')
     .max(50)
     .regex(/^\d{4,8}$/, 'Entre 4 y 8 dígitos.'),
-  city: z.string().max(100).or(z.literal('')),
+  city: citySchema,
   province: z.string().min(1, 'La provincia es obligatoria.').max(100),
   country: z.string().min(1, 'El país es obligatorio.').max(100),
   phone: z
@@ -57,6 +68,14 @@ export const createCompanySchema = z.object({
     .max(30)
     .regex(/^[\d\s\-+()]+$/, 'Formato de teléfono inválido.'),
   services: z.array(z.string().max(100)).max(50),
+}).superRefine((data, ctx) => {
+  if (!isCabaProvince(data.province) && data.city.trim().length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'La ciudad es obligatoria.',
+      path: ['city'],
+    });
+  }
 });
 
 export type CreateCompanyFormValues = z.infer<typeof createCompanySchema>;

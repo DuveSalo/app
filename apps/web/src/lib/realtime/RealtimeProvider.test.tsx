@@ -12,6 +12,7 @@ const { mockChannel, mockRemoveChannel, mockSupabaseChannel } = vi.hoisted(() =>
   const mockChannel = {
     on: vi.fn().mockReturnThis(),
     subscribe: vi.fn().mockReturnThis(),
+    unsubscribe: vi.fn().mockResolvedValue('ok'),
   };
   const mockRemoveChannel = vi.fn();
   const mockSupabaseChannel = vi.fn(() => mockChannel);
@@ -40,6 +41,7 @@ describe('RealtimeProvider', () => {
     // Re-wire channel mock after clearAllMocks
     mockChannel.on.mockReturnThis();
     mockChannel.subscribe.mockReturnThis();
+    mockChannel.unsubscribe.mockResolvedValue('ok');
     mockSupabaseChannel.mockReturnValue(mockChannel);
   });
 
@@ -142,6 +144,7 @@ describe('RealtimeProvider', () => {
 
     unmount();
 
+    expect(mockChannel.unsubscribe).toHaveBeenCalledTimes(1);
     expect(mockRemoveChannel).toHaveBeenCalledWith(mockChannel);
   });
 

@@ -198,6 +198,19 @@ describe('BankTransferPlanCard — status-driven', () => {
     render(<BankTransferPlanCard subscription={subscription} />);
     expect(screen.getByText('Transferencia bancaria')).toBeInTheDocument();
   });
+
+  it('shows the next payment date for active bank-transfer subscriptions', () => {
+    const subscription = createMockSubscription({
+      status: 'active',
+      paymentProvider: 'bank_transfer',
+      nextBillingTime: null,
+      currentPeriodEnd: '2026-05-10',
+    });
+    render(<BankTransferPlanCard subscription={subscription} />);
+
+    expect(screen.getByText('Próximo pago')).toBeInTheDocument();
+    expect(screen.getByText('10/05/2026')).toBeInTheDocument();
+  });
 });
 
 const renderSection = (subscription: Subscription | null, opts: { trialEndsAt?: string } = {}) => {

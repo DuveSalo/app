@@ -5,7 +5,7 @@
 
 import { supabase } from '../../supabase/client';
 import { Notification, NotificationFilters, NotificationStats, PaginatedNotifications } from '../../../types/notification';
-import { handleSupabaseError } from '../../utils/errors';
+import { NetworkError, handleSupabaseError, isNetworkError } from '../../utils/errors';
 import { Tables } from '../../../types/database.types';
 
 type NotificationRow = Tables<'notifications'>;
@@ -28,6 +28,20 @@ const mapNotificationFromDb = (row: NotificationRow): Notification => ({
   readAt: row.read_at ?? undefined,
   createdAt: row.created_at,
 });
+
+const NETWORK_ERROR_MESSAGE = 'No se pudo conectar con el servidor. Verifica tu conexión a internet.';
+
+const resolveSupabaseQuery = async <T>(query: PromiseLike<T>): Promise<T> => {
+  try {
+    return await query;
+  } catch (error) {
+    if (isNetworkError(error)) {
+      throw new NetworkError(NETWORK_ERROR_MESSAGE);
+    }
+
+    throw error;
+  }
+};
 
 /**
  * Get notifications for a company with optional filters.
@@ -78,7 +92,10 @@ export const getNotifications = async (
   const offset = (page - 1) * pageSize;
   dataQuery = dataQuery.range(offset, offset + pageSize - 1);
 
-  const [countResult, dataResult] = await Promise.all([countQuery, dataQuery]);
+  const [countResult, dataResult] = await Promise.all([
+    resolveSupabaseQuery(countQuery),
+    resolveSupabaseQuery(dataQuery),
+  ]);
 
   if (countResult.error) handleSupabaseError(countResult.error);
   if (dataResult.error) handleSupabaseError(dataResult.error);
@@ -99,11 +116,13 @@ export const getNotifications = async (
  */
 export const getUnreadCount = async (companyId: string): Promise<number> => {
   // Use 'id' instead of '*' for count efficiency
-  const { count, error } = await supabase
-    .from('notifications')
-    .select('id', { count: 'exact', head: true })
-    .eq('company_id', companyId)
-    .eq('is_read', false);
+  const { count, error } = await resolveSupabaseQuery(
+    supabase
+      .from('notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('company_id', companyId)
+      .eq('is_read', false)
+  );
 
   if (error) {
     handleSupabaseError(error);
@@ -118,15 +137,19 @@ export const getUnreadCount = async (companyId: string): Promise<number> => {
 export const getNotificationStats = async (companyId: string): Promise<NotificationStats> => {
   // Use 'id' instead of '*' for count efficiency
   const [totalResult, unreadResult] = await Promise.all([
-    supabase
-      .from('notifications')
-      .select('id', { count: 'exact', head: true })
-      .eq('company_id', companyId),
-    supabase
-      .from('notifications')
-      .select('id', { count: 'exact', head: true })
-      .eq('company_id', companyId)
-      .eq('is_read', false),
+    resolveSupabaseQuery(
+      supabase
+        .from('notifications')
+        .select('id', { count: 'exact', head: true })
+        .eq('company_id', companyId)
+    ),
+    resolveSupabaseQuery(
+      supabase
+        .from('notifications')
+        .select('id', { count: 'exact', head: true })
+        .eq('company_id', companyId)
+        .eq('is_read', false)
+    ),
   ]);
 
   if (totalResult.error) handleSupabaseError(totalResult.error);
@@ -142,13 +165,15 @@ export const getNotificationStats = async (companyId: string): Promise<Notificat
  * Mark a single notification as read
  */
 export const markAsRead = async (notificationId: string): Promise<void> => {
-  const { error } = await supabase
-    .from('notifications')
-    .update({
-      is_read: true,
-      read_at: new Date().toISOString(),
-    })
-    .eq('id', notificationId);
+  const { error } = await resolveSupabaseQuery(
+    supabase
+      .from('notifications')
+      .update({
+        is_read: true,
+        read_at: new Date().toISOString(),
+      })
+      .eq('id', notificationId)
+  );
 
   if (error) {
     handleSupabaseError(error);
@@ -159,14 +184,16 @@ export const markAsRead = async (notificationId: string): Promise<void> => {
  * Mark all notifications as read for a company
  */
 export const markAllAsRead = async (companyId: string): Promise<void> => {
-  const { error } = await supabase
-    .from('notifications')
-    .update({
-      is_read: true,
-      read_at: new Date().toISOString(),
-    })
-    .eq('company_id', companyId)
-    .eq('is_read', false);
+  const { error } = await resolveSupabaseQuery(
+    supabase
+      .from('notifications')
+      .update({
+        is_read: true,
+        read_at: new Date().toISOString(),
+      })
+      .eq('company_id', companyId)
+      .eq('is_read', false)
+  );
 
   if (error) {
     handleSupabaseError(error);
@@ -177,10 +204,9 @@ export const markAllAsRead = async (companyId: string): Promise<void> => {
  * Delete a notification
  */
 export const deleteNotification = async (notificationId: string): Promise<void> => {
-  const { error } = await supabase
-    .from('notifications')
-    .delete()
-    .eq('id', notificationId);
+  const { error } = await resolveSupabaseQuery(
+    supabase.from('notifications').delete().eq('id', notificationId)
+  );
 
   if (error) {
     handleSupabaseError(error);
@@ -191,11 +217,9 @@ export const deleteNotification = async (notificationId: string): Promise<void> 
  * Delete all read notifications for a company
  */
 export const deleteReadNotifications = async (companyId: string): Promise<void> => {
-  const { error } = await supabase
-    .from('notifications')
-    .delete()
-    .eq('company_id', companyId)
-    .eq('is_read', true);
+  const { error } = await resolveSupabaseQuery(
+    supabase.from('notifications').delete().eq('company_id', companyId).eq('is_read', true)
+  );
 
   if (error) {
     handleSupabaseError(error);

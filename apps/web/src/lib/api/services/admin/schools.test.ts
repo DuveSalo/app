@@ -287,4 +287,36 @@ describe('getSchoolDetail', () => {
 
     expect(detail.paymentMethod).toBe('bank_transfer');
   });
+
+  it('does not expose stale trial end date once the school is subscribed', async () => {
+    mockFromSelectEqSingle({
+      data: {
+        id: 'school-7',
+        name: 'Escuela Activa',
+        cuit: '20-87654321-0',
+        address: 'Avenida Siempre Viva 742',
+        city: '',
+        province: 'CABA',
+        locality: '',
+        postal_code: 'C1000',
+        phone: '011-123456',
+        selected_plan: 'basic',
+        subscription_status: 'active',
+        payment_method: 'bank_transfer',
+        bank_transfer_status: 'active',
+        is_subscribed: true,
+        trial_ends_at: '2026-05-01T00:00:00Z',
+        subscription_renewal_date: '2026-05-15',
+        created_at: '2026-04-01T00:00:00Z',
+        services: null,
+        employees: [],
+      },
+      error: null,
+    });
+
+    const detail = await getSchoolDetail('school-7');
+
+    expect(detail.trialEndsAt).toBeNull();
+    expect(detail.subscriptionRenewalDate).toBe('2026-05-15');
+  });
 });

@@ -30,6 +30,20 @@ describe('companyInfoSchema', () => {
     expect(result.success).toBe(true);
   });
 
+  it('should accept empty city when province is CABA', () => {
+    const result = companyInfoSchema.safeParse({
+      ...validCompany,
+      province: 'CABA',
+      city: '',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject empty city when province is not CABA', () => {
+    const result = companyInfoSchema.safeParse({ ...validCompany, city: '' });
+    expect(result.success).toBe(false);
+  });
+
   it('should reject missing name', () => {
     const { name: _, ...data } = validCompany;
     const result = companyInfoSchema.safeParse(data);

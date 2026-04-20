@@ -95,7 +95,7 @@ describe('createCompanySchema', () => {
     cuit: '30-12345678-9',
     address: 'Av. Libertador 1234',
     postalCode: '1425',
-    city: '',
+    city: 'La Plata',
     province: 'Buenos Aires',
     country: 'Argentina',
     phone: '+54 11 1234-5678',
@@ -107,9 +107,18 @@ describe('createCompanySchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should accept empty city (optional)', () => {
-    const result = createCompanySchema.safeParse({ ...validCompany, city: '' });
+  it('should accept empty city when province is CABA', () => {
+    const result = createCompanySchema.safeParse({
+      ...validCompany,
+      city: '',
+      province: 'CABA',
+    });
     expect(result.success).toBe(true);
+  });
+
+  it('should reject empty city when province is not CABA', () => {
+    const result = createCompanySchema.safeParse({ ...validCompany, city: '' });
+    expect(result.success).toBe(false);
   });
 
   it('should reject invalid CUIT format', () => {

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getNotifications, markAsRead, markAllAsRead, getUnreadCount } from './notifications';
+import { NetworkError } from '../../utils/errors';
 
 vi.mock('../../supabase/client', () => ({
   supabase: {
@@ -191,6 +192,20 @@ describe('notifications service', () => {
       fromMock.mockReturnValue(chainMock);
 
       await expect(getUnreadCount(COMPANY_ID)).rejects.toThrow();
+    });
+
+    it('normalizes raw fetch failures to NetworkError', async () => {
+      const fromMock = supabase.from as ReturnType<typeof vi.fn>;
+      const chainMock = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+      };
+      chainMock.eq
+        .mockReturnValueOnce(chainMock)
+        .mockRejectedValueOnce(new TypeError('Failed to fetch'));
+      fromMock.mockReturnValue(chainMock);
+
+      await expect(getUnreadCount(COMPANY_ID)).rejects.toThrow(NetworkError);
     });
   });
 });

@@ -53,6 +53,7 @@ vi.mock('@/lib/utils/logger', () => ({
 }));
 
 import { supabase } from '@/lib/supabase/client';
+import { recoverSupabaseAuthSession } from '@/lib/supabase/client';
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <MemoryRouter>
@@ -103,5 +104,37 @@ describe('AuthContext — onAuthStateChange listener', () => {
     unmount();
 
     expect(unsubscribeMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('defers SIGNED_IN refresh until after the auth callback returns', async () => {
+    let authStateCallback: ((event: 'SIGNED_IN') => void) | null = null;
+    const mockOnAuthStateChange = supabase.auth.onAuthStateChange as ReturnType<typeof vi.fn>;
+    mockOnAuthStateChange.mockImplementation((callback: (event: 'SIGNED_IN') => void) => {
+      authStateCallback = callback;
+      return {
+        data: { subscription: { unsubscribe: vi.fn() } },
+      };
+    });
+
+    renderHook(() => useAuth(), { wrapper });
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const recoverMock = recoverSupabaseAuthSession as ReturnType<typeof vi.fn>;
+    recoverMock.mockClear();
+
+    expect(authStateCallback).not.toBeNull();
+    const triggerAuthStateChange = authStateCallback as unknown as (event: 'SIGNED_IN') => void;
+    triggerAuthStateChange('SIGNED_IN');
+
+    expect(recoverMock).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(recoverMock).toHaveBeenCalledTimes(1);
   });
 });
